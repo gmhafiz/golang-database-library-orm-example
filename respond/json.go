@@ -9,7 +9,13 @@ import (
 func Json(w http.ResponseWriter, statusCode int, payload interface{}) {
 	w.WriteHeader(statusCode)
 
-	if payload == nil {
+	//(reflect.Ptr(reflect.ValueOf(payload)) && reflect.ValueOf(payload).Elem().IsNil())
+	//if payload == nil ||
+	//	(reflect.ValueOf(payload).Kind() == reflect.Ptr && reflect.ValueOf(payload).IsNil()) ||
+	//	(reflect.ValueOf(payload).Elem().IsNil()) {
+	//	return
+	//}
+	if payload == nil || &payload == nil{
 		return
 	}
 

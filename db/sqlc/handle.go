@@ -3,6 +3,8 @@ package sqlc
 import (
 	"database/sql"
 	"encoding/json"
+	sqlx2 "godb/db/sqlx"
+	"godb/param"
 	"net/http"
 
 	"github.com/alexedwards/argon2id"
@@ -10,7 +12,6 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"godb/respond"
-	sqlx2 "godb/sqlx"
 )
 
 type handler struct {
@@ -90,7 +91,25 @@ func (h *handler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
+	userID, err := param.Int64(w, r, "userID")
+	if err != nil {
+		http.Error(w, `{"message": `+param.ErrParam.Error()+`}`, http.StatusBadRequest)
+		return
+	}
 
+	user, err := h.db.GetUser(r.Context(), userID)
+	if err != nil {
+		http.Error(w, `{"message": "db scanning error"}`, http.StatusInternalServerError)
+		return
+	}
+
+	respond.Json(w, http.StatusOK, &sqlx2.UserResponse{
+		ID:         uint(user.ID),
+		FirstName:  user.FirstName,
+		MiddleName: user.MiddleName.String,
+		LastName:   user.LastName,
+		Email:      user.Email,
+	})
 }
 
 func (h *handler) Update(w http.ResponseWriter, r *http.Request) {

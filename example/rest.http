@@ -9,7 +9,7 @@ Content-Type: application/json
   "password": "password"
 }
 
-### GET request with a header
+### GET request
 GET http://localhost:3080/api/sqlx/user
 Accept: application/json
 
@@ -18,6 +18,7 @@ Accept: application/json
 
 
 ################################################################################
+# sqlc
 
 ### Send POST request with json body
 POST  http://localhost:3080/api/sqlc/user
@@ -32,4 +33,27 @@ Content-Type: application/json
 
 ### GET request with a header
 GET http://localhost:3080/api/sqlc/user
+Accept: application/json
+
+
+################################################################################
+# gorm
+
+### Send POST request with json body
+POST  http://localhost:3080/api/gorm/user
+Content-Type: application/json
+
+{
+  "first_name": "Jake",
+  "last_name": "Doe",
+  "email": "jake2@example.com",
+  "password": "password"
+}
+
+### GET request
+GET http://localhost:3080/api/gorm/user
+Accept: application/json
+
+### GET request by ID
+GET http://localhost:3080/api/gorm/user/1
 Accept: application/json

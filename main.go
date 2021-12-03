@@ -3,7 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
-	"godb/sqlc"
+	"godb/db/gorm"
+	"godb/db/sqlc"
+	sqlx2 "godb/db/sqlx"
+	gorm2 "gorm.io/gorm"
 	"log"
 	"net/http"
 	"os"
@@ -15,12 +18,12 @@ import (
 
 	"godb/config"
 	"godb/middleware"
-	"godb/sqlx"
 )
 
 type App struct {
 	sqlx *driver.DB
-
+	gorm *gorm2.DB
+	
 	config     *config.Configuration
 	router     *chi.Mux
 	httpServer *http.Server
@@ -65,22 +68,24 @@ func (a *App) SetupRouter() {
 		_, _ = w.Write([]byte(`{"message": "endpoint not found"}`))
 	})
 
-	sqlx.Handle(a.router, a.sqlx)
+	sqlx2.Handle(a.router, a.sqlx)
 	sqlc.Handle(a.router, a.sqlx)
+	gorm.Handle(a.router, a.gorm)
 
 	printAllRegisteredRoutes(a.router)
 }
 
 func (a *App) SetupDB() {
-	a.sqlx = sqlx.New(a.config.DB)
+	a.sqlx = sqlx2.New(a.config.DB)
+	a.gorm = gorm.New(a.config.DB)
 }
 
 func (a *App) SetupServer() {
 	a.httpServer = &http.Server{
 		Addr:           "0.0.0.0:3080",
 		Handler:        a.router,
-		ReadTimeout:    5*time.Second,
-		WriteTimeout:   10*time.Second,
+		ReadTimeout:    5 * time.Second,
+		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
 }
