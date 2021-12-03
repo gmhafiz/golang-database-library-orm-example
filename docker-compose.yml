@@ -1,0 +1,23 @@
+version: '3.7'
+
+services:
+
+  postgres:
+    image: "postgres:14"
+    restart: unless-stopped
+    container_name: "postgres14"
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=db_test
+    ports:
+      - "5432:5432"
+    expose:
+      - "5432"
+    healthcheck:
+      test: pg_isready -U postgres
+    volumes:
+      - postgres14db:/var/lib/postgresql/data
+
+volumes:
+  postgres14db:

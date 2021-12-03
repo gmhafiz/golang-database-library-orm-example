@@ -1,0 +1,35 @@
+### Send POST request with json body
+POST  http://localhost:3080/api/sqlx/user
+Content-Type: application/json
+
+{
+  "first_name": "Jake",
+  "last_name": "Doe",
+  "email": "jake2@example.com",
+  "password": "password"
+}
+
+### GET request with a header
+GET http://localhost:3080/api/sqlx/user
+Accept: application/json
+
+
+
+
+
+################################################################################
+
+### Send POST request with json body
+POST  http://localhost:3080/api/sqlc/user
+Content-Type: application/json
+
+{
+  "first_name": "Jake",
+  "last_name": "Doe",
+  "email": "jake2@example.com",
+  "password": "password"
+}
+
+### GET request with a header
+GET http://localhost:3080/api/sqlc/user
+Accept: application/json
