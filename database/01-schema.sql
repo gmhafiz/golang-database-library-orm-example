@@ -72,3 +72,5 @@ INSERT INTO users (first_name, last_name, email, password)
 VALUES ('Jane', 'Doe', 'jane@example.com', '$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg'); -- password
 
 COMMIT;
+
+CREATE DATABASE ent;

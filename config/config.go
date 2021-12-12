@@ -12,7 +12,7 @@ type Database struct {
 	Host     string `default:"localhost"`
 	Port     int    `default:"5432"`
 	User     string `default:"user"`
-	Name     string `default:"postgres"`
+	Name     string `default:"db_test"`
 	Password string `default:"password"`
 	SSLMode  string `default:"disable"`
 }
