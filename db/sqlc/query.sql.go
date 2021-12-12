@@ -6,7 +6,95 @@ package sqlc
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 )
+
+const countriesWithAddress = `-- name: CountriesWithAddress :many
+SELECT c.id AS country_id,
+       c.name,
+       c.code,
+       a.id AS address_id,
+       a.line_1,
+       a.line_2,
+       a.postcode,
+       a.city,
+       a.state
+FROM countries c
+         LEFT JOIN addresses a on c.id = a.country_id
+ORDER BY c.id
+`
+
+type CountriesWithAddressRow struct {
+	CountryID int64
+	Name      string
+	Code      string
+	AddressID sql.NullInt64
+	Line1     sql.NullString
+	Line2     sql.NullString
+	Postcode  sql.NullInt32
+	City      sql.NullString
+	State     sql.NullString
+}
+
+func (q *Queries) CountriesWithAddress(ctx context.Context) ([]CountriesWithAddressRow, error) {
+	rows, err := q.db.QueryContext(ctx, countriesWithAddress)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CountriesWithAddressRow
+	for rows.Next() {
+		var i CountriesWithAddressRow
+		if err := rows.Scan(
+			&i.CountryID,
+			&i.Name,
+			&i.Code,
+			&i.AddressID,
+			&i.Line1,
+			&i.Line2,
+			&i.Postcode,
+			&i.City,
+			&i.State,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const countriesWithAddressAggregate = `-- name: CountriesWithAddressAggregate :many
+select row_to_json(row) from (select id, code, name, addresses from country_address) row
+`
+
+func (q *Queries) CountriesWithAddressAggregate(ctx context.Context) ([]json.RawMessage, error) {
+	rows, err := q.db.QueryContext(ctx, countriesWithAddressAggregate)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []json.RawMessage
+	for rows.Next() {
+		var row_to_json json.RawMessage
+		if err := rows.Scan(&row_to_json); err != nil {
+			return nil, err
+		}
+		items = append(items, row_to_json)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (first_name, middle_name, last_name, email, password)
@@ -43,7 +131,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const deleteUser = `-- name: DeleteUser :exec
-DELETE FROM users
+DELETE
+FROM users
 WHERE id = $1
 `
 
@@ -107,4 +196,32 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateUser = `-- name: UpdateUser :exec
+UPDATE users
+SET first_name=$1,
+    middle_name=$2,
+    last_name=$3,
+    email=$4
+WHERE id = $5
+`
+
+type UpdateUserParams struct {
+	FirstName  string
+	MiddleName sql.NullString
+	LastName   string
+	Email      string
+	ID         int64
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
+	_, err := q.db.ExecContext(ctx, updateUser,
+		arg.FirstName,
+		arg.MiddleName,
+		arg.LastName,
+		arg.Email,
+		arg.ID,
+	)
+	return err
 }

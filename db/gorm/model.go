@@ -1,21 +1,45 @@
 package gorm
 
 import (
+	"database/sql"
 	"fmt"
-	"godb/config"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 	"log"
+
+	"gorm.io/driver/postgres"
+	//"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+
+	"godb/config"
 )
 
-type UserGorm struct {
-	FirstName  string `gorm:"first_name"`
-	MiddleName string `gorm:"middle_name"`
-	LastName   string `gorm:"last_name"`
-	Email      string `gorm:"email"`
-	Password   string `gorm:"password"`
-
+type User struct {
 	gorm.Model
+
+	FirstName  string
+	MiddleName sql.NullString
+	LastName   string
+	Email      string
+	Password   string
+}
+
+type Country struct {
+	gorm.Model
+
+	Code string
+	Name string
+}
+
+type Address struct {
+	gorm.Model
+
+	ID       uint
+	Line1    string
+	Line2    sql.NullString
+	Postcode sql.NullInt32
+	City     sql.NullString
+	State    sql.NullString
+	Country  []Country
+	//Country  []Country `gorm:"foreignKey:ID"`
 }
 
 func New(c config.Database) *gorm.DB {
@@ -34,10 +58,10 @@ func New(c config.Database) *gorm.DB {
 
 	db.Debug()
 
-	err = db.AutoMigrate(&UserGorm{})
-	if err != nil {
-		log.Panic(err)
-	}
+	//err = db.AutoMigrate(&User{}, &Country{}, &Address{})
+	//if err != nil {
+	//	log.Panic(err)
+	//}
 
 	return db
 }

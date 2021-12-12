@@ -10,7 +10,7 @@ import (
 
 var ErrParam = errors.New("error parsing param")
 
-func UInt64(w http.ResponseWriter, r *http.Request, param string) (uint64, error) {
+func UInt64(r *http.Request, param string) (uint64, error) {
 	val, err := strconv.ParseInt(chi.URLParam(r, param), 10, 64)
 	if err != nil {
 		return 0, ErrParam
@@ -19,7 +19,7 @@ func UInt64(w http.ResponseWriter, r *http.Request, param string) (uint64, error
 	return uint64(val), nil
 }
 
-func Int64(w http.ResponseWriter, r *http.Request, param string) (int64, error) {
+func Int64(r *http.Request, param string) (int64, error) {
 	val, err := strconv.ParseInt(chi.URLParam(r, param), 10, 64)
 	if err != nil {
 		return 0, ErrParam

@@ -4,6 +4,7 @@ package sqlc
 
 import (
 	"database/sql"
+	"encoding/json"
 )
 
 type Address struct {
@@ -22,6 +23,13 @@ type Country struct {
 	Name string
 }
 
+type CountryAddress struct {
+	ID        int64
+	Code      string
+	Name      string
+	Addresses json.RawMessage
+}
+
 type User struct {
 	ID         int64
 	FirstName  string
@@ -32,6 +40,6 @@ type User struct {
 }
 
 type UserAddress struct {
-	UserID    sql.NullInt64
-	AddressID sql.NullInt64
+	UserID    int64
+	AddressID int64
 }

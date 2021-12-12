@@ -1,4 +1,4 @@
-### Send POST request with json body
+### Create POST request with json body
 POST  http://localhost:3080/api/sqlx/user
 Content-Type: application/json
 
@@ -9,18 +9,43 @@ Content-Type: application/json
   "password": "password"
 }
 
-### GET request
+### List
 GET http://localhost:3080/api/sqlx/user
 Accept: application/json
 
+### GET request by ID
+GET http://localhost:3080/api/sqlx/user/1
+Accept: application/json
 
 
+### Update PUT request with json body
+PUT  http://localhost:3080/api/sqlx/user/1
+Content-Type: application/json
 
+{
+  "first_name": "John",
+  "last_name": "Doe",
+  "email": "john-changed@example.com",
+  "password": "password"
+}
+
+### Delete DELETE request with json body
+DELETE  http://localhost:3080/api/sqlx/user/3
+Content-Type: application/json
+
+### GET country with addresses
+GET http://localhost:3080/api/sqlx/country
+Accept: application/json
+
+
+### GET users with their addresses
+GET http://localhost:3080/api/sqlx/user/m2m
+Accept: application/json
 
 ################################################################################
 # sqlc
 
-### Send POST request with json body
+### Create POST request with json body
 POST  http://localhost:3080/api/sqlc/user
 Content-Type: application/json
 
@@ -31,8 +56,32 @@ Content-Type: application/json
   "password": "password"
 }
 
-### GET request with a header
+### List
 GET http://localhost:3080/api/sqlc/user
+Accept: application/json
+
+### GET request by ID
+GET http://localhost:3080/api/sqlc/user/1
+Accept: application/json
+
+
+### Update PUT request with json body
+PUT  http://localhost:3080/api/sqlc/user/2555555
+Content-Type: application/json
+
+{
+  "first_name": "John",
+  "last_name": "Doe",
+  "email": "john-changed@example.com",
+  "password": "password"
+}
+
+### Delete DELETE request with json body
+DELETE  http://localhost:3080/api/sqlc/user/2
+Content-Type: application/json
+
+### GET user addresses by ID
+GET http://localhost:3080/api/sqlc/country
 Accept: application/json
 
 
@@ -56,4 +105,86 @@ Accept: application/json
 
 ### GET request by ID
 GET http://localhost:3080/api/gorm/user/1
+Accept: application/json
+
+
+### Update PUT request with json body
+PUT  http://localhost:3080/api/gorm/user/1
+Content-Type: application/json
+
+{
+  "first_name": "John",
+  "last_name": "Doe",
+  "email": "john-changed@example.com",
+  "password": "password"
+}
+###
+// todo: edit non-existing id
+PUT  http://localhost:3080/api/gorm/user/2
+###
+
+### Delete DELETE request with json body
+DELETE  http://localhost:3080/api/gorm/user/2
+Content-Type: application/json
+
+### GET user addresses by ID
+GET http://localhost:3080/api/gorm/country
+Accept: application/json
+
+################################################################################
+# sqlboiler
+
+### Send POST request with json body
+POST  http://localhost:3080/api/sqlboiler/user
+Content-Type: application/json
+
+{
+  "first_name": "Jake",
+  "last_name": "Doe",
+  "email": "jake3@example.com",
+  "password": "password"
+}
+
+### GET request
+GET http://localhost:3080/api/sqlboiler/user
+Accept: application/json
+
+### GET request by ID
+GET http://localhost:3080/api/sqlboiler/user/1
+Accept: application/json
+
+
+
+### GET user addresses by ID
+GET http://localhost:3080/api/sqlboiler/country
+Accept: application/json
+
+################################################################################
+# ent
+
+### Send POST request with json body
+POST  http://localhost:3080/api/ent/user
+Content-Type: application/json
+
+{
+  "first_name": "Jake",
+  "last_name": "Doe",
+  "email": "jake3@example.com",
+  "password": "password"
+}
+
+### GET request
+GET http://localhost:3080/api/ent/user
+Accept: application/json
+
+### GET request by ID
+GET http://localhost:3080/api/ent/user/1
+Accept: application/json
+
+### GET user addresses by ID
+GET http://localhost:3080/api/ent/country
+Accept: application/json
+
+### GET users with their addresses
+GET http://localhost:3080/api/ent/user/m2m
 Accept: application/json

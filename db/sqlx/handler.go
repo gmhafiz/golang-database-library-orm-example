@@ -1,41 +1,38 @@
 package sqlx
 
 import (
-	"database/sql"
 	"encoding/json"
-	"errors"
-	"log"
 	"net/http"
 
 	"github.com/alexedwards/argon2id"
 	"github.com/go-chi/chi/v5"
-	"github.com/jackc/pgconn"
-	"github.com/jackc/pgerrcode"
 	"github.com/jmoiron/sqlx"
 
+	"godb/param"
 	"godb/respond"
 )
 
-const (
-	Insert = "INSERT INTO users (first_name, middle_name, last_name, email, password) VALUES ($1, $2, $3, $4, $5)"
-	List   = "SELECT * FROM users;"
-)
-
 type handler struct {
-	db *sqlx.DB
+	db *database
 }
 
-func Handle(r *chi.Mux, db *sqlx.DB) {
+func Register(r *chi.Mux, db *sqlx.DB) {
 	h := &handler{
-		db: db,
+		db: NewRepo(db),
 	}
 
 	r.Route("/api/sqlx/user", func(router chi.Router) {
 		router.Post("/", h.Create)
 		router.Get("/", h.List)
+		router.Get("/m2m", h.ListM2M)
 		router.Get("/{userID}", h.Get)
+		router.Get("/{userID}/address", h.Countries)
 		router.Put("/{userID}", h.Update)
 		router.Delete("/{userID}", h.Delete)
+	})
+
+	r.Route("/api/sqlx/country", func(router chi.Router) {
+		router.Get("/", h.Countries)
 	})
 }
 
@@ -53,67 +50,100 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.db.ExecContext(r.Context(), Insert, request.FirstName, request.MiddleName, request.LastName, request.Email, hash)
+	_, err = h.db.Create(r.Context(), &request, hash)
 	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
-			switch pgErr.Code {
-			case pgerrcode.UniqueViolation:
-				http.Error(w, `{"message": "unique key violation"}`, http.StatusBadRequest)
-				return
-			}
-		}
-		http.Error(w, `{"message": "db error"}`, http.StatusInternalServerError)
+		http.Error(w, `{"message": "`+err.Error()+`"}`, http.StatusBadRequest)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
 }
 
-type user struct {
-	ID         uint           `db:"id"`
-	FirstName  string         `db:"first_name"`
-	MiddleName sql.NullString `db:"middle_name"`
-	LastName   string         `db:"last_name"`
-	Email      string         `db:"email"`
-	Password   string         `db:"password"`
-}
-
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
-	var users []UserResponse
-	rows, err := h.db.QueryContext(r.Context(), List)
+	users, err := h.db.List(r.Context())
 	if err != nil {
-		http.Error(w, `{"message": "db error"}`, http.StatusInternalServerError)
+		http.Error(w, `{"message": `+err.Error()+`}`, http.StatusBadRequest)
 		return
-	}
-
-	for rows.Next() {
-		var u user
-		err := rows.Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email, &u.Password)
-		if err != nil {
-			http.Error(w, `{"message": "db scanning error"}`, http.StatusInternalServerError)
-			return
-		}
-		users = append(users, UserResponse{
-			ID:         u.ID,
-			FirstName:  u.FirstName,
-			MiddleName: u.MiddleName.String,
-			LastName:   u.LastName,
-			Email:      u.Email,
-		})
 	}
 
 	respond.Json(w, http.StatusOK, users)
 }
 
 func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
-	log.Println("")
+	userID, err := param.Int64(r, "userID")
+	if err != nil {
+		http.Error(w, `{"message": `+err.Error()+`}`, http.StatusBadRequest)
+		return
+	}
+
+	u, err := h.db.Get(r.Context(), userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	respond.Json(w, http.StatusOK, u)
 }
 
 func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
-	log.Println("")
+	userID, err := param.Int64(r, "userID")
+	if err != nil {
+		http.Error(w, `{"message": `+err.Error()+`}`, http.StatusBadRequest)
+		return
+	}
+
+	var req UserUpdateRequest
+	err = json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, `{"message": "bad request"}`, http.StatusBadRequest)
+		return
+	}
+
+	_, err = h.db.Update(r.Context(), userID, &req)
+	if err != nil {
+		http.Error(w, `{"message": "error updating"}`, http.StatusInternalServerError)
+		return
+	}
+
+	respond.Json(w, http.StatusOK, &UserResponse{
+		ID:         uint(userID),
+		FirstName:  req.FirstName,
+		MiddleName: req.MiddleName,
+		LastName:   req.LastName,
+		Email:      req.Email,
+	})
 }
 
 func (h *handler) Delete(w http.ResponseWriter, r *http.Request) {
-	log.Println("")
+	userID, err := param.Int64(r, "userID")
+	if err != nil {
+		http.Error(w, `{"message": `+param.ErrParam.Error()+`}`, http.StatusBadRequest)
+		return
+	}
+
+	_, err = h.db.Delete(r.Context(), userID)
+	if err != nil {
+		http.Error(w, `{"message": "error deleting"}`, http.StatusBadRequest)
+		return
+	}
+}
+
+func (h *handler) Countries(w http.ResponseWriter, r *http.Request) {
+	addresses, err := h.db.Countries(r.Context())
+	if err != nil {
+		http.Error(w, `{"message": "error retrieving"}`, http.StatusInternalServerError)
+		return
+	}
+
+	respond.Json(w, http.StatusOK, addresses)
+}
+
+func (h *handler) ListM2M(w http.ResponseWriter, r *http.Request) {
+	users, err := h.db.ListM2M(r.Context())
+	if err != nil {
+		http.Error(w, `{"message": `+err.Error()+`}`, http.StatusBadRequest)
+		return
+	}
+
+	respond.Json(w, http.StatusOK, users)
 }

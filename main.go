@@ -3,10 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"godb/db/gorm"
-	"godb/db/sqlc"
-	sqlx2 "godb/db/sqlx"
-	gorm2 "gorm.io/gorm"
 	"log"
 	"net/http"
 	"os"
@@ -15,15 +11,23 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	driver "github.com/jmoiron/sqlx"
+	"gorm.io/gorm"
 
 	"godb/config"
+	"godb/db/ent"
+	"godb/db/ent/ent/gen"
+	gormDB "godb/db/gorm"
+	"godb/db/sqlboiler"
+	"godb/db/sqlc"
+	"godb/db/sqlx"
 	"godb/middleware"
 )
 
 type App struct {
 	sqlx *driver.DB
-	gorm *gorm2.DB
-	
+	gorm *gorm.DB
+	ent  *gen.Client
+
 	config     *config.Configuration
 	router     *chi.Mux
 	httpServer *http.Server
@@ -57,6 +61,10 @@ func (a *App) Run() {
 	defer shutdown()
 
 	_ = a.sqlx.Close()
+	_ = a.ent.Close()
+
+	// You cannot close database connection created by gorm
+
 	_ = a.httpServer.Shutdown(ctx)
 }
 
@@ -68,24 +76,27 @@ func (a *App) SetupRouter() {
 		_, _ = w.Write([]byte(`{"message": "endpoint not found"}`))
 	})
 
-	sqlx2.Handle(a.router, a.sqlx)
-	sqlc.Handle(a.router, a.sqlx)
-	gorm.Handle(a.router, a.gorm)
+	sqlx.Register(a.router, a.sqlx)
+	sqlc.Register(a.router, a.sqlx)
+	gormDB.Register(a.router, a.gorm)
+	sqlboiler.Register(a.router, a.sqlx)
+	ent.Register(a.router, a.ent)
 
 	printAllRegisteredRoutes(a.router)
 }
 
 func (a *App) SetupDB() {
-	a.sqlx = sqlx2.New(a.config.DB)
-	a.gorm = gorm.New(a.config.DB)
+	a.sqlx = sqlx.New(a.config.DB)
+	a.gorm = gormDB.New(a.config.DB)
+	a.ent = ent.New(a.config.DB)
 }
 
 func (a *App) SetupServer() {
 	a.httpServer = &http.Server{
 		Addr:           "0.0.0.0:3080",
 		Handler:        a.router,
-		ReadTimeout:    5 * time.Second,
-		WriteTimeout:   10 * time.Second,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   60 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
 }

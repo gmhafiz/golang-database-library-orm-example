@@ -9,13 +9,7 @@ import (
 func Json(w http.ResponseWriter, statusCode int, payload interface{}) {
 	w.WriteHeader(statusCode)
 
-	//(reflect.Ptr(reflect.ValueOf(payload)) && reflect.ValueOf(payload).Elem().IsNil())
-	//if payload == nil ||
-	//	(reflect.ValueOf(payload).Kind() == reflect.Ptr && reflect.ValueOf(payload).IsNil()) ||
-	//	(reflect.ValueOf(payload).Elem().IsNil()) {
-	//	return
-	//}
-	if payload == nil || &payload == nil{
+	if payload == nil {
 		return
 	}
 
@@ -28,7 +22,7 @@ func Json(w http.ResponseWriter, statusCode int, payload interface{}) {
 	_, err = w.Write(data)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, `{"message": "wrote error"}`, http.StatusInternalServerError)
+		http.Error(w, `{"message": "respond error"}`, http.StatusInternalServerError)
 		return
 	}
 }
