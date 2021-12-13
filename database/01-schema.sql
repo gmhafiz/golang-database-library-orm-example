@@ -71,6 +71,11 @@ VALUES ('John', 'Doe', 'john@example.com', '$argon2id$v=19$m=16,t=2,p=1$SHVrWmRX
 INSERT INTO users (first_name, last_name, email, password)
 VALUES ('Jane', 'Doe', 'jane@example.com', '$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg'); -- password
 
+INSERT INTO user_addresses (user_id, address_id) VALUES (1, 1);
+INSERT INTO user_addresses (user_id, address_id) VALUES (2, 2);
+INSERT INTO user_addresses (user_id, address_id) VALUES (2, 1);
+
+
 COMMIT;
 
 CREATE DATABASE ent;
