@@ -85,6 +85,10 @@ GET http://localhost:3080/api/sqlc/country
 Accept: application/json
 
 
+### GET users with their addresses
+GET http://localhost:3080/api/sqlc/user/m2m
+Accept: application/json
+
 ################################################################################
 # gorm
 
@@ -154,7 +158,6 @@ GET http://localhost:3080/api/sqlboiler/user/1
 Accept: application/json
 
 
-
 ### GET user addresses by ID
 GET http://localhost:3080/api/sqlboiler/country
 Accept: application/json
@@ -167,9 +170,9 @@ POST  http://localhost:3080/api/ent/user
 Content-Type: application/json
 
 {
-  "first_name": "Jake",
+  "first_name": "Jake5",
   "last_name": "Doe",
-  "email": "jake3@example.com",
+  "email": "jake5@example.com",
   "password": "password"
 }
 

@@ -44,3 +44,19 @@ ORDER BY c.id;
 
 -- name: CountriesWithAddressAggregate :many
 select row_to_json(row) from (select * from country_address) row;
+
+-- name: SelectUsers :many
+SELECT u.id, u.first_name, u.middle_name, u.last_name, u.email
+FROM "users" u
+LIMIT 30;
+
+-- name: SelectUserAddresses :many
+SELECT DISTINCT ua.user_id, ua.address_id
+FROM "addresses" a
+         LEFT JOIN "user_addresses" ua ON a.id = ua.address_id
+WHERE ua.user_id = ANY($1::int[]);;
+
+-- name: SelectAddress :many
+SELECT a.*
+FROM addresses a
+WHERE a.id = ANY($1::int[]);

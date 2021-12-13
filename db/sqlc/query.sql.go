@@ -7,6 +7,8 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+
+	"github.com/lib/pq"
 )
 
 const countriesWithAddress = `-- name: CountriesWithAddress :many
@@ -184,6 +186,121 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 			&i.LastName,
 			&i.Email,
 			&i.Password,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const selectAddress = `-- name: SelectAddress :many
+SELECT a.id, a.line_1, a.line_2, a.postcode, a.city, a.state, a.country_id
+FROM addresses a
+WHERE a.id = ANY($1::int[])
+`
+
+func (q *Queries) SelectAddress(ctx context.Context, dollar_1 []int32) ([]Address, error) {
+	rows, err := q.db.QueryContext(ctx, selectAddress, pq.Array(dollar_1))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Address
+	for rows.Next() {
+		var i Address
+		if err := rows.Scan(
+			&i.ID,
+			&i.Line1,
+			&i.Line2,
+			&i.Postcode,
+			&i.City,
+			&i.State,
+			&i.CountryID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const selectUserAddresses = `-- name: SelectUserAddresses :many
+SELECT DISTINCT ua.user_id, ua.address_id
+FROM "addresses" a
+         LEFT JOIN "user_addresses" ua ON a.id = ua.address_id
+WHERE ua.user_id = ANY($1::int[])
+`
+
+type SelectUserAddressesRow struct {
+	UserID    sql.NullInt64
+	AddressID sql.NullInt64
+}
+
+func (q *Queries) SelectUserAddresses(ctx context.Context, dollar_1 []int32) ([]SelectUserAddressesRow, error) {
+	rows, err := q.db.QueryContext(ctx, selectUserAddresses, pq.Array(dollar_1))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SelectUserAddressesRow
+	for rows.Next() {
+		var i SelectUserAddressesRow
+		if err := rows.Scan(&i.UserID, &i.AddressID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const selectUsers = `-- name: SelectUsers :many
+SELECT u.id, u.first_name, u.middle_name, u.last_name, u.email
+FROM "users" u
+LIMIT 30
+`
+
+type SelectUsersRow struct {
+	ID         int64
+	FirstName  string
+	MiddleName sql.NullString
+	LastName   string
+	Email      string
+}
+
+func (q *Queries) SelectUsers(ctx context.Context) ([]SelectUsersRow, error) {
+	rows, err := q.db.QueryContext(ctx, selectUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SelectUsersRow
+	for rows.Next() {
+		var i SelectUsersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.FirstName,
+			&i.MiddleName,
+			&i.LastName,
+			&i.Email,
 		); err != nil {
 			return nil, err
 		}

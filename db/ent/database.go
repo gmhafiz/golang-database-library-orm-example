@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
+	_ "godb/db/ent/ent/gen/runtime"
 
 	"godb/config"
 	"godb/db/ent/ent/gen"

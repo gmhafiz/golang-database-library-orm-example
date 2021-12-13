@@ -38,7 +38,7 @@ func getAddress(addresses models.AddressSlice) []sqlx.AddressForCountry {
 			ID:       uint(address.ID),
 			Line1:    address.Line1,
 			Line2:    address.Line2.String,
-			Postcode: address.Postcode.Int,
+			Postcode: int32(address.Postcode.Int),
 			City:     address.City.String,
 			State:    address.State.String,
 		})

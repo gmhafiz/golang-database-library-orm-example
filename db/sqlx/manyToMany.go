@@ -18,12 +18,14 @@ const (
 	Users = `
 		SELECT u.id, u.first_name, u.middle_name, u.last_name, u.email 
 		FROM "users" u 
-		LIMIT 30;`
+		LIMIT 30;
+`
 	UsersAddress = `
-		SELECT DISTINCT ua.address_id 
+		SELECT DISTINCT ua.user_id AS user_id, ua.address_id AS address_id 
 		FROM "addresses" a 
 			LEFT JOIN "user_addresses" ua ON a.id = ua.address_id 
-		WHERE ua.user_id IN (?);`
+		WHERE ua.user_id IN (?);
+`
 	Address = `
 		SELECT a.* 
 		FROM addresses a
@@ -32,23 +34,24 @@ const (
 )
 
 type userAddress struct {
-	ID int `db:"id"`
+	UserID    int `db:"user_id"`
+	AddressID int `db:"address_id"`
 }
 
-func (r *database) ListM2M(ctx context.Context) (*UserResponseWithAddress, error) {
+func (r *database) ListM2M(ctx context.Context) ([]*UserResponseWithAddressesSqlx, error) {
 	users, err := r.db.QueryContext(ctx, Users)
 	if err != nil {
 		return nil, fmt.Errorf("db error")
 	}
 	defer users.Close()
 
-	var all []*UserResponseWithAddress
+	var all []*UserResponseWithAddressesSqlx
 	for users.Next() {
 		var u user
 		if err := users.Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email); err != nil {
 			return nil, fmt.Errorf("db scanning error")
 		}
-		all = append(all, &UserResponseWithAddress{
+		all = append(all, &UserResponseWithAddressesSqlx{
 			ID:         u.ID,
 			FirstName:  u.FirstName,
 			MiddleName: u.MiddleName.String,
@@ -73,7 +76,7 @@ func (r *database) ListM2M(ctx context.Context) (*UserResponseWithAddress, error
 	var uas []*userAddress
 	for userAddresses.Next() {
 		var ua userAddress
-		if err := userAddresses.Scan(&ua.ID); err != nil {
+		if err := userAddresses.Scan(&ua.UserID, &ua.AddressID); err != nil {
 			return nil, fmt.Errorf("db scanning error")
 		}
 		uas = append(uas, &ua)
@@ -101,28 +104,43 @@ func (r *database) ListM2M(ctx context.Context) (*UserResponseWithAddress, error
 		allAddresses = append(allAddresses, &a)
 	}
 
-	// now we attach address to  the user
-	for _, u := range all {
-		print(u)
+	// now we attach address to the user
+	for _, u := range uas {
+		for _, user := range all {
+			if u.UserID == int(user.ID) {
+				for _, addr := range allAddresses {
+					if addr.ID == uint(u.AddressID) {
+						user.Address = append(user.Address, AddressForCountry{
+							ID:       addr.ID,
+							Line1:    addr.Line1,
+							Line2:    addr.Line2.String,
+							Postcode: addr.Postcode.Int32,
+							City:     addr.City.String,
+							State:    addr.State.String,
+						})
+					}
+				}
+			}
+		}
 	}
 
-	return nil, nil
+	return all, nil
 }
 
 func getAddressIDs(uas []*userAddress) (ids []int) {
 	seen := make(map[int]bool)
 	for _, item := range uas {
-		ok := seen[item.ID]
+		ok := seen[item.AddressID]
 		if !ok {
-			ids = append(ids, item.ID)
-			seen[item.ID] = true
+			ids = append(ids, item.AddressID)
+			seen[item.AddressID] = true
 		}
 	}
 
 	return ids
 }
 
-func getUserIDs(users []*UserResponseWithAddress) (ids []int) {
+func getUserIDs(users []*UserResponseWithAddressesSqlx) (ids []interface{}) {
 	seen := make(map[int]bool)
 	for _, user := range users {
 		ok := seen[int(user.ID)]

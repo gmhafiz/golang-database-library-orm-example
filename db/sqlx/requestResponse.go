@@ -31,12 +31,21 @@ type UserResponse struct {
 }
 
 type UserResponseWithAddress struct {
-	ID         uint    `json:"id,omitempty" db:"id"`
-	FirstName  string  `json:"first_name" db:"first_name"`
-	MiddleName string  `json:"middle_name,omitempty" db:"middle_name"`
-	LastName   string  `json:"last_name" db:"last_name"`
-	Email      string  `json:"email" db:"email"`
-	Address    address `json:"address"`
+	ID         uint              `json:"id,omitempty" db:"id"`
+	FirstName  string            `json:"first_name" db:"first_name"`
+	MiddleName string            `json:"middle_name,omitempty" db:"middle_name"`
+	LastName   string            `json:"last_name" db:"last_name"`
+	Email      string            `json:"email" db:"email"`
+	Address    AddressForCountry `json:"address"`
+}
+
+type UserResponseWithAddressesSqlx struct {
+	ID         uint                `json:"id,omitempty" db:"id"`
+	FirstName  string              `json:"first_name" db:"first_name"`
+	MiddleName string              `json:"middle_name,omitempty" db:"middle_name"`
+	LastName   string              `json:"last_name" db:"last_name"`
+	Email      string              `json:"email" db:"email"`
+	Address    []AddressForCountry `json:"address"`
 }
 
 type UserResponseWithAddresses struct {
@@ -70,7 +79,7 @@ type AddressForCountry struct {
 	ID       uint   `json:"id,omitempty"`
 	Line1    string `json:"line_1,omitempty"`
 	Line2    string `json:"line_2"`
-	Postcode int    `json:"postcode"`
+	Postcode int32  `json:"postcode"`
 	City     string `json:"city"`
 	State    string `json:"state"`
 }
