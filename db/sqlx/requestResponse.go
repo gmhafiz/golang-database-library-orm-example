@@ -2,6 +2,7 @@ package sqlx
 
 import (
 	"database/sql"
+
 	"godb/db/ent/ent/gen"
 )
 
@@ -23,39 +24,38 @@ type UserUpdateRequest struct {
 }
 
 type UserResponse struct {
-	ID         uint   `json:"id,omitempty" db:"id"`
-	FirstName  string `json:"first_name" db:"first_name"`
-	MiddleName string `json:"middle_name,omitempty" db:"middle_name"`
-	LastName   string `json:"last_name" db:"last_name"`
-	Email      string `json:"email" db:"email"`
+	ID         uint   `json:"id,omitempty"`
+	FirstName  string `json:"first_name"`
+	MiddleName string `json:"middle_name,omitempty"`
+	LastName   string `json:"last_name"`
+	Email      string `json:"email"`
 }
 
 type UserResponseWithAddress struct {
-	ID         uint              `json:"id,omitempty" db:"id"`
-	FirstName  string            `json:"first_name" db:"first_name"`
-	MiddleName string            `json:"middle_name,omitempty" db:"middle_name"`
-	LastName   string            `json:"last_name" db:"last_name"`
-	Email      string            `json:"email" db:"email"`
+	ID         uint              `json:"id,omitempty"`
+	FirstName  string            `json:"first_name"`
+	MiddleName string            `json:"middle_name,omitempty"`
+	LastName   string            `json:"last_name"`
+	Email      string            `json:"email"`
 	Address    AddressForCountry `json:"address"`
 }
 
 type UserResponseWithAddressesSqlx struct {
-	ID         uint                `json:"id,omitempty" db:"id"`
-	FirstName  string              `json:"first_name" db:"first_name"`
-	MiddleName string              `json:"middle_name,omitempty" db:"middle_name"`
-	LastName   string              `json:"last_name" db:"last_name"`
-	Email      string              `json:"email" db:"email"`
+	ID         uint                `json:"id,omitempty"`
+	FirstName  string              `json:"first_name"`
+	MiddleName string              `json:"middle_name,omitempty"`
+	LastName   string              `json:"last_name"`
+	Email      string              `json:"email"`
 	Address    []AddressForCountry `json:"address"`
 }
 
 type UserResponseWithAddresses struct {
-	ID         uint    `json:"id,omitempty" `
-	FirstName  string  `json:"first_name"`
-	MiddleName *string `json:"middle_name,omitempty"`
-	//MiddleName null.String    `json:"middle_name,omitempty"`
-	LastName string         `json:"last_name"`
-	Email    string         `json:"email"`
-	Address  []*gen.Address `json:"address"`
+	ID         uint           `json:"id,omitempty" `
+	FirstName  string         `json:"first_name"`
+	MiddleName *string        `json:"middle_name,omitempty"`
+	LastName   string         `json:"last_name"`
+	Email      string         `json:"email"`
+	Address    []*gen.Address `json:"address"`
 }
 
 type AddressResponse struct {

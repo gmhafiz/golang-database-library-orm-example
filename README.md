@@ -11,13 +11,18 @@ Examples of using various popular database libraries and ORM in Go.
 The aim is to demonstrate and compare usage for several operations
 
  1. Simple CRUD operation
- 2. 1-1 queries
- 3. 1-to-Many queries
- 4. Many-to-many queries
- 5. Dynamic list filter from query parameter 
- 6. Transaction
+ 2. 1-to-Many queries
+ 3. Many-to-many queries
+ 4. Dynamic list filter from query parameter 
+ 5. Transaction
 
-The schema contains optional fields, for example middle name, and a field that must not be returned, for example, a password.
+# Schema
+
+![Database](db.png)
+
+There are four tables. The `users` table and `addresses` table are linked by the pivot `user_addresses` table. The `addresses` table contains a foreign key to `countries` to demonstrate 1-to-many relationship.
+
+To make things interesting, we make `middle_name` an optional field. We also have a 'protected/hidden' field in which we do not want to return in a JSON response, like a password.
 
 
 # Usage
@@ -29,6 +34,8 @@ Setup postgres database by either running from docker-compose or manually.
     docker-compose up 
 
 This creates both `postgres` database (which this repo uses) and `ent` database which is used by ent ORM.
+
+If you create the database manually, execute the `database/01-schema.sql` script.
 
 Default database credentials are defined in `config/config.go`. These can be overwritten by setting environment variables. For example:
 

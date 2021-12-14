@@ -47,7 +47,7 @@ func (r *database) ListM2M(ctx context.Context) ([]*UserResponseWithAddressesSql
 
 	var all []*UserResponseWithAddressesSqlx
 	for users.Next() {
-		var u user
+		var u userDB
 		if err := users.Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email); err != nil {
 			return nil, fmt.Errorf("db scanning error")
 		}

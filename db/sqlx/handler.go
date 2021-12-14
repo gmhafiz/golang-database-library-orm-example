@@ -2,6 +2,9 @@ package sqlx
 
 import (
 	"encoding/json"
+	"errors"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
 	"net/http"
 
 	"github.com/alexedwards/argon2id"
@@ -52,6 +55,18 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 
 	_, err = h.db.Create(r.Context(), &request, hash)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			switch pgErr.Code {
+			case pgerrcode.UniqueViolation:
+				http.Error(w, `{"message": "`+ErrUniqueKeyViolation.Error()+`"}`, http.StatusBadRequest)
+				return
+			default:
+				http.Error(w, `{"message": "`+ErrDefault.Error()+`"}`, http.StatusBadRequest)
+				return
+			}
+		}
+
 		http.Error(w, `{"message": "`+err.Error()+`"}`, http.StatusBadRequest)
 		return
 	}

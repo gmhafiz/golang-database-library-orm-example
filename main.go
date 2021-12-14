@@ -16,6 +16,7 @@ import (
 	"godb/config"
 	"godb/db/ent"
 	"godb/db/ent/ent/gen"
+	//_ "godb/db/ent/ent/gen/runtime"
 	gormDB "godb/db/gorm"
 	"godb/db/sqlboiler"
 	"godb/db/sqlc"
@@ -71,6 +72,7 @@ func (a *App) Run() {
 func (a *App) SetupRouter() {
 	a.router = chi.NewRouter()
 	a.router.Use(middleware.Json)
+	a.router.Use(middleware.Audit)
 	a.router.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		_, _ = w.Write([]byte(`{"message": "endpoint not found"}`))
