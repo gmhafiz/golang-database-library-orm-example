@@ -53,7 +53,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.db.Create(r.Context(), &request, hash)
+	u, err := h.db.Create(r.Context(), &request, hash)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -71,7 +71,13 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	respond.Json(w, http.StatusOK, &UserResponse{
+		ID:         u.ID,
+		FirstName:  u.FirstName,
+		MiddleName: u.MiddleName.String,
+		LastName:   u.LastName,
+		Email:      u.Email,
+	})
 }
 
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {

@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	Insert = "INSERT INTO users (first_name, middle_name, last_name, email, password) VALUES ($1, $2, $3, $4, $5) RETURNING id, first_name, middle_name, last_name, email, password"
+	Insert = "INSERT INTO users (first_name, middle_name, last_name, email, password) VALUES ($1, $2, $3, $4, $5) RETURNING id, first_name, middle_name, last_name, email"
 	List   = "SELECT * FROM users;"
 	Get    = "SELECT * FROM users WHERE id = $1;"
 	Update = "UPDATE users set first_name=$1, middle_name=$2, last_name=$3, email=$4 WHERE id=$5;"
@@ -45,7 +45,6 @@ func (r *database) Create(ctx context.Context, request *UserRequest, hash string
 		&u.MiddleName,
 		&u.LastName,
 		&u.Email,
-		&u.Password,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("error creating user record: %w", err)
@@ -55,14 +54,14 @@ func (r *database) Create(ctx context.Context, request *UserRequest, hash string
 }
 
 func (r *database) List(ctx context.Context) (users []*UserResponse, err error) {
-	rows, err := r.db.QueryContext(ctx, List)
+	rows, err := r.db.QueryxContext(ctx, List)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving user records")
 	}
 
 	for rows.Next() {
 		var u userDB
-		err := rows.Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email, &u.Password)
+		err = rows.StructScan(&u)
 		if err != nil {
 			return nil, fmt.Errorf("db scanning error")
 		}

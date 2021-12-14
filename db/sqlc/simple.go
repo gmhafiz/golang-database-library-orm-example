@@ -21,7 +21,7 @@ func NewRepo(db *sqlx.DB) *database {
 }
 
 func (r *database) Create(ctx context.Context, request sqlx2.UserRequest, hash string) (*User, error) {
-	user, err := r.db.CreateUser(ctx, CreateUserParams{
+	u, err := r.db.CreateUser(ctx, CreateUserParams{
 		FirstName: request.FirstName,
 		MiddleName: sql.NullString{
 			String: request.MiddleName,
@@ -35,7 +35,7 @@ func (r *database) Create(ctx context.Context, request sqlx2.UserRequest, hash s
 		return nil, err
 	}
 
-	return &user, nil
+	return &u, nil
 }
 
 func (r *database) List(ctx context.Context) ([]User, error) {

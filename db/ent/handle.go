@@ -59,13 +59,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respond.Json(w, http.StatusCreated, &sqlx.UserResponse{
-		ID:         saved.ID,
-		FirstName:  saved.FirstName,
-		MiddleName: *saved.MiddleName,
-		LastName:   saved.LastName,
-		Email:      saved.Email,
-	})
+	respond.Json(w, http.StatusCreated, saved)
 }
 
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
