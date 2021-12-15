@@ -36,21 +36,21 @@ type countryWithAddress struct {
 	                    select a.*
 	                    from addresses a
 	                    where c.id = a.country_id
-	                ) addresslist) as addresses
+	                ) addresslist) as address
 	from countries AS c;
 */
 func (r *database) Countries(ctx context.Context) ([]*CountryResponseWithAddress, error) {
 	var resp []*CountryResponseWithAddress
 
-	rows2, err := r.db.QueryContext(ctx, GetWithAddresses2)
+	rows, err := r.db.QueryContext(ctx, GetWithAddresses2)
 	if err != nil {
 		return nil, fmt.Errorf(`{"message": "db error"}`)
 	}
-	defer rows2.Close()
+	defer rows.Close()
 
-	for rows2.Next() {
+	for rows.Next() {
 		var i CountryResponseWithAddress
-		err = rows2.Scan(&i)
+		err = rows.Scan(&i)
 		if err != nil {
 			return nil, err
 		}

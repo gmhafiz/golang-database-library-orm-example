@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"gorm.io/driver/postgres"
-	//"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
 	"godb/config"
@@ -15,7 +14,7 @@ import (
 type User struct {
 	//gorm.Model
 
-	ID         uint   `json:"id"`
+	ID         int    `json:"id"`
 	FirstName  string `json:"first_name"`
 	MiddleName string `json:"middle_name"`
 	LastName   string `json:"last_name"`
@@ -26,22 +25,24 @@ type User struct {
 type Country struct {
 	//gorm.Model
 
-	ID   uint   `json:"id"`
+	ID   int    `json:"id"`
 	Code string `json:"code"`
 	Name string `json:"name"`
+
+	Address []Address `json:"address" gorm:"foreignkey:country_id"`
 }
 
 type Address struct {
 	//gorm.Model
 
-	ID       uint           `json:"id"`
-	Line1    string         `json:"line_1"`
-	Line2    sql.NullString `json:"line_2"`
-	Postcode sql.NullInt32  `json:"postcode"`
-	City     sql.NullString `json:"city"`
-	State    sql.NullString `json:"state"`
-	Country  []Country      `json:"country"`
-	//Country  []Country `gorm:"foreignKey:ID"`
+	ID       int
+	Line1    string         `gorm:"Column:line_1"`
+	Line2    sql.NullString `gorm:"Column:line_2"`
+	Postcode sql.NullInt32
+	City     sql.NullString
+	State    sql.NullString
+
+	CountryID int `json:"countries"`
 }
 
 func New(c config.Database) *gorm.DB {
@@ -50,7 +51,7 @@ func New(c config.Database) *gorm.DB {
 		c.Password,
 		c.Host,
 		c.Port,
-		c.Name,
+		"db_gorm",
 		c.SSLMode,
 	)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -58,12 +59,10 @@ func New(c config.Database) *gorm.DB {
 		log.Panic(err)
 	}
 
-	db.Debug()
-
-	//err = db.AutoMigrate(&User{}, &Country{}, &Address{})
-	//if err != nil {
-	//	log.Panic(err)
-	//}
+	err = db.AutoMigrate(&User{}, &Country{}, &Address{})
+	if err != nil {
+		log.Panic(err)
+	}
 
 	return db
 }

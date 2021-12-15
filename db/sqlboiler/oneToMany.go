@@ -18,7 +18,6 @@ func (r *database) Countries(ctx context.Context) ([]*sqlx.CountryResponseWithAd
 
 	var all []*sqlx.CountryResponseWithAddress
 	for _, country := range countries {
-
 		resp := &sqlx.CountryResponseWithAddress{
 			Id:        int(country.ID),
 			Code:      country.Code,

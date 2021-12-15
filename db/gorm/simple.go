@@ -17,7 +17,7 @@ func NewRepo(db *gorm.DB) *repo {
 	}
 }
 
-func (r *repo) Create(ctx context.Context, u *sqlx.UserRequest, hash string) *User {
+func (r *repo) Create(ctx context.Context, u *sqlx.UserRequest, hash string) (*User, error) {
 	user := &User{
 		FirstName:  u.FirstName,
 		MiddleName: u.MiddleName,
@@ -26,9 +26,12 @@ func (r *repo) Create(ctx context.Context, u *sqlx.UserRequest, hash string) *Us
 		Password:   hash,
 	}
 
-	r.db.WithContext(ctx).Create(user)
+	err := r.db.WithContext(ctx).Create(user).Error
+	if err != nil {
+		return nil, err
+	}
 
-	return user
+	return user, nil
 }
 
 func (r *repo) List(ctx context.Context) ([]*User, error) {
@@ -54,7 +57,7 @@ func (r *repo) Get(ctx context.Context, userID int64) (*User, error) {
 
 func (r *repo) Update(ctx context.Context, userID int64, req *sqlx.UserUpdateRequest) (*User, error) {
 	u := &User{}
-	u.ID = uint(userID)
+	u.ID = int(userID)
 	r.db.First(&u)
 
 	u.FirstName = req.FirstName

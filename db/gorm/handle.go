@@ -49,9 +49,13 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.db.Create(r.Context(), &request, hash)
+	user, err := h.db.Create(r.Context(), &request, hash)
+	if err != nil {
+		http.Error(w, `{"message": `+err.Error()+`}`, http.StatusBadRequest)
+		return
+	}
 
-	w.WriteHeader(http.StatusCreated)
+	respond.Json(w, http.StatusCreated, user)
 }
 
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
@@ -94,11 +98,14 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, _ = h.db.Update(r.Context(), userID, &req)
+	updated, err := h.db.Update(r.Context(), userID, &req)
 	if err != nil {
 		http.Error(w, `{"message": `+err.Error()+`}`, http.StatusBadRequest)
 		return
 	}
+
+	respond.Json(w, http.StatusOK, updated)
+
 }
 
 func (h *handler) Delete(w http.ResponseWriter, r *http.Request) {
@@ -110,11 +117,17 @@ func (h *handler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	err = h.db.Delete(r.Context(), userID)
 	if err != nil {
-		http.Error(w, `{"message": `+param.ErrParam.Error()+`}`, http.StatusBadRequest)
+		http.Error(w, `{"message": `+err.Error()+`}`, http.StatusBadRequest)
 		return
 	}
 }
 
 func (h *handler) Countries(w http.ResponseWriter, r *http.Request) {
+	resp, err := h.db.Countries(r.Context())
+	if err != nil {
+		http.Error(w, `{"message": `+err.Error()+`}`, http.StatusBadRequest)
+		return
+	}
 
+	respond.Json(w, http.StatusOK, resp)
 }

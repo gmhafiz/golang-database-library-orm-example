@@ -53,7 +53,7 @@ select c.id, c.code, c.name,
                     select a.*
                     from addresses a
                     where c.id = a.country_id
-                ) addresslist) as addresses
+                ) addresslist) as address
 from countries AS c;
 
 INSERT INTO countries (code, name)
@@ -79,3 +79,4 @@ INSERT INTO user_addresses (user_id, address_id) VALUES (2, 1);
 COMMIT;
 
 CREATE DATABASE ent;
+CREATE DATABASE db_gorm;
