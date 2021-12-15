@@ -149,7 +149,7 @@ Content-Type: application/json
   "password": "password"
 }
 
-### GET request
+### GET list request
 GET http://localhost:3080/api/sqlboiler/user
 Accept: application/json
 
@@ -157,6 +157,10 @@ Accept: application/json
 GET http://localhost:3080/api/sqlboiler/user/1
 Accept: application/json
 
+
+### Delete DELETE request with json body
+DELETE  http://localhost:3080/api/sqlboiler/user/3
+Content-Type: application/json
 
 ### GET user addresses by ID
 GET http://localhost:3080/api/sqlboiler/country
@@ -176,13 +180,24 @@ Content-Type: application/json
   "password": "password"
 }
 
-### GET request
+### GET list request
 GET http://localhost:3080/api/ent/user
 Accept: application/json
 
 ### GET request by ID
 GET http://localhost:3080/api/ent/user/1
 Accept: application/json
+
+### Update PUT request with json body
+PUT  http://localhost:3080/api/ent/user/1
+Content-Type: application/json
+
+{
+  "first_name": "John",
+  "last_name": "Doe",
+  "email": "john-changed@example.com",
+  "password": "password"
+}
 
 ### GET user addresses by ID
 GET http://localhost:3080/api/ent/country
@@ -191,3 +206,6 @@ Accept: application/json
 ### GET users with their addresses
 GET http://localhost:3080/api/ent/user/m2m
 Accept: application/json
+
+### Delete DELETE request with json body
+DELETE  http://localhost:3080/api/ent/user/5

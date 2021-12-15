@@ -120,7 +120,7 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.db.Update(r.Context(), userID, &req)
+	u, err := h.db.Update(r.Context(), userID, &req)
 	if err != nil {
 		http.Error(w, `{"message": "error updating"}`, http.StatusInternalServerError)
 		return
@@ -128,10 +128,10 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 
 	respond.Json(w, http.StatusOK, &UserResponse{
 		ID:         uint(userID),
-		FirstName:  req.FirstName,
-		MiddleName: req.MiddleName,
-		LastName:   req.LastName,
-		Email:      req.Email,
+		FirstName:  u.FirstName,
+		MiddleName: u.MiddleName,
+		LastName:   u.LastName,
+		Email:      u.Email,
 	})
 }
 

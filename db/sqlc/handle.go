@@ -121,9 +121,9 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.db.Update(r.Context(), userID, &req)
+	_, _ = h.db.Update(r.Context(), userID, &req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, `{"message": `+param.ErrParam.Error()+`}`, http.StatusBadRequest)
 		return
 	}
 }
@@ -131,7 +131,7 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 func (h *handler) Delete(w http.ResponseWriter, r *http.Request) {
 	userID, err := param.Int64(r, "userID")
 	if err != nil {
-		http.Error(w, `{"message": `+param.ErrParam.Error()+`}`, http.StatusBadRequest)
+		http.Error(w, `{"message": `+err.Error()+`}`, http.StatusBadRequest)
 		return
 	}
 
@@ -145,7 +145,7 @@ func (h *handler) Delete(w http.ResponseWriter, r *http.Request) {
 func (h *handler) Countries(w http.ResponseWriter, r *http.Request) {
 	res, err := h.db.Countries(r.Context())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, `{"message": `+err.Error()+`}`, http.StatusInternalServerError)
 		return
 	}
 

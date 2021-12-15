@@ -38,15 +38,15 @@ func (r *database) Create(ctx context.Context, request sqlx2.UserRequest, hash s
 	return &u, nil
 }
 
-func (r *database) List(ctx context.Context) ([]User, error) {
+func (r *database) List(ctx context.Context) ([]ListUsersRow, error) {
 	return r.db.ListUsers(ctx)
 }
 
-func (r *database) Get(ctx context.Context, userID int64) (User, error) {
+func (r *database) Get(ctx context.Context, userID int64) (GetUserRow, error) {
 	return r.db.GetUser(ctx, userID)
 }
 
-func (r *database) Update(ctx context.Context, userID int64, req *sqlx2.UserUpdateRequest) error {
+func (r *database) Update(ctx context.Context, userID int64, req *sqlx2.UserUpdateRequest) (*GetUserRow, error) {
 	err := r.db.UpdateUser(ctx, UpdateUserParams{
 		FirstName: req.FirstName,
 		MiddleName: sql.NullString{
@@ -58,10 +58,15 @@ func (r *database) Update(ctx context.Context, userID int64, req *sqlx2.UserUpda
 		ID:       userID,
 	})
 	if err != nil {
-		fmt.Println(err)
+		return nil, fmt.Errorf("error updating the user")
 	}
 
-	return nil
+	u, err := r.db.GetUser(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &u, nil
 }
 
 func (r *database) Delete(ctx context.Context, id int64) error {

@@ -107,9 +107,8 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"message": "bad request"}`, http.StatusBadRequest)
 		return
 	}
-	req.ID = uint(userID)
 
-	updated, err := h.db.Update(r.Context(), req)
+	updated, err := h.db.Update(r.Context(), userID, req)
 	if err != nil {
 		http.Error(w, `{"message": `+param.ErrParam.Error()+`}`, http.StatusBadRequest)
 		return

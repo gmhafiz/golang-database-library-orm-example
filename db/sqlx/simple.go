@@ -9,11 +9,12 @@ import (
 )
 
 const (
-	Insert = "INSERT INTO users (first_name, middle_name, last_name, email, password) VALUES ($1, $2, $3, $4, $5) RETURNING id, first_name, middle_name, last_name, email"
-	List   = "SELECT * FROM users;"
-	Get    = "SELECT * FROM users WHERE id = $1;"
-	Update = "UPDATE users set first_name=$1, middle_name=$2, last_name=$3, email=$4 WHERE id=$5;"
-	Delete = "DELETE FROM users where id=$1"
+	Insert      = "INSERT INTO users (first_name, middle_name, last_name, email, password) VALUES ($1, $2, $3, $4, $5) RETURNING id, first_name, middle_name, last_name, email"
+	List        = "SELECT * FROM users LIMIT 30 OFFSET 0;"
+	Get         = "SELECT * FROM users WHERE id = $1;"
+	Update      = "UPDATE users set first_name=$1, middle_name=$2, last_name=$3, email=$4 WHERE id=$5;"
+	UpdateNamed = "UPDATE users set first_name=:first_name, middle_name=:middle_name, last_name=:last_name, email=:email WHERE id=:id;"
+	Delete      = "DELETE FROM users where id=$1"
 )
 
 var (
@@ -92,14 +93,37 @@ func (r *database) Get(ctx context.Context, userID int64) (*UserResponse, error)
 	}, nil
 }
 
-func (r *database) Update(ctx context.Context, userID int64, req *UserUpdateRequest) (sql.Result, error) {
-	return r.db.ExecContext(ctx, Update,
+func (r *database) Update(ctx context.Context, userID int64, req *UserUpdateRequest) (*UserResponse, error) {
+	_, err := r.db.ExecContext(ctx, Update,
 		req.FirstName,
 		req.MiddleName,
 		req.LastName,
 		req.Email,
 		userID,
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.Get(ctx, userID)
+
+	//type updateNamed struct {
+	//	ID         int64  `db:"id"`
+	//	FirstName  string `db:"first_name"`
+	//	MiddleName string `db:"middle_name"`
+	//	LastName   string `db:"last_name"`
+	//	Email      string `db:"email"`
+	//}
+	//
+	//update := updateNamed{
+	//	ID:         userID,
+	//	FirstName:  req.FirstName,
+	//	MiddleName: req.MiddleName,
+	//	LastName:   req.LastName,
+	//	Email:      req.Email,
+	//}
+	//
+	//return r.db.NamedExecContext(ctx, UpdateNamed, update)
 }
 
 func (r *database) Delete(ctx context.Context, userID int64) (sql.Result, error) {

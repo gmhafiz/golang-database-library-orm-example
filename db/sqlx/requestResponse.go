@@ -9,16 +9,15 @@ import (
 type UserRequest struct {
 	ID         uint   `json:"id,omitempty"`
 	FirstName  string `json:"first_name"`
-	MiddleName string `json:"middle_name,omitempty"`
+	MiddleName string `json:"middle_name"`
 	LastName   string `json:"last_name"`
 	Email      string `json:"email"`
 	Password   string `json:"password"`
 }
 
 type UserUpdateRequest struct {
-	ID         uint   `json:"id,omitempty"`
 	FirstName  string `json:"first_name"`
-	MiddleName string `json:"middle_name,omitempty"`
+	MiddleName string `json:"middle_name"`
 	LastName   string `json:"last_name"`
 	Email      string `json:"email"`
 }

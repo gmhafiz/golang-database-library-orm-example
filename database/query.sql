@@ -4,15 +4,15 @@ VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
 
 -- name: GetUser :one
-SELECT *
+SELECT id, first_name, middle_name, last_name, email
 FROM users
-WHERE id = $1
-LIMIT 1;
+WHERE id = $1;
 
 -- name: ListUsers :many
-SELECT *
+SELECT id, first_name, middle_name, last_name, email
 FROM users
-ORDER BY last_name;
+LIMIT 30
+OFFSET 0;
 
 -- name: DeleteUser :exec
 DELETE

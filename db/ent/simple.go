@@ -25,34 +25,20 @@ func (r *database) Create(ctx context.Context, request sqlx.UserRequest, hash st
 }
 
 func (r *database) List(ctx context.Context) ([]*gen.User, error) {
-	all, err := r.db.User.Query().All(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return all, nil
+	return r.db.User.Query().Limit(30).All(ctx)
 }
 
 func (r *database) Get(ctx context.Context, userID uint64) (*gen.User, error) {
-	u, err := r.db.User.Query().Where(user.ID(uint(userID))).First(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("db scanning error")
-	}
-	return u, nil
+	return r.db.User.Query().Where(user.ID(uint(userID))).First(ctx)
 }
 
 func (r *database) Update(ctx context.Context, userID int64, req *sqlx.UserUpdateRequest) (*gen.User, error) {
-	_, err := r.db.User.UpdateOneID(uint(userID)).
+	return r.db.Debug().User.UpdateOneID(uint(userID)).
 		SetFirstName(req.FirstName).
 		SetNillableMiddleName(&req.MiddleName).
 		SetLastName(req.LastName).
 		SetEmail(req.Email).
 		Save(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return r.Get(ctx, uint64(userID))
 }
 
 func (r *database) Delete(ctx context.Context, userID int64) error {

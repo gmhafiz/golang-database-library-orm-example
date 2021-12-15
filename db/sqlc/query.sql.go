@@ -144,48 +144,62 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, first_name, middle_name, last_name, email, password
+SELECT id, first_name, middle_name, last_name, email
 FROM users
 WHERE id = $1
-LIMIT 1
 `
 
-func (q *Queries) GetUser(ctx context.Context, id int64) (User, error) {
+type GetUserRow struct {
+	ID         int64
+	FirstName  string
+	MiddleName sql.NullString
+	LastName   string
+	Email      string
+}
+
+func (q *Queries) GetUser(ctx context.Context, id int64) (GetUserRow, error) {
 	row := q.db.QueryRowContext(ctx, getUser, id)
-	var i User
+	var i GetUserRow
 	err := row.Scan(
 		&i.ID,
 		&i.FirstName,
 		&i.MiddleName,
 		&i.LastName,
 		&i.Email,
-		&i.Password,
 	)
 	return i, err
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, first_name, middle_name, last_name, email, password
+SELECT id, first_name, middle_name, last_name, email
 FROM users
-ORDER BY last_name
+LIMIT 30
+OFFSET 0
 `
 
-func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
+type ListUsersRow struct {
+	ID         int64
+	FirstName  string
+	MiddleName sql.NullString
+	LastName   string
+	Email      string
+}
+
+func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
 	rows, err := q.db.QueryContext(ctx, listUsers)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []User
+	var items []ListUsersRow
 	for rows.Next() {
-		var i User
+		var i ListUsersRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.FirstName,
 			&i.MiddleName,
 			&i.LastName,
 			&i.Email,
-			&i.Password,
 		); err != nil {
 			return nil, err
 		}

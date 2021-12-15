@@ -13,32 +13,34 @@ import (
 )
 
 type User struct {
-	gorm.Model
+	//gorm.Model
 
-	FirstName  string
-	MiddleName sql.NullString
-	LastName   string
-	Email      string
-	Password   string
+	ID         uint   `json:"id"`
+	FirstName  string `json:"first_name"`
+	MiddleName string `json:"middle_name"`
+	LastName   string `json:"last_name"`
+	Email      string `json:"email"`
+	Password   string `json:"-"`
 }
 
 type Country struct {
-	gorm.Model
+	//gorm.Model
 
-	Code string
-	Name string
+	ID   uint   `json:"id"`
+	Code string `json:"code"`
+	Name string `json:"name"`
 }
 
 type Address struct {
-	gorm.Model
+	//gorm.Model
 
-	ID       uint
-	Line1    string
-	Line2    sql.NullString
-	Postcode sql.NullInt32
-	City     sql.NullString
-	State    sql.NullString
-	Country  []Country
+	ID       uint           `json:"id"`
+	Line1    string         `json:"line_1"`
+	Line2    sql.NullString `json:"line_2"`
+	Postcode sql.NullInt32  `json:"postcode"`
+	City     sql.NullString `json:"city"`
+	State    sql.NullString `json:"state"`
+	Country  []Country      `json:"country"`
 	//Country  []Country `gorm:"foreignKey:ID"`
 }
 

@@ -3,9 +3,12 @@ package sqlboiler
 import (
 	"context"
 	"fmt"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+
 	"godb/db/sqlboiler/models"
 	sqlx2 "godb/db/sqlx"
 )
@@ -36,7 +39,7 @@ func (r *database) Create(ctx context.Context, request sqlx2.UserRequest, hash s
 }
 
 func (r *database) List(ctx context.Context) ([]*sqlx2.UserResponse, error) {
-	users, err := models.Users().All(ctx, r.db)
+	users, err := models.Users(qm.Limit(30)).All(ctx, r.db)
 	if err != nil {
 		return nil, fmt.Errorf("error getting users")
 	}
@@ -55,17 +58,12 @@ func (r *database) List(ctx context.Context) ([]*sqlx2.UserResponse, error) {
 }
 
 func (r *database) Get(ctx context.Context, userID int64) (*models.User, error) {
-	user, err := models.FindUser(ctx, r.db, userID)
-	if err != nil {
-		return nil, fmt.Errorf("db scanning error")
-	}
-
-	return user, nil
+	return models.FindUser(ctx, r.db, userID)
 }
 
-func (r *database) Update(ctx context.Context, req sqlx2.UserUpdateRequest) (*models.User, error) {
+func (r *database) Update(ctx context.Context, id int64, req sqlx2.UserUpdateRequest) (*models.User, error) {
 	user := &models.User{
-		ID:        int64(req.ID),
+		ID:        id,
 		FirstName: req.FirstName,
 		MiddleName: null.String{
 			String: req.MiddleName,
@@ -77,13 +75,15 @@ func (r *database) Update(ctx context.Context, req sqlx2.UserUpdateRequest) (*mo
 
 	_, err := user.Update(ctx, r.db, boil.Infer())
 	if err != nil {
-		return nil, fmt.Errorf("error updating user")
+		return nil, err
 	}
 
 	return user, nil
 }
 
 func (r *database) Delete(ctx context.Context, userID int64) error {
+	//boil.DebugMode = true
+
 	u, err := r.Get(ctx, userID)
 	if err != nil {
 		return fmt.Errorf("error getting user")

@@ -2,7 +2,6 @@ package gorm
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"godb/db/sqlx"
 	"gorm.io/gorm"
@@ -20,14 +19,11 @@ func NewRepo(db *gorm.DB) *repo {
 
 func (r *repo) Create(ctx context.Context, u *sqlx.UserRequest, hash string) *User {
 	user := &User{
-		FirstName: u.FirstName,
-		MiddleName: sql.NullString{
-			String: u.MiddleName,
-			Valid:  true,
-		},
-		LastName: u.LastName,
-		Email:    u.Email,
-		Password: hash,
+		FirstName:  u.FirstName,
+		MiddleName: u.MiddleName,
+		LastName:   u.LastName,
+		Email:      u.Email,
+		Password:   hash,
 	}
 
 	r.db.WithContext(ctx).Create(user)
@@ -35,55 +31,49 @@ func (r *repo) Create(ctx context.Context, u *sqlx.UserRequest, hash string) *Us
 	return user
 }
 
-func (r *repo) List(ctx context.Context) ([]*sqlx.UserResponse, error) {
-	var users []User
-	err := r.db.WithContext(ctx).Model(&User{}).Select("*").Scan(&users).Error
+func (r *repo) List(ctx context.Context) ([]*User, error) {
+	var users []*User
+	err := r.db.WithContext(ctx).Model(&User{}).Select("*").Limit(30).Scan(&users).Error
 	if err != nil {
 		return nil, fmt.Errorf(`{"message": "db scanning error"}`)
 	}
 
-	var userResponse []*sqlx.UserResponse
-	for _, u := range users {
-		userResponse = append(userResponse, &sqlx.UserResponse{
-			ID:         u.ID,
-			FirstName:  u.FirstName,
-			MiddleName: u.MiddleName.String,
-			LastName:   u.LastName,
-			Email:      u.Email,
-		})
-	}
-	return userResponse, nil
+	return users, nil
 }
 
-func (r *repo) Get(ctx context.Context, userID int64) *sqlx.UserResponse {
+func (r *repo) Get(ctx context.Context, userID int64) (*User, error) {
 	var user User
 
-	r.db.WithContext(ctx).First(&user, userID)
-
-	return &sqlx.UserResponse{
-		ID:         user.ID,
-		FirstName:  user.FirstName,
-		MiddleName: user.MiddleName.String,
-		LastName:   user.LastName,
-		Email:      user.Email,
+	err := r.db.WithContext(ctx).First(&user, userID).Error
+	if err != nil {
+		return nil, err
 	}
+
+	return &user, nil
 }
 
-func (r *repo) Update(userID int64, req *sqlx.UserUpdateRequest) {
+func (r *repo) Update(ctx context.Context, userID int64, req *sqlx.UserUpdateRequest) (*User, error) {
 	u := &User{}
 	u.ID = uint(userID)
 	r.db.First(&u)
 
 	u.FirstName = req.FirstName
-	u.MiddleName = sql.NullString{
-		String: req.MiddleName,
-		Valid:  true,
-	}
+	u.MiddleName = req.MiddleName
 	u.LastName = req.LastName
 	u.Email = req.Email
-	r.db.Save(&u)
+	err := r.db.WithContext(ctx).Save(&u).Error
+	if err != nil {
+		return nil, err
+	}
+
+	updated, err := r.Get(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return updated, nil
 }
 
-func (r *repo) Delete(ctx context.Context, userID int64) {
-	r.db.WithContext(ctx).Delete(&User{}, userID)
+func (r *repo) Delete(ctx context.Context, userID int64) error {
+	return r.db.WithContext(ctx).Delete(&User{}, userID).Error
 }

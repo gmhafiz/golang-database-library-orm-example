@@ -71,7 +71,11 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userResponse := h.db.Get(r.Context(), userID)
+	userResponse, err := h.db.Get(r.Context(), userID)
+	if err != nil {
+		http.Error(w, `{"message": `+err.Error()+`}`, http.StatusBadRequest)
+		return
+	}
 
 	respond.Json(w, http.StatusOK, userResponse)
 }
@@ -90,7 +94,11 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.db.Update(userID, &req)
+	_, _ = h.db.Update(r.Context(), userID, &req)
+	if err != nil {
+		http.Error(w, `{"message": `+err.Error()+`}`, http.StatusBadRequest)
+		return
+	}
 }
 
 func (h *handler) Delete(w http.ResponseWriter, r *http.Request) {
@@ -100,7 +108,11 @@ func (h *handler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.db.Delete(r.Context(), userID)
+	err = h.db.Delete(r.Context(), userID)
+	if err != nil {
+		http.Error(w, `{"message": `+param.ErrParam.Error()+`}`, http.StatusBadRequest)
+		return
+	}
 }
 
 func (h *handler) Countries(w http.ResponseWriter, r *http.Request) {

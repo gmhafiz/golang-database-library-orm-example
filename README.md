@@ -49,3 +49,7 @@ Run with
 
 
 Run examples from `examples` folder.
+
+# Blog Posts
+
+This repository accompanies the blog posts at [https://www.gmhafiz.com/blog/golang-database-library-orm-example-1-intro/](https://www.gmhafiz.com/blog/golang-database-library-orm-example-1-intro/)
