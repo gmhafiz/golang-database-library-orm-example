@@ -1,7 +1,6 @@
 package gorm
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 
@@ -35,14 +34,14 @@ type Country struct {
 type Address struct {
 	//gorm.Model
 
-	ID       int
-	Line1    string         `gorm:"Column:line_1"`
-	Line2    sql.NullString `gorm:"Column:line_2"`
-	Postcode sql.NullInt32
-	City     sql.NullString
-	State    sql.NullString
+	ID       int    `json:"ID,omitempty"`
+	Line1    string `json:"line_1,omitempty" gorm:"Column:line_1" `
+	Line2    string `json:"line_2,omitempty" gorm:"Column:line_2" `
+	Postcode int32  `json:"postcode,omitempty" gorm:"default:null" `
+	City     string `json:"city,omitempty" gorm:"default:null" `
+	State    string `json:"state,omitempty" gorm:"default:null" `
 
-	CountryID int `json:"countries"`
+	CountryID int `json:"countries" json:"countryID,omitempty"`
 }
 
 func New(c config.Database) *gorm.DB {

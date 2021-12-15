@@ -5,13 +5,13 @@ import (
 	"fmt"
 )
 
-func (r *repo) Countries(ctx context.Context) (*Country, error) {
-	var country Country
+func (r *repo) Countries(ctx context.Context) ([]*Country, error) {
+	var country []*Country
 
 	err := r.db.WithContext(ctx).Preload("Address").Find(&country).Error
 	if err != nil {
 		return nil, fmt.Errorf("error loading countries: %w", err)
 	}
 
-	return &country, nil
+	return country, nil
 }
