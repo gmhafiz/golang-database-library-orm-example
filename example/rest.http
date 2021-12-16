@@ -23,14 +23,13 @@ Accept: application/json
 
 
 ### Update PUT request with json body
-PUT  http://localhost:3080/api/sqlx/user/1
+PUT  http://localhost:3080/api/sqlx/user/13
 Content-Type: application/json
 
 {
   "first_name": "John",
   "last_name": "Doe",
-  "email": "john-changed@example.com",
-  "password": "password"
+  "email": "john-changed@example.com"
 }
 
 ### Delete DELETE request with json body
@@ -72,14 +71,13 @@ Accept: application/json
 
 
 ### Update PUT request with json body
-PUT  http://localhost:3080/api/sqlc/user/2555555
+PUT  http://localhost:3080/api/sqlc/user/13
 Content-Type: application/json
 
 {
   "first_name": "John",
   "last_name": "Doe",
-  "email": "john-changed@example.com",
-  "password": "password"
+  "email": "john-changed@example.com"
 }
 
 ### Delete DELETE request with json body
@@ -121,14 +119,13 @@ Accept: application/json
 
 
 ### Update PUT request with json body
-PUT  http://localhost:3080/api/gorm/user/1
+PUT  http://localhost:3080/api/gorm/user/13
 Content-Type: application/json
 
 {
   "first_name": "John",
   "last_name": "Doe",
-  "email": "john-changed@example.com",
-  "password": "password"
+  "email": "john-changed@example.com"
 }
 
 ### Delete DELETE request with json body
@@ -164,14 +161,13 @@ GET http://localhost:3080/api/sqlboiler/user/1
 Accept: application/json
 
 ### Update PUT request with json body
-PUT  http://localhost:3080/api/sqlboiler/user/1
+PUT  http://localhost:3080/api/sqlboiler/user/13
 Content-Type: application/json
 
 {
   "first_name": "John",
   "last_name": "Doe",
-  "email": "john-changed@example.com",
-  "password": "password"
+  "email": "john-changed@example.com"
 }
 
 ### Delete DELETE request with json body
@@ -207,14 +203,13 @@ GET http://localhost:3080/api/ent/user/1
 Accept: application/json
 
 ### Update PUT request with json body
-PUT  http://localhost:3080/api/ent/user/1
+PUT  http://localhost:3080/api/ent/user/13
 Content-Type: application/json
 
 {
   "first_name": "John",
   "last_name": "Doe",
-  "email": "john-changed@example.com",
-  "password": "password"
+  "email": "john-changed@example.com"
 }
 
 ### Delete DELETE request with json body

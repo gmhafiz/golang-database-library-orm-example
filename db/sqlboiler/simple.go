@@ -62,18 +62,20 @@ func (r *database) Get(ctx context.Context, userID int64) (*models.User, error) 
 }
 
 func (r *database) Update(ctx context.Context, id int64, req sqlx2.UserUpdateRequest) (*models.User, error) {
-	user := &models.User{
-		ID:        id,
-		FirstName: req.FirstName,
-		MiddleName: null.String{
-			String: req.MiddleName,
-			Valid:  true,
-		},
-		LastName: req.LastName,
-		Email:    req.Email,
+	user, err := r.Get(ctx, id)
+	if err != nil {
+		return nil, err
 	}
 
-	_, err := user.Update(ctx, r.db, boil.Infer())
+	user.FirstName = req.FirstName
+	user.MiddleName = null.String{
+		String: req.MiddleName,
+		Valid:  true,
+	}
+	user.LastName = req.LastName
+	user.Email = req.Email
+
+	_, err = user.Update(ctx, r.db, boil.Infer())
 	if err != nil {
 		return nil, err
 	}
@@ -81,9 +83,38 @@ func (r *database) Update(ctx context.Context, id int64, req sqlx2.UserUpdateReq
 	return user, nil
 }
 
-func (r *database) Delete(ctx context.Context, userID int64) error {
-	//boil.DebugMode = true
+// Update method that deletes password
+// Do not to this. It will delete password from database!
+/*
+UPDATE "users" SET "first_name"=$1,"middle_name"=$2,"last_name"=$3,"email"=$4,"password"=$5 WHERE "id"=$6
+[John { true} Doe john-changed@example.com  13]
 
+*/
+//func (r *database) Update(ctx context.Context, id int64, req sqlx2.UserUpdateRequest) (*models.User, error) {
+//	boil.DebugMode = true
+//	defer func() {
+//		boil.DebugMode = false
+//	}()
+//	user := &models.User{
+//		ID:        id,
+//		FirstName: req.FirstName,
+//		MiddleName: null.String{
+//			String: req.MiddleName,
+//			Valid:  true,
+//		},
+//		LastName: req.LastName,
+//		Email:    req.Email,
+//	}
+//
+//	_, err := user.Update(ctx, r.db, boil.Infer())
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	return user, nil
+//}
+
+func (r *database) Delete(ctx context.Context, userID int64) error {
 	u, err := r.Get(ctx, userID)
 	if err != nil {
 		return fmt.Errorf("error getting user")
