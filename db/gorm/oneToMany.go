@@ -6,12 +6,12 @@ import (
 )
 
 func (r *repo) Countries(ctx context.Context) ([]*Country, error) {
-	var country []*Country
+	var countries []*Country
 
-	err := r.db.WithContext(ctx).Preload("Address").Find(&country).Error
+	err := r.db.WithContext(ctx).Preload("Address").Find(&countries).Select("*").Error
 	if err != nil {
 		return nil, fmt.Errorf("error loading countries: %w", err)
 	}
 
-	return country, nil
+	return countries, nil
 }
