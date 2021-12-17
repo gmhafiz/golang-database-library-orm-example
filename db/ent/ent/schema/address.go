@@ -11,13 +11,6 @@ type Address struct {
 	ent.Schema
 }
 
-// Annotations of the User.
-//func (Address) Annotations() []schema.Annotation {
-//	return []schema.Annotation{
-//		entsql.Annotation{Table: "entAddresses"},
-//	}
-//}
-
 // Fields of the Address.
 func (Address) Fields() []ent.Field {
 	return []ent.Field{
@@ -32,7 +25,6 @@ func (Address) Fields() []ent.Field {
 // Edges of the Address.
 func (Address) Edges() []ent.Edge {
 	return []ent.Edge{
-		//edge.To("entCountry", Country.Type),
 		edge.From("country", Country.Type).Ref("addresses").Unique(),
 		edge.To("users", User.Type),
 	}

@@ -15,13 +15,6 @@ type User struct {
 	ent.Schema
 }
 
-// Annotations of the User.
-//func (User) Annotations() []schema.Annotation {
-//	return []schema.Annotation{
-//		entsql.Annotation{Table: "entUsers"},
-//	}
-//}
-
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
