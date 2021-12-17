@@ -136,6 +136,10 @@ Content-Type: application/json
 GET http://localhost:3080/api/gorm/country
 Accept: application/json
 
+### GET users with their addresses
+GET http://localhost:3080/api/gorm/user/m2m
+Accept: application/json
+
 ################################################################################
 # sqlboiler
 ################################################################################

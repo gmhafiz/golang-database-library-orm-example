@@ -19,6 +19,8 @@ type User struct {
 	LastName   string `json:"last_name"`
 	Email      string `json:"email"`
 	Password   string `json:"-"`
+
+	Addresses []Address `gorm:"many2many:user_addresses;"`
 }
 
 type Country struct {
@@ -34,7 +36,7 @@ type Country struct {
 type Address struct {
 	//gorm.Model
 
-	ID       int    `json:"ID,omitempty"`
+	ID       int    `json:"id,omitempty"`
 	Line1    string `json:"line_1,omitempty" gorm:"Column:line_1" `
 	Line2    string `json:"line_2,omitempty" gorm:"Column:line_2" `
 	Postcode int32  `json:"postcode,omitempty" gorm:"default:null" `

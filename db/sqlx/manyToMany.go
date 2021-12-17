@@ -29,7 +29,7 @@ const (
 	Address = `
 		SELECT a.* 
 		FROM addresses a
-		WHERE a.id in (?);
+		WHERE a.id IN (?);
 `
 )
 
