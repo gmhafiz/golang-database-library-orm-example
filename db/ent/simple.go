@@ -25,7 +25,13 @@ func (r *database) Create(ctx context.Context, request sqlx.UserRequest, hash st
 }
 
 func (r *database) List(ctx context.Context) ([]*gen.User, error) {
-	return r.db.User.Query().Limit(30).All(ctx)
+	return r.db.User.Query().
+		//Select(user.FieldFirstName).
+		//Where(
+		//	user.ID(1),
+		//).
+		Limit(30).
+		All(ctx)
 }
 
 func (r *database) Get(ctx context.Context, userID uint64) (*gen.User, error) {

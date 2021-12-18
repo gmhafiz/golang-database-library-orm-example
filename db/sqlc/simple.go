@@ -58,12 +58,12 @@ func (r *database) Update(ctx context.Context, userID int64, req *sqlx2.UserUpda
 		ID:       userID,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("error updating the user")
+		return nil, fmt.Errorf("error updating the user: %w", err)
 	}
 
 	u, err := r.db.GetUser(ctx, userID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error getting a user: %w", err)
 	}
 
 	return &u, nil

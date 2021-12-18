@@ -30,10 +30,10 @@ func (r *database) Countries(ctx context.Context) ([]*sqlx.CountryResponseWithAd
 	return all, err
 }
 
-func getAddress(addresses models.AddressSlice) []sqlx.AddressForCountry {
-	var all []sqlx.AddressForCountry
+func getAddress(addresses models.AddressSlice) []*sqlx.AddressForCountry {
+	var all []*sqlx.AddressForCountry
 	for _, address := range addresses {
-		all = append(all, sqlx.AddressForCountry{
+		all = append(all, &sqlx.AddressForCountry{
 			ID:       uint(address.ID),
 			Line1:    address.Line1,
 			Line2:    address.Line2.String,

@@ -70,18 +70,7 @@ func (h *handler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var users []*sqlx.UserResponse
-	for _, u := range all {
-		users = append(users, &sqlx.UserResponse{
-			ID:         u.ID,
-			FirstName:  u.FirstName,
-			MiddleName: *u.MiddleName,
-			LastName:   u.LastName,
-			Email:      u.Email,
-		})
-	}
-
-	respond.Json(w, http.StatusOK, users)
+	respond.Json(w, http.StatusOK, all)
 }
 
 func (h *handler) Get(w http.ResponseWriter, r *http.Request) {

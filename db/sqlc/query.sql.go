@@ -72,7 +72,7 @@ func (q *Queries) CountriesWithAddress(ctx context.Context) ([]CountriesWithAddr
 }
 
 const countriesWithAddressAggregate = `-- name: CountriesWithAddressAggregate :many
-select row_to_json(row) from (select id, code, name, addresses from country_address) row
+select row_to_json(row) from (select id, code, name, address from country_address) row
 `
 
 func (q *Queries) CountriesWithAddressAggregate(ctx context.Context) ([]json.RawMessage, error) {

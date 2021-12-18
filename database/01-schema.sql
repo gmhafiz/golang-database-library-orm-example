@@ -1,3 +1,6 @@
+CREATE SCHEMA ent;
+CREATE SCHEMA db_gorm;
+
 BEGIN;
 
 create table countries
@@ -78,5 +81,4 @@ INSERT INTO user_addresses (user_id, address_id) VALUES (2, 1);
 
 COMMIT;
 
-CREATE DATABASE ent;
-CREATE DATABASE db_gorm;
+

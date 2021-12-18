@@ -52,7 +52,7 @@ func New(c config.Database) *gorm.DB {
 		c.Password,
 		c.Host,
 		c.Port,
-		"db_gorm",
+		c.Name,
 		c.SSLMode,
 	)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})

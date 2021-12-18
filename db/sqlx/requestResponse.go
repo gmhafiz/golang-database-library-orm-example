@@ -30,6 +30,14 @@ type UserResponse struct {
 	Email      string `json:"email"`
 }
 
+type UserResponseEnt struct {
+	ID         uint    `json:"id,omitempty"`
+	FirstName  string  `json:"first_name"`
+	MiddleName *string `json:"middle_name,omitempty"`
+	LastName   string  `json:"last_name"`
+	Email      string  `json:"email"`
+}
+
 type UserResponseWithAddress struct {
 	ID         uint              `json:"id,omitempty"`
 	FirstName  string            `json:"first_name"`
@@ -68,10 +76,10 @@ type AddressResponse struct {
 }
 
 type CountryResponseWithAddress struct {
-	Id        int                 `json:"id"`
-	Code      string              `json:"code"`
-	Name      string              `json:"name"`
-	Addresses []AddressForCountry `json:"address"`
+	Id        int                  `json:"id"`
+	Code      string               `json:"code"`
+	Name      string               `json:"name"`
+	Addresses []*AddressForCountry `json:"address"`
 }
 
 type AddressForCountry struct {

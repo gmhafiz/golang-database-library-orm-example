@@ -39,7 +39,12 @@ func (r *database) Create(ctx context.Context, request sqlx2.UserRequest, hash s
 }
 
 func (r *database) List(ctx context.Context) ([]*sqlx2.UserResponse, error) {
-	users, err := models.Users(qm.Limit(30)).All(ctx, r.db)
+	users, err := models.Users(
+		qm.Limit(30),
+		//qm.Select(models.UserColumns.ID, models.UserColumns.LastName),
+		//models.UserWhere.FirstName.EQ("John"),
+	).
+		All(ctx, r.db)
 	if err != nil {
 		return nil, fmt.Errorf("error getting users")
 	}

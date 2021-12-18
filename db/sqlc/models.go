@@ -24,10 +24,10 @@ type Country struct {
 }
 
 type CountryAddress struct {
-	ID        int64
-	Code      string
-	Name      string
-	Addresses json.RawMessage
+	ID      int64
+	Code    string
+	Name    string
+	Address json.RawMessage
 }
 
 type User struct {

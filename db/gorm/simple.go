@@ -36,7 +36,8 @@ func (r *repo) Create(ctx context.Context, u *sqlx.UserRequest, hash string) (*U
 
 func (r *repo) List(ctx context.Context) ([]*User, error) {
 	var users []*User
-	err := r.db.WithContext(ctx).Model(&User{}).Select("*").Limit(30).Scan(&users).Error
+	//err := r.db.WithContext(ctx).Select([]string{"id", "first_name", "last_name"}).Find(&users, User{FirstName: "John"}).Limit(30).Error
+	err := r.db.WithContext(ctx).Find(&users, User{FirstName: "John"}).Limit(30).Error
 	if err != nil {
 		return nil, fmt.Errorf(`{"message": "db scanning error"}`)
 	}
@@ -47,7 +48,7 @@ func (r *repo) List(ctx context.Context) ([]*User, error) {
 func (r *repo) Get(ctx context.Context, userID int64) (*User, error) {
 	var user User
 
-	err := r.db.WithContext(ctx).First(&user, userID).Error
+	err := r.db.WithContext(ctx).First(&user, userID).Error // First() also can accept a `var user []*User`
 	if err != nil {
 		return nil, err
 	}
@@ -69,12 +70,7 @@ func (r *repo) Update(ctx context.Context, userID int64, req *sqlx.UserUpdateReq
 		return nil, err
 	}
 
-	updated, err := r.Get(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-
-	return updated, nil
+	return r.Get(ctx, userID)
 }
 
 func (r *repo) Delete(ctx context.Context, userID int64) error {
