@@ -44,7 +44,7 @@ func (r *database) ListM2M(ctx context.Context) ([]*sqlx.UserResponseWithAddress
 			if u.UserID.Int64 == int64(user.ID) {
 				for _, addr := range address {
 					if addr.ID == u.AddressID.Int64 {
-						user.Address = append(user.Address, sqlx.AddressForCountry{
+						user.Address = append(user.Address, &sqlx.AddressForCountry{
 							ID:       uint(addr.ID),
 							Line1:    addr.Line1,
 							Line2:    addr.Line2.String,

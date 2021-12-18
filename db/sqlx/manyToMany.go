@@ -110,7 +110,7 @@ func (r *database) ListM2M(ctx context.Context) ([]*UserResponseWithAddressesSql
 			if u.UserID == int(user.ID) {
 				for _, addr := range allAddresses {
 					if addr.ID == uint(u.AddressID) {
-						user.Address = append(user.Address, AddressForCountry{
+						user.Address = append(user.Address, &AddressForCountry{
 							ID:       addr.ID,
 							Line1:    addr.Line1,
 							Line2:    addr.Line2.String,

@@ -10,7 +10,10 @@ import (
 )
 
 func (r *database) Countries(ctx context.Context) ([]*sqlx.CountryResponseWithAddress, error) {
-	countries, err := models.Countries(qm.Load(models.CountryRels.Addresses)).
+	countries, err := models.Countries(
+		qm.Load(models.CountryRels.Addresses),
+		qm.Limit(30),
+	).
 		All(ctx, r.db)
 	if err != nil {
 		return nil, err

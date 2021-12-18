@@ -36,5 +36,8 @@ WHERE "entAddresses"."id" IN ($1, $2) args = [1 2]
 // Note that since `Password` field is made sensitive, it will not be serialized
 // when return to the user.
 func (r *database) ListM2M(ctx context.Context) ([]*gen.User, error) {
-	return r.db.User.Query().WithAddresses().All(ctx)
+	return r.db.User.Query().
+		Limit(30).
+		WithAddresses().
+		All(ctx)
 }

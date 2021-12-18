@@ -26,6 +26,7 @@ func Register(r *chi.Mux, db *sqlx.DB) {
 	r.Route("/api/sqlboiler/user", func(router chi.Router) {
 		router.Post("/", h.Create)
 		router.Get("/", h.List)
+		router.Get("/m2m", h.ListM2M)
 		router.Get("/{userID}", h.Get)
 		router.Put("/{userID}", h.Update)
 		router.Delete("/{userID}", h.Delete)
@@ -148,4 +149,14 @@ func (h *handler) Countries(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respond.Json(w, http.StatusOK, addresses)
+}
+
+func (h *handler) ListM2M(w http.ResponseWriter, r *http.Request) {
+	users, err := h.db.ListM2M(r.Context())
+	if err != nil {
+		respond.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	respond.Json(w, http.StatusOK, users)
 }

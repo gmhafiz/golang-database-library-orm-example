@@ -48,12 +48,12 @@ type UserResponseWithAddress struct {
 }
 
 type UserResponseWithAddressesSqlx struct {
-	ID         uint                `json:"id,omitempty"`
-	FirstName  string              `json:"first_name"`
-	MiddleName string              `json:"middle_name,omitempty"`
-	LastName   string              `json:"last_name"`
-	Email      string              `json:"email"`
-	Address    []AddressForCountry `json:"address"`
+	ID         uint                 `json:"id,omitempty"`
+	FirstName  string               `json:"first_name"`
+	MiddleName string               `json:"middle_name,omitempty"`
+	LastName   string               `json:"last_name"`
+	Email      string               `json:"email"`
+	Address    []*AddressForCountry `json:"address"`
 }
 
 type UserResponseWithAddresses struct {

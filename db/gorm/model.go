@@ -20,7 +20,7 @@ type User struct {
 	Email      string `json:"email"`
 	Password   string `json:"-"`
 
-	Addresses []Address `gorm:"many2many:user_addresses;"`
+	Addresses []Address `json:"address" gorm:"many2many:user_addresses;"`
 }
 
 type Country struct {

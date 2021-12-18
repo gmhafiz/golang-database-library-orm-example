@@ -63,6 +63,8 @@ INSERT INTO countries (code, name)
 VALUES ('AU', 'Australia');
 INSERT INTO countries (code, name)
 VALUES ('MY', 'Malaysia');
+INSERT INTO countries (code, name)
+VALUES ('ID', 'Indonesia');
 
 INSERT INTO addresses (line_1, line_2, postcode, city, state, country_id)
 VALUES ('Sydney Opera House', 'Bennelong Point', 2000, 'Sydney', 'NSW', 1);
@@ -73,6 +75,8 @@ INSERT INTO users (first_name, last_name, email, password)
 VALUES ('John', 'Doe', 'john@example.com', '$argon2id$v=19$m=16,t=2,p=1$SHVrWmRXc2tqOW5TWmVrRw$QCPRZ0MmOB/AEEMVB1LudA'); -- password
 INSERT INTO users (first_name, last_name, email, password)
 VALUES ('Jane', 'Doe', 'jane@example.com', '$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg'); -- password
+INSERT INTO users (first_name, last_name, email, password)
+VALUES ('Jake', 'Doe', 'jake@example.com', '$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg'); -- password
 
 INSERT INTO user_addresses (user_id, address_id) VALUES (1, 1);
 INSERT INTO user_addresses (user_id, address_id) VALUES (2, 2);
