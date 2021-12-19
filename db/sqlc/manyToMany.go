@@ -21,6 +21,7 @@ func (r *database) ListM2M(ctx context.Context) ([]*sqlx.UserResponseWithAddress
 			MiddleName: u.MiddleName.String,
 			LastName:   u.LastName,
 			Email:      u.Email,
+			Address:    []*sqlx.AddressForCountry{},
 		})
 	}
 

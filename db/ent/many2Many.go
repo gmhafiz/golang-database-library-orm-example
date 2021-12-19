@@ -7,7 +7,7 @@ import (
 )
 
 // ListM2M eager loads addresses for each user.
-// Generated sql:
+// By supplying a Debug() method, the generated sql are as follows:
 /*
 SELECT
 	DISTINCT "entUsers"."id",
