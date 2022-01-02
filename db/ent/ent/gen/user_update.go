@@ -71,6 +71,20 @@ func (uu *UserUpdate) SetPassword(s string) *UserUpdate {
 	return uu
 }
 
+// SetFavouriteColour sets the "favourite_colour" field.
+func (uu *UserUpdate) SetFavouriteColour(uc user.FavouriteColour) *UserUpdate {
+	uu.mutation.SetFavouriteColour(uc)
+	return uu
+}
+
+// SetNillableFavouriteColour sets the "favourite_colour" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableFavouriteColour(uc *user.FavouriteColour) *UserUpdate {
+	if uc != nil {
+		uu.SetFavouriteColour(*uc)
+	}
+	return uu
+}
+
 // AddAddressIDs adds the "addresses" edge to the Address entity by IDs.
 func (uu *UserUpdate) AddAddressIDs(ids ...uint) *UserUpdate {
 	uu.mutation.AddAddressIDs(ids...)
@@ -119,12 +133,18 @@ func (uu *UserUpdate) Save(ctx context.Context) (int, error) {
 		affected int
 	)
 	if len(uu.hooks) == 0 {
+		if err = uu.check(); err != nil {
+			return 0, err
+		}
 		affected, err = uu.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*UserMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = uu.check(); err != nil {
+				return 0, err
 			}
 			uu.mutation = mutation
 			affected, err = uu.sqlSave(ctx)
@@ -164,6 +184,16 @@ func (uu *UserUpdate) ExecX(ctx context.Context) {
 	if err := uu.Exec(ctx); err != nil {
 		panic(err)
 	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (uu *UserUpdate) check() error {
+	if v, ok := uu.mutation.FavouriteColour(); ok {
+		if err := user.FavouriteColourValidator(v); err != nil {
+			return &ValidationError{Name: "favourite_colour", err: fmt.Errorf("gen: validator failed for field \"favourite_colour\": %w", err)}
+		}
+	}
+	return nil
 }
 
 func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
@@ -223,6 +253,13 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeString,
 			Value:  value,
 			Column: user.FieldPassword,
+		})
+	}
+	if value, ok := uu.mutation.FavouriteColour(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: user.FieldFavouriteColour,
 		})
 	}
 	if uu.mutation.AddressesCleared() {
@@ -342,6 +379,20 @@ func (uuo *UserUpdateOne) SetPassword(s string) *UserUpdateOne {
 	return uuo
 }
 
+// SetFavouriteColour sets the "favourite_colour" field.
+func (uuo *UserUpdateOne) SetFavouriteColour(uc user.FavouriteColour) *UserUpdateOne {
+	uuo.mutation.SetFavouriteColour(uc)
+	return uuo
+}
+
+// SetNillableFavouriteColour sets the "favourite_colour" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableFavouriteColour(uc *user.FavouriteColour) *UserUpdateOne {
+	if uc != nil {
+		uuo.SetFavouriteColour(*uc)
+	}
+	return uuo
+}
+
 // AddAddressIDs adds the "addresses" edge to the Address entity by IDs.
 func (uuo *UserUpdateOne) AddAddressIDs(ids ...uint) *UserUpdateOne {
 	uuo.mutation.AddAddressIDs(ids...)
@@ -397,12 +448,18 @@ func (uuo *UserUpdateOne) Save(ctx context.Context) (*User, error) {
 		node *User
 	)
 	if len(uuo.hooks) == 0 {
+		if err = uuo.check(); err != nil {
+			return nil, err
+		}
 		node, err = uuo.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*UserMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = uuo.check(); err != nil {
+				return nil, err
 			}
 			uuo.mutation = mutation
 			node, err = uuo.sqlSave(ctx)
@@ -442,6 +499,16 @@ func (uuo *UserUpdateOne) ExecX(ctx context.Context) {
 	if err := uuo.Exec(ctx); err != nil {
 		panic(err)
 	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (uuo *UserUpdateOne) check() error {
+	if v, ok := uuo.mutation.FavouriteColour(); ok {
+		if err := user.FavouriteColourValidator(v); err != nil {
+			return &ValidationError{Name: "favourite_colour", err: fmt.Errorf("gen: validator failed for field \"favourite_colour\": %w", err)}
+		}
+	}
+	return nil
 }
 
 func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
@@ -518,6 +585,13 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Type:   field.TypeString,
 			Value:  value,
 			Column: user.FieldPassword,
+		})
+	}
+	if value, ok := uuo.mutation.FavouriteColour(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: user.FieldFavouriteColour,
 		})
 	}
 	if uuo.mutation.AddressesCleared() {

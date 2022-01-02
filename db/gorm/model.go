@@ -13,12 +13,13 @@ import (
 type User struct {
 	//gorm.Model
 
-	ID         int    `json:"id"`
-	FirstName  string `json:"first_name"`
-	MiddleName string `json:"middle_name"`
-	LastName   string `json:"last_name"`
-	Email      string `json:"email"`
-	Password   string `json:"-"`
+	ID              int    `json:"id"`
+	FirstName       string `json:"first_name"`
+	MiddleName      string `json:"middle_name"`
+	LastName        string `json:"last_name"`
+	Email           string `json:"email"`
+	Password        string `json:"-"`
+	FavouriteColour string `json:"favourite_colour"`
 
 	Addresses []Address `json:"address" gorm:"many2many:user_addresses;"`
 }
@@ -43,7 +44,7 @@ type Address struct {
 	City     string `json:"city,omitempty" gorm:"default:null" `
 	State    string `json:"state,omitempty" gorm:"default:null" `
 
-	CountryID int `json:"countries" json:"countryID,omitempty"`
+	CountryID int `json:"countryID,omitempty"`
 }
 
 func New(c config.Database) *gorm.DB {
@@ -60,10 +61,10 @@ func New(c config.Database) *gorm.DB {
 		log.Panic(err)
 	}
 
-	err = db.AutoMigrate(&User{}, &Country{}, &Address{})
-	if err != nil {
-		log.Panic(err)
-	}
+	//err = db.AutoMigrate(&User{}, &Country{}, &Address{})
+	//if err != nil {
+	//	log.Panic(err)
+	//}
 
 	return db
 }

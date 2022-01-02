@@ -12,16 +12,14 @@ init:
 sqlboiler:
 	sqlboiler --output db/sqlboiler/models psql
 
-run:
-	go mod tidy
-	go vet ./...
-	go fmt ./...
-	go run main.go
-
-all: init sqlboiler
-	go mod tidy
+check: sqlboiler
 	go generate ./...
 	sqlc generate
+	go mod tidy
 	go vet ./...
 	go fmt ./...
+
+run: check
 	go run main.go
+
+all: init check sqlboiler run

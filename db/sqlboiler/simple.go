@@ -23,7 +23,7 @@ func NewRepo(db *sqlx.DB) *database {
 	}
 }
 
-func (r *database) Create(ctx context.Context, request sqlx2.UserRequest, hash string) (*models.User, error) {
+func (r *database) Create(ctx context.Context, request *sqlx2.UserRequest, hash string) (*models.User, error) {
 	user := &models.User{
 		FirstName: request.FirstName,
 		MiddleName: null.String{
@@ -33,16 +33,30 @@ func (r *database) Create(ctx context.Context, request sqlx2.UserRequest, hash s
 		LastName: request.LastName,
 		Email:    request.Email,
 		Password: hash,
+		FavouriteColour: null.String{
+			String: request.FavouriteColour,
+			Valid:  true,
+		},
 	}
 
 	return user, user.Insert(ctx, r.db, boil.Infer())
 }
 
-func (r *database) List(ctx context.Context) ([]*sqlx2.UserResponse, error) {
+func (r *database) List(ctx context.Context, f *Filter) ([]*sqlx2.UserResponse, error) {
+	if f.FirstName != "" || f.Email != "" || f.FavouriteColour != "" {
+		return r.ListFilterByColumn(ctx, f)
+	}
+	if len(f.Base.Sort) > 0 {
+		return r.ListFilterSort(ctx, f)
+	}
+	if f.Base.Page > 1 {
+		return r.ListFilterPagination(ctx, f)
+	}
+
 	users, err := models.Users(
-		qm.Limit(30),
-		//qm.Select(models.UserColumns.ID, models.UserColumns.LastName),
-		//models.UserWhere.FirstName.EQ("John"),
+		qm.OrderBy(models.UserColumns.ID),
+		qm.Limit(int(f.Base.Limit)),
+		qm.Offset(f.Base.Offset),
 	).
 		All(ctx, r.db)
 	if err != nil {
@@ -52,11 +66,12 @@ func (r *database) List(ctx context.Context) ([]*sqlx2.UserResponse, error) {
 	var userResponse []*sqlx2.UserResponse
 	for _, user := range users {
 		userResponse = append(userResponse, &sqlx2.UserResponse{
-			ID:         uint(user.ID),
-			FirstName:  user.FirstName,
-			MiddleName: user.MiddleName.String,
-			LastName:   user.LastName,
-			Email:      user.Email,
+			ID:              uint(user.ID),
+			FirstName:       user.FirstName,
+			MiddleName:      user.MiddleName.String,
+			LastName:        user.LastName,
+			Email:           user.Email,
+			FavouriteColour: user.FavouriteColour.String,
 		})
 	}
 	return userResponse, nil
@@ -79,6 +94,10 @@ func (r *database) Update(ctx context.Context, id int64, req sqlx2.UserUpdateReq
 	}
 	user.LastName = req.LastName
 	user.Email = req.Email
+	user.FavouriteColour = null.String{
+		String: req.FavouriteColour,
+		Valid:  true,
+	}
 
 	_, err = user.Update(ctx, r.db, boil.Infer())
 	if err != nil {
@@ -109,6 +128,7 @@ UPDATE "users" SET "first_name"=$1,"middle_name"=$2,"last_name"=$3,"email"=$4,"p
 //		},
 //		LastName: req.LastName,
 //		Email:    req.Email,
+//      FavouriteColour: req.FavouriteColour,
 //	}
 //
 //	_, err := user.Update(ctx, r.db, boil.Infer())

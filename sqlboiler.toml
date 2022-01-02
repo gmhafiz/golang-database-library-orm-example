@@ -3,7 +3,7 @@ wipe     = true
 no-tests = true
 
 [psql]
-dbname = "postgres"
+dbname = "db_test"
 host   = "localhost"
 port   = 5432
 user   = "user"

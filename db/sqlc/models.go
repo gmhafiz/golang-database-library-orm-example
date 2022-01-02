@@ -5,7 +5,28 @@ package sqlc
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 )
+
+type ValidColours string
+
+const (
+	ValidColoursRed   ValidColours = "red"
+	ValidColoursGreen ValidColours = "green"
+	ValidColoursBlue  ValidColours = "blue"
+)
+
+func (e *ValidColours) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ValidColours(s)
+	case string:
+		*e = ValidColours(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ValidColours: %T", src)
+	}
+	return nil
+}
 
 type Address struct {
 	ID        int64
@@ -31,12 +52,13 @@ type CountryAddress struct {
 }
 
 type User struct {
-	ID         int64
-	FirstName  string
-	MiddleName sql.NullString
-	LastName   string
-	Email      string
-	Password   string
+	ID              int64
+	FirstName       string
+	MiddleName      sql.NullString
+	LastName        string
+	Email           string
+	Password        string
+	FavouriteColour ValidColours
 }
 
 type UserAddress struct {

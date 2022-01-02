@@ -1,4 +1,4 @@
-package sqlx
+package sqlboiler
 
 import (
 	"net/url"

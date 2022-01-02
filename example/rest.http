@@ -3,13 +3,13 @@
 ################################################################################
 
 ### Create POST request with json body
-POST  http://localhost:3080/api/sqlx/user
+POST http://localhost:3080/api/sqlx/user
 Content-Type: application/json
 
 {
-  "first_name": "Jake",
+  "first_name": "Jake34",
   "last_name": "Doe",
-  "email": "jake29@example.com",
+  "email": "jake34@example.com",
   "password": "password"
 }
 
@@ -28,12 +28,14 @@ Content-Type: application/json
 
 {
   "first_name": "John",
+  "middle_name": "Middle",
   "last_name": "Doe",
-  "email": "john-changed@example.com"
+  "email": "john-changed@example.com",
+  "favourite_colour": "green"
 }
 
 ### Delete DELETE request with json body
-DELETE  http://localhost:3080/api/sqlx/user/3
+DELETE  http://localhost:3080/api/sqlx/user/13
 Content-Type: application/json
 
 ### GET country with addresses
@@ -44,6 +46,28 @@ Accept: application/json
 ### GET users with their addresses
 GET http://localhost:3080/api/sqlx/user/m2m
 Accept: application/json
+
+
+### List filter users by favourite_colour
+GET http://localhost:3080/api/sqlx/user?favourite_colour=blue
+Accept: application/json
+
+### List filter users by name
+GET http://localhost:3080/api/sqlx/user?first_name=jake
+Accept: application/json
+
+### List Sort users by first_name in descending order
+GET http://localhost:3080/api/sqlx/user?sort=first_name,asc
+Accept: application/json
+
+### List Sort users inject
+GET http://localhost:3080/api/sqlx/user?sort=id;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List Paginate User records
+GET http://localhost:3080/api/sqlx/user?page=2
+Accept: application/json
+
 
 ################################################################################
 # sqlc
@@ -76,12 +100,14 @@ Content-Type: application/json
 
 {
   "first_name": "John",
+  "middle_name": "Middle",
   "last_name": "Doe",
-  "email": "john-changed@example.com"
+  "email": "john-changed@example.com",
+  "favourite_colour": "green"
 }
 
 ### Delete DELETE request with json body
-DELETE  http://localhost:3080/api/sqlc/user/2
+DELETE  http://localhost:3080/api/sqlc/user/22
 Content-Type: application/json
 
 ### GET country with addresses
@@ -92,6 +118,29 @@ Accept: application/json
 ### GET users with their addresses
 GET http://localhost:3080/api/sqlc/user/m2m
 Accept: application/json
+
+
+### List filter users by favourite_colour
+GET http://localhost:3080/api/sqlc/user?favourite_colour=red
+Accept: application/json
+
+### List filter users by name
+GET http://localhost:3080/api/sqlc/user?first_name=bruce
+Accept: application/json
+
+### List Sort users by first_name in descending order
+GET http://localhost:3080/api/sqlc/user?sort=first_name,asc
+Accept: application/json
+
+### List Sort users inject
+GET http://localhost:3080/api/sqlc/user?sort=id;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List Paginate User records
+GET http://localhost:3080/api/sqlc/user?page=2
+Accept: application/json
+
+
 
 ################################################################################
 # gorm
@@ -119,17 +168,19 @@ Accept: application/json
 
 
 ### Update PUT request with json body
-PUT  http://localhost:3080/api/gorm/user/13
+PUT  http://localhost:3080/api/gorm/user/1
 Content-Type: application/json
 
 {
   "first_name": "John",
+  "middle_name": "Middle",
   "last_name": "Doe",
-  "email": "john-changed@example.com"
+  "email": "john@example.com",
+  "favourite_colour": "blue"
 }
 
 ### Delete DELETE request with json body
-DELETE  http://localhost:3080/api/gorm/user/2
+DELETE  http://localhost:3080/api/gorm/user/23
 Content-Type: application/json
 
 ### GET country with addresses
@@ -138,6 +189,26 @@ Accept: application/json
 
 ### GET users with their addresses
 GET http://localhost:3080/api/gorm/user/m2m
+Accept: application/json
+
+### List filter users by email
+GET http://localhost:3080/api/gorm/user?email=john@example.com
+Accept: application/json
+
+### List filter users by email
+GET http://localhost:3080/api/gorm/user?first_name=jake
+Accept: application/json
+
+### List Sort users by first_name in descending order
+GET http://localhost:3080/api/gorm/user?sort=first_name,asc
+Accept: application/json
+
+### List Sort users inject
+GET http://localhost:3080/api/gorm/user?sort=id;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List Paginate User records
+GET http://localhost:3080/api/gorm/user?page=2
 Accept: application/json
 
 ################################################################################
@@ -152,7 +223,7 @@ Content-Type: application/json
 {
   "first_name": "Jake",
   "last_name": "Doe",
-  "email": "jake3@example.com",
+  "email": "jake50@example.com",
   "password": "password"
 }
 
@@ -165,21 +236,49 @@ GET http://localhost:3080/api/sqlboiler/user/1
 Accept: application/json
 
 ### Update PUT request with json body
-PUT  http://localhost:3080/api/sqlboiler/user/13
+PUT  http://localhost:3080/api/sqlboiler/user/27
 Content-Type: application/json
 
 {
   "first_name": "John",
+  "middle_name": "Middle",
   "last_name": "Doe",
-  "email": "john-changed@example.com"
+  "email": "john-changed@example.com",
+  "favourite_colour": "blue"
 }
 
 ### Delete DELETE request with json body
-DELETE  http://localhost:3080/api/sqlboiler/user/3
+DELETE  http://localhost:3080/api/sqlboiler/user/27
 Content-Type: application/json
 
 ### GET country with addresses
 GET http://localhost:3080/api/sqlboiler/country
+Accept: application/json
+
+### GET users with their addresses
+GET http://localhost:3080/api/sqlboiler/user/m2m
+Accept: application/json
+
+
+### List filter users by favourite_colour
+GET http://localhost:3080/api/sqlboiler/user?favourite_colour=red
+Accept: application/json
+
+
+### List filter users by email
+GET http://localhost:3080/api/sqlboiler/user?email=john@example.com
+Accept: application/json
+
+### List filter users by email
+GET http://localhost:3080/api/sqlboiler/user?first_name=jake
+Accept: application/json
+
+### List Sort users by first_name in descending order
+GET http://localhost:3080/api/sqlboiler/user?sort=first_name,asc
+Accept: application/json
+
+### List Paginate User records
+GET http://localhost:3080/api/sqlboiler/user?page=2
 Accept: application/json
 
 ################################################################################
@@ -194,7 +293,7 @@ Content-Type: application/json
 {
   "first_name": "Jake5",
   "last_name": "Doe",
-  "email": "jake30@example.com",
+  "email": "jake63@example.com",
   "password": "password"
 }
 
@@ -217,7 +316,7 @@ Content-Type: application/json
 }
 
 ### Delete DELETE request with json body
-DELETE  http://localhost:3080/api/ent/user/5
+DELETE  http://localhost:3080/api/ent/user/20
 
 ### GET country with addresses
 GET http://localhost:3080/api/ent/country
@@ -225,6 +324,32 @@ Accept: application/json
 
 ### GET users with their addresses
 GET http://localhost:3080/api/ent/user/m2m
+Accept: application/json
+
+
+### List filter users by email
+GET http://localhost:3080/api/ent/user?email=john@example.com
+Accept: application/json
+
+### List filter users by name
+GET http://localhost:3080/api/ent/user?first_name=Jake
+Accept: application/json
+
+### List filter users by favourtie colour
+GET http://localhost:3080/api/ent/user?favourite_colour=blue
+Accept: application/json
+
+### List Sort users by first_name in descending order
+GET http://localhost:3080/api/ent/user?sort=first_name,asc
+Accept: application/json
+
+### List Sort users by first_name in descending order
+GET http://localhost:3080/api/ent/user?sort=id;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+
+### List Paginate User records
+GET http://localhost:3080/api/ent/user?page=2
 Accept: application/json
 
 ################################################################################

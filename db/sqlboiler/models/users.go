@@ -24,65 +24,72 @@ import (
 
 // User is an object representing the database table.
 type User struct {
-	ID         int64       `boil:"id" json:"id" toml:"id" yaml:"id"`
-	FirstName  string      `boil:"first_name" json:"first_name" toml:"first_name" yaml:"first_name"`
-	MiddleName null.String `boil:"middle_name" json:"middle_name,omitempty" toml:"middle_name" yaml:"middle_name,omitempty"`
-	LastName   string      `boil:"last_name" json:"last_name" toml:"last_name" yaml:"last_name"`
-	Email      string      `boil:"email" json:"email" toml:"email" yaml:"email"`
-	Password   string      `boil:"password" json:"password" toml:"password" yaml:"password"`
+	ID              int64       `boil:"id" json:"id" toml:"id" yaml:"id"`
+	FirstName       string      `boil:"first_name" json:"first_name" toml:"first_name" yaml:"first_name"`
+	MiddleName      null.String `boil:"middle_name" json:"middle_name,omitempty" toml:"middle_name" yaml:"middle_name,omitempty"`
+	LastName        string      `boil:"last_name" json:"last_name" toml:"last_name" yaml:"last_name"`
+	Email           string      `boil:"email" json:"email" toml:"email" yaml:"email"`
+	Password        string      `boil:"password" json:"password" toml:"password" yaml:"password"`
+	FavouriteColour null.String `boil:"favourite_colour" json:"favourite_colour,omitempty" toml:"favourite_colour" yaml:"favourite_colour,omitempty"`
 
 	R *userR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L userL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var UserColumns = struct {
-	ID         string
-	FirstName  string
-	MiddleName string
-	LastName   string
-	Email      string
-	Password   string
+	ID              string
+	FirstName       string
+	MiddleName      string
+	LastName        string
+	Email           string
+	Password        string
+	FavouriteColour string
 }{
-	ID:         "id",
-	FirstName:  "first_name",
-	MiddleName: "middle_name",
-	LastName:   "last_name",
-	Email:      "email",
-	Password:   "password",
+	ID:              "id",
+	FirstName:       "first_name",
+	MiddleName:      "middle_name",
+	LastName:        "last_name",
+	Email:           "email",
+	Password:        "password",
+	FavouriteColour: "favourite_colour",
 }
 
 var UserTableColumns = struct {
-	ID         string
-	FirstName  string
-	MiddleName string
-	LastName   string
-	Email      string
-	Password   string
+	ID              string
+	FirstName       string
+	MiddleName      string
+	LastName        string
+	Email           string
+	Password        string
+	FavouriteColour string
 }{
-	ID:         "users.id",
-	FirstName:  "users.first_name",
-	MiddleName: "users.middle_name",
-	LastName:   "users.last_name",
-	Email:      "users.email",
-	Password:   "users.password",
+	ID:              "users.id",
+	FirstName:       "users.first_name",
+	MiddleName:      "users.middle_name",
+	LastName:        "users.last_name",
+	Email:           "users.email",
+	Password:        "users.password",
+	FavouriteColour: "users.favourite_colour",
 }
 
 // Generated where
 
 var UserWhere = struct {
-	ID         whereHelperint64
-	FirstName  whereHelperstring
-	MiddleName whereHelpernull_String
-	LastName   whereHelperstring
-	Email      whereHelperstring
-	Password   whereHelperstring
+	ID              whereHelperint64
+	FirstName       whereHelperstring
+	MiddleName      whereHelpernull_String
+	LastName        whereHelperstring
+	Email           whereHelperstring
+	Password        whereHelperstring
+	FavouriteColour whereHelpernull_String
 }{
-	ID:         whereHelperint64{field: "\"users\".\"id\""},
-	FirstName:  whereHelperstring{field: "\"users\".\"first_name\""},
-	MiddleName: whereHelpernull_String{field: "\"users\".\"middle_name\""},
-	LastName:   whereHelperstring{field: "\"users\".\"last_name\""},
-	Email:      whereHelperstring{field: "\"users\".\"email\""},
-	Password:   whereHelperstring{field: "\"users\".\"password\""},
+	ID:              whereHelperint64{field: "\"users\".\"id\""},
+	FirstName:       whereHelperstring{field: "\"users\".\"first_name\""},
+	MiddleName:      whereHelpernull_String{field: "\"users\".\"middle_name\""},
+	LastName:        whereHelperstring{field: "\"users\".\"last_name\""},
+	Email:           whereHelperstring{field: "\"users\".\"email\""},
+	Password:        whereHelperstring{field: "\"users\".\"password\""},
+	FavouriteColour: whereHelpernull_String{field: "\"users\".\"favourite_colour\""},
 }
 
 // UserRels is where relationship names are stored.
@@ -106,9 +113,9 @@ func (*userR) NewStruct() *userR {
 type userL struct{}
 
 var (
-	userAllColumns            = []string{"id", "first_name", "middle_name", "last_name", "email", "password"}
+	userAllColumns            = []string{"id", "first_name", "middle_name", "last_name", "email", "password", "favourite_colour"}
 	userColumnsWithoutDefault = []string{"first_name", "middle_name", "last_name", "email", "password"}
-	userColumnsWithDefault    = []string{"id"}
+	userColumnsWithDefault    = []string{"id", "favourite_colour"}
 	userPrimaryKeyColumns     = []string{"id"}
 )
 

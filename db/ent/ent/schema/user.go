@@ -25,6 +25,9 @@ func (User) Fields() []ent.Field {
 		field.String("last_name"),
 		field.String("email").Unique(),
 		field.String("password").Sensitive(),
+		field.Enum("favourite_colour").
+			Values("red", "green", "blue").
+			Default("green"),
 	}
 }
 

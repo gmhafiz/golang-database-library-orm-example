@@ -4,27 +4,13 @@
 package models
 
 var TableNames = struct {
-	AddressEntUsers string
-	Addresses       string
-	Categories      string
-	Countries       string
-	EntAddresses    string
-	EntCountries    string
-	EntUsers        string
-	Links           string
-	LinksCategories string
-	UserAddresses   string
-	Users           string
+	Addresses     string
+	Countries     string
+	UserAddresses string
+	Users         string
 }{
-	AddressEntUsers: "address_entUsers",
-	Addresses:       "addresses",
-	Categories:      "categories",
-	Countries:       "countries",
-	EntAddresses:    "entAddresses",
-	EntCountries:    "entCountries",
-	EntUsers:        "entUsers",
-	Links:           "links",
-	LinksCategories: "links_categories",
-	UserAddresses:   "user_addresses",
-	Users:           "users",
+	Addresses:     "addresses",
+	Countries:     "countries",
+	UserAddresses: "user_addresses",
+	Users:         "users",
 }

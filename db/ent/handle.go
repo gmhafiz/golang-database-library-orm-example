@@ -41,7 +41,7 @@ func Register(r *chi.Mux, db *gen.Client) {
 }
 
 func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
-	var request sqlx.UserRequest
+	request := sqlx.NewUserRequest()
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		respond.Error(w, http.StatusBadRequest, err)
@@ -56,6 +56,10 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 
 	saved, err := h.db.Create(r.Context(), request, hash)
 	if err != nil {
+		if gen.IsConstraintError(err) {
+			respond.Error(w, http.StatusBadRequest, message.ErrUniqueKeyViolation)
+			return
+		}
 		respond.Error(w, http.StatusInternalServerError, message.ErrInternalError)
 		return
 	}
@@ -64,7 +68,9 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
-	all, err := h.db.List(r.Context())
+	f := filters(r.URL.Query())
+
+	all, err := h.db.List(r.Context(), f)
 	if err != nil {
 		respond.Error(w, http.StatusInternalServerError, err)
 		return
@@ -87,11 +93,12 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respond.Json(w, http.StatusOK, &sqlx.UserResponse{
-		ID:         u.ID,
-		FirstName:  u.FirstName,
-		MiddleName: *u.MiddleName,
-		LastName:   u.LastName,
-		Email:      u.Email,
+		ID:              u.ID,
+		FirstName:       u.FirstName,
+		MiddleName:      *u.MiddleName,
+		LastName:        u.LastName,
+		Email:           u.Email,
+		FavouriteColour: u.FavouriteColour.String(),
 	})
 }
 

@@ -696,6 +696,54 @@ func PasswordContainsFold(v string) predicate.User {
 	})
 }
 
+// FavouriteColourEQ applies the EQ predicate on the "favourite_colour" field.
+func FavouriteColourEQ(v FavouriteColour) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldFavouriteColour), v))
+	})
+}
+
+// FavouriteColourNEQ applies the NEQ predicate on the "favourite_colour" field.
+func FavouriteColourNEQ(v FavouriteColour) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldFavouriteColour), v))
+	})
+}
+
+// FavouriteColourIn applies the In predicate on the "favourite_colour" field.
+func FavouriteColourIn(vs ...FavouriteColour) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldFavouriteColour), v...))
+	})
+}
+
+// FavouriteColourNotIn applies the NotIn predicate on the "favourite_colour" field.
+func FavouriteColourNotIn(vs ...FavouriteColour) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldFavouriteColour), v...))
+	})
+}
+
 // HasAddresses applies the HasEdge predicate on the "addresses" edge.
 func HasAddresses() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

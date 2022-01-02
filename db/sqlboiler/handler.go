@@ -1,7 +1,9 @@
 package sqlboiler
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/alexedwards/argon2id"
@@ -38,7 +40,7 @@ func Register(r *chi.Mux, db *sqlx.DB) {
 }
 
 func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
-	var request sqlx2.UserRequest
+	request := sqlx2.NewUserRequest()
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		respond.Error(w, http.StatusBadRequest, message.ErrBadRequest)
@@ -58,16 +60,19 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respond.Json(w, http.StatusCreated, &sqlx2.UserResponse{
-		ID:         uint(u.ID),
-		FirstName:  u.FirstName,
-		MiddleName: u.MiddleName.String,
-		LastName:   u.LastName,
-		Email:      u.Email,
+		ID:              uint(u.ID),
+		FirstName:       u.FirstName,
+		MiddleName:      u.MiddleName.String,
+		LastName:        u.LastName,
+		Email:           u.Email,
+		FavouriteColour: u.FavouriteColour.String,
 	})
 }
 
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
-	userResponse, err := h.db.List(r.Context())
+	f := filters(r.URL.Query())
+
+	userResponse, err := h.db.List(r.Context(), f)
 	if err != nil {
 		respond.Error(w, http.StatusInternalServerError, err)
 		return
@@ -112,8 +117,18 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.FirstName == "" || req.MiddleName == "" || req.LastName == "" ||
+		req.Email == "" || req.FavouriteColour == "" {
+		respond.Error(w, http.StatusBadRequest, errors.New("required field(s) is/are empty"))
+		return
+	}
+
 	updated, err := h.db.Update(r.Context(), userID, req)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			respond.Error(w, http.StatusBadRequest, message.ErrRecordNotFound)
+			return
+		}
 		respond.Error(w, http.StatusBadRequest, param.ErrParam)
 		return
 	}

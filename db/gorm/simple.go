@@ -3,8 +3,10 @@ package gorm
 import (
 	"context"
 	"fmt"
-	"godb/db/sqlx"
+
 	"gorm.io/gorm"
+
+	"godb/db/sqlx"
 )
 
 type repo struct {
@@ -19,11 +21,12 @@ func NewRepo(db *gorm.DB) *repo {
 
 func (r *repo) Create(ctx context.Context, u *sqlx.UserRequest, hash string) (*User, error) {
 	user := &User{
-		FirstName:  u.FirstName,
-		MiddleName: u.MiddleName,
-		LastName:   u.LastName,
-		Email:      u.Email,
-		Password:   hash,
+		FirstName:       u.FirstName,
+		MiddleName:      u.MiddleName,
+		LastName:        u.LastName,
+		Email:           u.Email,
+		Password:        hash,
+		FavouriteColour: u.FavouriteColour,
 	}
 
 	err := r.db.WithContext(ctx).Create(user).Error
@@ -34,10 +37,26 @@ func (r *repo) Create(ctx context.Context, u *sqlx.UserRequest, hash string) (*U
 	return user, nil
 }
 
-func (r *repo) List(ctx context.Context) ([]*User, error) {
+func (r *repo) List(ctx context.Context, f *Filter) ([]*User, error) {
+	if f.Email != "" || f.FirstName != "" {
+		return r.ListFilterByColumn(ctx, f)
+	}
+	if len(f.Base.Sort) > 0 {
+		return r.ListFilterSort(ctx, f)
+	}
+	if f.Base.Page > 1 {
+		return r.ListFilterPagination(ctx, f)
+	}
+
 	var users []*User
-	//err := r.db.WithContext(ctx).Select([]string{"id", "first_name", "last_name"}).Find(&users, User{FirstName: "John"}).Limit(30).Error
-	err := r.db.WithContext(ctx).Find(&users, User{FirstName: "John"}).Limit(30).Error
+	err := r.db.WithContext(ctx).
+		Select([]string{"id", "first_name", "middle_name", "last_name", "email", "favourite_colour"}).
+		Limit(int(f.Base.Limit)).
+		Offset(f.Base.Offset).
+		Find(&users).
+		Error
+	//err := r.db.WithContext(ctx).Select([]string{"id", "first_name", "middle_name", "last_name", "email"}).Find(&users, User{FirstName: "John"}).Limit(30).Error
+	//err := r.db.WithContext(ctx).Find(&users, User{FirstName: "John"}).Limit(30).Error
 	if err != nil {
 		return nil, fmt.Errorf(`{"message": "db scanning error"}`)
 	}
@@ -65,6 +84,7 @@ func (r *repo) Update(ctx context.Context, userID int64, req *sqlx.UserUpdateReq
 	u.MiddleName = req.MiddleName
 	u.LastName = req.LastName
 	u.Email = req.Email
+	u.FavouriteColour = req.FavouriteColour
 	err := r.db.WithContext(ctx).Save(&u).Error
 	if err != nil {
 		return nil, err

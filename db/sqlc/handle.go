@@ -2,6 +2,7 @@ package sqlc
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/alexedwards/argon2id"
@@ -38,7 +39,7 @@ func Register(r *chi.Mux, db *sqlx.DB) {
 }
 
 func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
-	var request sqlx2.UserRequest
+	request := sqlx2.NewUserRequest()
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		respond.Error(w, http.StatusBadRequest, message.ErrBadRequest)
@@ -58,16 +59,19 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respond.Json(w, http.StatusCreated, &sqlx2.UserResponse{
-		ID:         uint(user.ID),
-		FirstName:  user.FirstName,
-		MiddleName: user.MiddleName.String,
-		LastName:   user.LastName,
-		Email:      user.Email,
+		ID:              uint(user.ID),
+		FirstName:       user.FirstName,
+		MiddleName:      user.MiddleName.String,
+		LastName:        user.LastName,
+		Email:           user.Email,
+		FavouriteColour: string(user.FavouriteColour),
 	})
 }
 
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
-	users, err := h.db.List(r.Context())
+	f := filters(r.URL.Query())
+
+	users, err := h.db.List(r.Context(), f)
 	if err != nil {
 		respond.Error(w, http.StatusInternalServerError, err)
 		return
@@ -76,11 +80,12 @@ func (h *handler) List(w http.ResponseWriter, r *http.Request) {
 	var userResponse []*sqlx2.UserResponse
 	for _, user := range users {
 		userResponse = append(userResponse, &sqlx2.UserResponse{
-			ID:         uint(user.ID),
-			FirstName:  user.FirstName,
-			MiddleName: user.MiddleName.String,
-			LastName:   user.LastName,
-			Email:      user.Email,
+			ID:              uint(user.ID),
+			FirstName:       user.FirstName,
+			MiddleName:      user.MiddleName.String,
+			LastName:        user.LastName,
+			Email:           user.Email,
+			FavouriteColour: string(user.FavouriteColour),
 		})
 	}
 
@@ -101,11 +106,12 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respond.Json(w, http.StatusOK, &sqlx2.UserResponse{
-		ID:         uint(user.ID),
-		FirstName:  user.FirstName,
-		MiddleName: user.MiddleName.String,
-		LastName:   user.LastName,
-		Email:      user.Email,
+		ID:              uint(user.ID),
+		FirstName:       user.FirstName,
+		MiddleName:      user.MiddleName.String,
+		LastName:        user.LastName,
+		Email:           user.Email,
+		FavouriteColour: string(user.FavouriteColour),
 	})
 }
 
@@ -123,6 +129,12 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.FirstName == "" || req.MiddleName == "" || req.LastName == "" ||
+		req.Email == "" || req.FavouriteColour == "" {
+		respond.Error(w, http.StatusBadRequest, errors.New("required field(s) is/are empty"))
+		return
+	}
+
 	updated, err := h.db.Update(r.Context(), userID, &req)
 	if err != nil {
 		respond.Error(w, http.StatusInternalServerError, err)
@@ -130,11 +142,12 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respond.Json(w, http.StatusOK, &sqlx2.UserResponse{
-		ID:         uint(userID),
-		FirstName:  updated.FirstName,
-		MiddleName: updated.MiddleName.String,
-		LastName:   updated.LastName,
-		Email:      updated.Email,
+		ID:              uint(userID),
+		FirstName:       updated.FirstName,
+		MiddleName:      updated.MiddleName.String,
+		LastName:        updated.LastName,
+		Email:           updated.Email,
+		FavouriteColour: string(updated.FavouriteColour),
 	})
 }
 

@@ -38,7 +38,7 @@ func Register(r *chi.Mux, db *gorm.DB) {
 }
 
 func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
-	var request sqlx.UserRequest
+	request := sqlx.NewUserRequest()
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		respond.Error(w, http.StatusBadRequest, errors.New("bad request"))
@@ -51,7 +51,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.db.Create(r.Context(), &request, hash)
+	user, err := h.db.Create(r.Context(), request, hash)
 	if err != nil {
 		respond.Error(w, http.StatusInternalServerError, err)
 		return
@@ -61,7 +61,9 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
-	userResponse, err := h.db.List(r.Context())
+	f := filters(r.URL.Query())
+
+	userResponse, err := h.db.List(r.Context(), f)
 	if err != nil {
 		respond.Error(w, http.StatusInternalServerError, err)
 		return
@@ -97,6 +99,12 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		respond.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if req.FirstName == "" || req.MiddleName == "" || req.LastName == "" ||
+		req.Email == "" || req.FavouriteColour == "" {
+		respond.Error(w, http.StatusBadRequest, errors.New("required field(s) is/are empty"))
 		return
 	}
 

@@ -99,19 +99,28 @@ func (q *Queries) CountriesWithAddressAggregate(ctx context.Context) ([]json.Raw
 }
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (first_name, middle_name, last_name, email, password)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING id, first_name, middle_name, last_name, email, password
+
+INSERT INTO users (first_name, middle_name, last_name, email, password, favourite_colour)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, first_name, middle_name, last_name, email, password, favourite_colour
 `
 
 type CreateUserParams struct {
-	FirstName  string
-	MiddleName sql.NullString
-	LastName   string
-	Email      string
-	Password   string
+	FirstName       string
+	MiddleName      sql.NullString
+	LastName        string
+	Email           string
+	Password        string
+	FavouriteColour ValidColours
 }
 
+// SELECT *
+// FROM users
+// WHERE (@first_name::text = '' OR first_name = @first_name)
+//   AND (@email::text = '' OR email ILIKE '%' || @email || '%')
+// --   AND (@favourite_colour::text = '' OR favourite_colour ILIKE '%' || @favourite_colour || '%')
+// LIMIT 30
+// OFFSET 0;
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
 	row := q.db.QueryRowContext(ctx, createUser,
 		arg.FirstName,
@@ -119,6 +128,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.LastName,
 		arg.Email,
 		arg.Password,
+		arg.FavouriteColour,
 	)
 	var i User
 	err := row.Scan(
@@ -128,6 +138,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.LastName,
 		&i.Email,
 		&i.Password,
+		&i.FavouriteColour,
 	)
 	return i, err
 }
@@ -144,17 +155,18 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, first_name, middle_name, last_name, email
+SELECT id, first_name, middle_name, last_name, email, favourite_colour
 FROM users
 WHERE id = $1
 `
 
 type GetUserRow struct {
-	ID         int64
-	FirstName  string
-	MiddleName sql.NullString
-	LastName   string
-	Email      string
+	ID              int64
+	FirstName       string
+	MiddleName      sql.NullString
+	LastName        string
+	Email           string
+	FavouriteColour ValidColours
 }
 
 func (q *Queries) GetUser(ctx context.Context, id int64) (GetUserRow, error) {
@@ -166,23 +178,98 @@ func (q *Queries) GetUser(ctx context.Context, id int64) (GetUserRow, error) {
 		&i.MiddleName,
 		&i.LastName,
 		&i.Email,
+		&i.FavouriteColour,
 	)
 	return i, err
 }
 
+const listDynamicUsers = `-- name: ListDynamicUsers :many
+SELECT id, first_name, middle_name, last_name, email, password, favourite_colour
+FROM users
+WHERE ($1::text = '' OR first_name ILIKE '%' || $1 || '%')
+  AND ($2::text = '' OR email = LOWER($2) )
+ORDER BY (CASE
+              WHEN $3::text = 'first_name' THEN first_name
+              WHEN $4::text = 'email' THEN email
+    END) DESC,
+         (CASE
+              WHEN $5::text = 'first_name' THEN first_name
+              WHEN $6::text = 'email' THEN email
+             END),
+         id
+OFFSET $7 LIMIT $8
+`
+
+type ListDynamicUsersParams struct {
+	FirstName     string
+	Email         string
+	FirstNameDesc string
+	EmailDesc     string
+	FirstNameAsc  string
+	EmailAsc      string
+	SqlOffset     int32
+	SqlLimit      int32
+}
+
+//   AND (@favourite_colour IS NOT NULL OR favourite_colour = @favourite_colour )
+//   AND (@favourite_colour_present::text = '' OR favourite_colour = @favourite_colour )
+//   AND (@favourite_colour_present::valid_colours = '' OR favourite_colour = @favourite_colour )
+//               WHEN @favourite_colour_desc::text = 'favourite_colour' THEN favourite_colour
+//               WHEN @favourite_colour_asc::text = 'favourite_colour' THEN favourite_colour
+func (q *Queries) ListDynamicUsers(ctx context.Context, arg ListDynamicUsersParams) ([]User, error) {
+	rows, err := q.db.QueryContext(ctx, listDynamicUsers,
+		arg.FirstName,
+		arg.Email,
+		arg.FirstNameDesc,
+		arg.EmailDesc,
+		arg.FirstNameAsc,
+		arg.EmailAsc,
+		arg.SqlOffset,
+		arg.SqlLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.FirstName,
+			&i.MiddleName,
+			&i.LastName,
+			&i.Email,
+			&i.Password,
+			&i.FavouriteColour,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUsers = `-- name: ListUsers :many
-SELECT id, first_name, middle_name, last_name, email
+SELECT id, first_name, middle_name, last_name, email, favourite_colour
 FROM users
 LIMIT 30
 OFFSET 0
 `
 
 type ListUsersRow struct {
-	ID         int64
-	FirstName  string
-	MiddleName sql.NullString
-	LastName   string
-	Email      string
+	ID              int64
+	FirstName       string
+	MiddleName      sql.NullString
+	LastName        string
+	Email           string
+	FavouriteColour ValidColours
 }
 
 func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
@@ -200,6 +287,7 @@ func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
 			&i.MiddleName,
 			&i.LastName,
 			&i.Email,
+			&i.FavouriteColour,
 		); err != nil {
 			return nil, err
 		}
@@ -287,17 +375,18 @@ func (q *Queries) SelectUserAddresses(ctx context.Context, dollar_1 []int32) ([]
 }
 
 const selectUsers = `-- name: SelectUsers :many
-SELECT u.id, u.first_name, u.middle_name, u.last_name, u.email
+SELECT u.id, u.first_name, u.middle_name, u.last_name, u.email, u.favourite_colour
 FROM "users" u
 LIMIT 30
 `
 
 type SelectUsersRow struct {
-	ID         int64
-	FirstName  string
-	MiddleName sql.NullString
-	LastName   string
-	Email      string
+	ID              int64
+	FirstName       string
+	MiddleName      sql.NullString
+	LastName        string
+	Email           string
+	FavouriteColour ValidColours
 }
 
 func (q *Queries) SelectUsers(ctx context.Context) ([]SelectUsersRow, error) {
@@ -315,6 +404,7 @@ func (q *Queries) SelectUsers(ctx context.Context) ([]SelectUsersRow, error) {
 			&i.MiddleName,
 			&i.LastName,
 			&i.Email,
+			&i.FavouriteColour,
 		); err != nil {
 			return nil, err
 		}
@@ -334,16 +424,18 @@ UPDATE users
 SET first_name=$1,
     middle_name=$2,
     last_name=$3,
-    email=$4
-WHERE id = $5
+    email=$4,
+    favourite_colour=$5
+WHERE id = $6
 `
 
 type UpdateUserParams struct {
-	FirstName  string
-	MiddleName sql.NullString
-	LastName   string
-	Email      string
-	ID         int64
+	FirstName       string
+	MiddleName      sql.NullString
+	LastName        string
+	Email           string
+	FavouriteColour ValidColours
+	ID              int64
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
@@ -352,6 +444,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
 		arg.MiddleName,
 		arg.LastName,
 		arg.Email,
+		arg.FavouriteColour,
 		arg.ID,
 	)
 	return err

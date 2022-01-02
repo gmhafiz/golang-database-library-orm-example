@@ -50,3 +50,12 @@ func makeCacheKey(cols boil.Columns, nzDefaults []string) string {
 	strmangle.PutBuffer(buf)
 	return str
 }
+
+// Enum values for ValidColours
+const (
+	ValidColoursRed = "red"
+
+	ValidColoursGreen = "green"
+
+	ValidColoursBlue = "blue"
+)

@@ -1,6 +1,7 @@
 package sqlx
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -41,7 +42,7 @@ func Register(r *chi.Mux, db *sqlx.DB) {
 }
 
 func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
-	var request UserRequest
+	request := NewUserRequest()
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		respond.Error(w, http.StatusBadRequest, message.ErrBadRequest)
@@ -54,7 +55,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, err := h.db.Create(r.Context(), &request, hash)
+	u, err := h.db.Create(r.Context(), request, hash)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -72,16 +73,19 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respond.Json(w, http.StatusOK, &UserResponse{
-		ID:         u.ID,
-		FirstName:  u.FirstName,
-		MiddleName: u.MiddleName.String,
-		LastName:   u.LastName,
-		Email:      u.Email,
+		ID:              u.ID,
+		FirstName:       u.FirstName,
+		MiddleName:      u.MiddleName.String,
+		LastName:        u.LastName,
+		Email:           u.Email,
+		FavouriteColour: u.FavouriteColour,
 	})
 }
 
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
-	users, err := h.db.List(r.Context())
+	f := filters(r.URL.Query())
+
+	users, err := h.db.List(r.Context(), f)
 	if err != nil {
 		respond.Error(w, http.StatusInternalServerError, err)
 		return
@@ -99,6 +103,10 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 
 	u, err := h.db.Get(r.Context(), userID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			respond.Error(w, http.StatusInternalServerError, errors.New("no record found"))
+			return
+		}
 		respond.Error(w, http.StatusInternalServerError, err)
 		return
 	}
@@ -120,18 +128,29 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.FirstName == "" || req.MiddleName == "" || req.LastName == "" ||
+		req.Email == "" || req.FavouriteColour == "" {
+		respond.Error(w, http.StatusBadRequest, errors.New("required field(s) is/are empty"))
+		return
+	}
+
 	u, err := h.db.Update(r.Context(), userID, &req)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			respond.Error(w, http.StatusInternalServerError, errors.New("no record found"))
+			return
+		}
 		respond.Error(w, http.StatusInternalServerError, err)
 		return
 	}
 
 	respond.Json(w, http.StatusOK, &UserResponse{
-		ID:         uint(userID),
-		FirstName:  u.FirstName,
-		MiddleName: u.MiddleName,
-		LastName:   u.LastName,
-		Email:      u.Email,
+		ID:              uint(userID),
+		FirstName:       u.FirstName,
+		MiddleName:      u.MiddleName,
+		LastName:        u.LastName,
+		Email:           u.Email,
+		FavouriteColour: u.FavouriteColour,
 	})
 }
 
@@ -144,6 +163,10 @@ func (h *handler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	_, err = h.db.Delete(r.Context(), userID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			respond.Error(w, http.StatusInternalServerError, errors.New("no record found"))
+			return
+		}
 		respond.Error(w, http.StatusInternalServerError, err)
 		return
 	}

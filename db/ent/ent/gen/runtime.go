@@ -2,8 +2,14 @@
 
 package gen
 
+import (
+	"godb/db/ent/ent/schema"
+)
+
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	userFields := schema.User{}.Fields()
+	_ = userFields
 }

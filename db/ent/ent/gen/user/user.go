@@ -2,6 +2,10 @@
 
 package user
 
+import (
+	"fmt"
+)
+
 const (
 	// Label holds the string label denoting the user type in the database.
 	Label = "user"
@@ -17,6 +21,8 @@ const (
 	FieldEmail = "email"
 	// FieldPassword holds the string denoting the password field in the database.
 	FieldPassword = "password"
+	// FieldFavouriteColour holds the string denoting the favourite_colour field in the database.
+	FieldFavouriteColour = "favourite_colour"
 	// EdgeAddresses holds the string denoting the addresses edge name in mutations.
 	EdgeAddresses = "addresses"
 	// Table holds the table name of the user in the database.
@@ -36,6 +42,7 @@ var Columns = []string{
 	FieldLastName,
 	FieldEmail,
 	FieldPassword,
+	FieldFavouriteColour,
 }
 
 var (
@@ -52,4 +59,31 @@ func ValidColumn(column string) bool {
 		}
 	}
 	return false
+}
+
+// FavouriteColour defines the type for the "favourite_colour" enum field.
+type FavouriteColour string
+
+// FavouriteColourGreen is the default value of the FavouriteColour enum.
+const DefaultFavouriteColour = FavouriteColourGreen
+
+// FavouriteColour values.
+const (
+	FavouriteColourRed   FavouriteColour = "red"
+	FavouriteColourGreen FavouriteColour = "green"
+	FavouriteColourBlue  FavouriteColour = "blue"
+)
+
+func (fc FavouriteColour) String() string {
+	return string(fc)
+}
+
+// FavouriteColourValidator is a validator for the "favourite_colour" field enum values. It is called by the builders before save.
+func FavouriteColourValidator(fc FavouriteColour) error {
+	switch fc {
+	case FavouriteColourRed, FavouriteColourGreen, FavouriteColourBlue:
+		return nil
+	default:
+		return fmt.Errorf("user: invalid enum value for favourite_colour field: %q", fc)
+	}
 }

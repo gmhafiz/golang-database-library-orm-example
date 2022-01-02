@@ -19,6 +19,12 @@ func Json(w http.ResponseWriter, statusCode int, payload interface{}) {
 		http.Error(w, `{"message": "json error"}`, http.StatusInternalServerError)
 		return
 	}
+
+	if string(data) == "null" {
+		_, _ = w.Write([]byte("[]"))
+		return
+	}
+
 	_, err = w.Write(data)
 	if err != nil {
 		log.Println(err)

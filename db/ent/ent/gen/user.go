@@ -25,6 +25,8 @@ type User struct {
 	Email string `json:"email,omitempty"`
 	// Password holds the value of the "password" field.
 	Password string `json:"-"`
+	// FavouriteColour holds the value of the "favourite_colour" field.
+	FavouriteColour user.FavouriteColour `json:"favourite_colour,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges UserEdges `json:"edges"`
@@ -55,7 +57,7 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
-		case user.FieldFirstName, user.FieldMiddleName, user.FieldLastName, user.FieldEmail, user.FieldPassword:
+		case user.FieldFirstName, user.FieldMiddleName, user.FieldLastName, user.FieldEmail, user.FieldPassword, user.FieldFavouriteColour:
 			values[i] = new(sql.NullString)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type User", columns[i])
@@ -109,6 +111,12 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.Password = value.String
 			}
+		case user.FieldFavouriteColour:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field favourite_colour", values[i])
+			} else if value.Valid {
+				u.FavouriteColour = user.FavouriteColour(value.String)
+			}
 		}
 	}
 	return nil
@@ -153,6 +161,8 @@ func (u *User) String() string {
 	builder.WriteString(", email=")
 	builder.WriteString(u.Email)
 	builder.WriteString(", password=<sensitive>")
+	builder.WriteString(", favourite_colour=")
+	builder.WriteString(fmt.Sprintf("%v", u.FavouriteColour))
 	builder.WriteByte(')')
 	return builder.String()
 }

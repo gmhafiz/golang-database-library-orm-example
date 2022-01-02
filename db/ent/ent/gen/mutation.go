@@ -1154,6 +1154,7 @@ type UserMutation struct {
 	last_name        *string
 	email            *string
 	password         *string
+	favourite_colour *user.FavouriteColour
 	clearedFields    map[string]struct{}
 	addresses        map[uint]struct{}
 	removedaddresses map[uint]struct{}
@@ -1441,6 +1442,42 @@ func (m *UserMutation) ResetPassword() {
 	m.password = nil
 }
 
+// SetFavouriteColour sets the "favourite_colour" field.
+func (m *UserMutation) SetFavouriteColour(uc user.FavouriteColour) {
+	m.favourite_colour = &uc
+}
+
+// FavouriteColour returns the value of the "favourite_colour" field in the mutation.
+func (m *UserMutation) FavouriteColour() (r user.FavouriteColour, exists bool) {
+	v := m.favourite_colour
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFavouriteColour returns the old "favourite_colour" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldFavouriteColour(ctx context.Context) (v user.FavouriteColour, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldFavouriteColour is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldFavouriteColour requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFavouriteColour: %w", err)
+	}
+	return oldValue.FavouriteColour, nil
+}
+
+// ResetFavouriteColour resets all changes to the "favourite_colour" field.
+func (m *UserMutation) ResetFavouriteColour() {
+	m.favourite_colour = nil
+}
+
 // AddAddressIDs adds the "addresses" edge to the Address entity by ids.
 func (m *UserMutation) AddAddressIDs(ids ...uint) {
 	if m.addresses == nil {
@@ -1514,7 +1551,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.first_name != nil {
 		fields = append(fields, user.FieldFirstName)
 	}
@@ -1529,6 +1566,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.password != nil {
 		fields = append(fields, user.FieldPassword)
+	}
+	if m.favourite_colour != nil {
+		fields = append(fields, user.FieldFavouriteColour)
 	}
 	return fields
 }
@@ -1548,6 +1588,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Email()
 	case user.FieldPassword:
 		return m.Password()
+	case user.FieldFavouriteColour:
+		return m.FavouriteColour()
 	}
 	return nil, false
 }
@@ -1567,6 +1609,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldEmail(ctx)
 	case user.FieldPassword:
 		return m.OldPassword(ctx)
+	case user.FieldFavouriteColour:
+		return m.OldFavouriteColour(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -1610,6 +1654,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPassword(v)
+		return nil
+	case user.FieldFavouriteColour:
+		v, ok := value.(user.FavouriteColour)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFavouriteColour(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -1683,6 +1734,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldPassword:
 		m.ResetPassword()
+		return nil
+	case user.FieldFavouriteColour:
+		m.ResetFavouriteColour()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

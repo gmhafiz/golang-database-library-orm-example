@@ -1,9 +1,8 @@
 CREATE SCHEMA ent;
-CREATE SCHEMA db_gorm;
 
 BEGIN;
 
-create table countries
+CREATE TABLE IF NOT EXISTS countries
 (
     id   bigint generated always as identity
         primary key,
@@ -11,7 +10,7 @@ create table countries
     name text not null
 );
 
-create table addresses
+CREATE TABLE IF NOT EXISTS addresses
 (
     id         bigint generated always as identity
         primary key,
@@ -25,31 +24,36 @@ create table addresses
             references countries ON DELETE CASCADE
 );
 
-create table users
+CREATE TYPE valid_colours AS ENUM ('red', 'green', 'blue');
+
+CREATE TABLE IF NOT EXISTS users
 (
-    id          bigint generated always as identity
+    id              bigint generated always as identity
         primary key,
-    first_name  text not null,
-    middle_name text,
-    last_name   text not null,
-    email       text not null unique,
-    password    text not null
+    first_name      text not null,
+    middle_name     text,
+    last_name       text not null,
+    email           text not null unique,
+    password        text not null,
+    favourite_colour valid_colours default 'green'::valid_colours null
 );
 
-create table user_addresses
+CREATE TABLE IF NOT EXISTS user_addresses
 (
     user_id    bigint
         constraint user_addresses_users_id_fk
-            references users ON DELETE CASCADE ,
+            references users ON DELETE CASCADE,
     address_id bigint
         constraint user_addresses_addresses_id_fk
-            references addresses ON DELETE CASCADE ,
+            references addresses ON DELETE CASCADE,
     constraint user_addresses_pk
         primary key (user_id, address_id)
 );
 
 CREATE VIEW country_address as
-select c.id, c.code, c.name,
+select c.id,
+       c.code,
+       c.name,
        (
            select array_to_json(array_agg(row_to_json(addresslist.*))) as array_to_json
            from (
@@ -69,20 +73,41 @@ VALUES ('ID', 'Indonesia');
 INSERT INTO addresses (line_1, line_2, postcode, city, state, country_id)
 VALUES ('Sydney Opera House', 'Bennelong Point', 2000, 'Sydney', 'NSW', 1);
 INSERT INTO addresses (line_1, line_2, postcode, city, state, country_id)
-VALUES ('Petronas Twin Towers', '', 50088, 'Kuala Lumpur', 'Wilayah Persekutuan', 2);
+VALUES ('Petronas Twin Towers', '', 50088, 'Kuala Lumpur','Wilayah Persekutuan', 2);
+INSERT INTO users (first_name, last_name, email, password)
+VALUES ('John', 'Doe', 'john@example.com','$argon2id$v=19$m=16,t=2,p=1$SHVrWmRXc2tqOW5TWmVrRw$QCPRZ0MmOB/AEEMVB1LudA');
+INSERT INTO users (first_name, last_name, email, password)
+VALUES ('Jane', 'Doe', 'jane@example.com',  '$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg');
+INSERT INTO users (first_name, last_name, email, password)
+VALUES ('Jake', 'Doe', 'jake@example.com',   '$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg');
+INSERT INTO users (first_name, last_name, email, password)
+VALUES ('Alice', 'Doe', 'alice@example.com', '$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg');
+INSERT INTO users (first_name, last_name, email, password)
+VALUES ('Bob', 'Doe', 'bob@example.com','$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg');
+INSERT INTO users (first_name, last_name, email, password)
+VALUES ('Charlie', 'Doe', 'charlie@example.com','$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg');
+INSERT INTO users (first_name, last_name, email, password)
+VALUES ('Duncan', 'Doe', 'duncan@example.com','$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg');
+INSERT INTO users (first_name, last_name, email, password)
+VALUES ('Eric', 'Doe', 'eric@example.com','$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg');
+INSERT INTO users (first_name, last_name, email, password)
+VALUES ('Finn', 'Doe', 'Finn@example.com','$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg');
+INSERT INTO users (first_name, last_name, email, password)
+VALUES ('Garry', 'Doe', 'garry@example.com','$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg');
+INSERT INTO users (first_name, last_name, email, password)
+VALUES ('Holden', 'Doe', 'holden@example.com','$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg');
+INSERT INTO users (first_name, last_name, email, password)
+VALUES ('Ivy', 'Doe', 'ivy@example.com','$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg');
+INSERT INTO users (first_name, last_name, email, password, favourite_colour)
+VALUES ('Jeff', 'Donovan', 'jeff@example.com', '$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg','blue');
+INSERT INTO users (first_name, last_name, email, password, favourite_colour)
+VALUES ('Bruce', 'Campbell', 'bruce@example.com', '$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg','blue');
+INSERT INTO users (first_name, last_name, email, password, favourite_colour)
+VALUES ('Gabrielle', 'Anwar', 'gabrielle@example.com', '$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg','red');
 
-INSERT INTO users (first_name, last_name, email, password)
-VALUES ('John', 'Doe', 'john@example.com', '$argon2id$v=19$m=16,t=2,p=1$SHVrWmRXc2tqOW5TWmVrRw$QCPRZ0MmOB/AEEMVB1LudA'); -- password
-INSERT INTO users (first_name, last_name, email, password)
-VALUES ('Jane', 'Doe', 'jane@example.com', '$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg'); -- password
-INSERT INTO users (first_name, last_name, email, password)
-VALUES ('Jake', 'Doe', 'jake@example.com', '$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg'); -- password
 
 INSERT INTO user_addresses (user_id, address_id) VALUES (1, 1);
 INSERT INTO user_addresses (user_id, address_id) VALUES (2, 2);
 INSERT INTO user_addresses (user_id, address_id) VALUES (2, 1);
 
-
 COMMIT;
-
-

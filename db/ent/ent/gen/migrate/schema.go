@@ -51,6 +51,7 @@ var (
 		{Name: "last_name", Type: field.TypeString},
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "password", Type: field.TypeString},
+		{Name: "favourite_colour", Type: field.TypeEnum, Enums: []string{"red", "green", "blue"}, Default: "green"},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
