@@ -2,9 +2,9 @@ package gorm
 
 import (
 	"github.com/volatiletech/null/v8"
-	"net/url"
-
 	"godb/filter"
+	"godb/param"
+	"net/http"
 )
 
 type Filter struct {
@@ -13,19 +13,22 @@ type Filter struct {
 	Email           string
 	FirstName       string
 	FavouriteColour null.String
+
+	LastName []string
 }
 
-func filters(queries url.Values) *Filter {
-	f := filter.New(queries)
+func filters(r *http.Request) *Filter {
+	f := filter.New(r.URL.Query())
 
 	F := &Filter{
 		Base: *f,
 
-		Email:     queries.Get("email"),
-		FirstName: queries.Get("first_name"),
+		Email:     r.URL.Query().Get("email"),
+		FirstName: r.URL.Query().Get("first_name"),
+		LastName:  param.ToStrSlice(r, "last_name"),
 	}
 
-	favColour := queries.Get("favourite_colour")
+	favColour := r.URL.Query().Get("favourite_colour")
 	if favColour == "" {
 		F.FavouriteColour = null.String{
 			String: "",

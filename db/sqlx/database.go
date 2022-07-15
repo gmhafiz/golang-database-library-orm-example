@@ -34,13 +34,13 @@ func New(c config.Database) *sqlx.DB {
 }
 
 func Alive(db *sql.DB) {
-	log.Println("Connecting to database... ")
+	log.Println("Connecting to repository... ")
 	for {
 		// Ping by itself is un-reliable, the connections are cached. This
-		// ensures that the database is still running by executing a harmless
+		// ensures that the repository is still running by executing a harmless
 		// dummy query against it.
 		//
-		// Also, we perform an exponential backoff when querying the database
+		// Also, we perform an exponential backoff when querying the repository
 		// to spread our retries.
 		_, err := db.Exec("SELECT true")
 		if err == nil {

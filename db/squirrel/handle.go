@@ -1,17 +1,18 @@
-package sqlx
+package squirrel
 
 import (
 	"encoding/json"
 	"errors"
-	"net/http"
-
 	"github.com/alexedwards/argon2id"
-	"github.com/go-chi/chi/v5"
-	"github.com/jmoiron/sqlx"
-
 	"godb/param"
 	"godb/respond"
 	"godb/respond/message"
+	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/jmoiron/sqlx"
+
+	sqlx2 "godb/db/sqlx"
 )
 
 type handler struct {
@@ -32,7 +33,7 @@ func Register(r *chi.Mux, db *sqlx.DB) {
 		db: NewRepo(db),
 	}
 
-	r.Route("/api/sqlx/user", func(router chi.Router) {
+	r.Route("/api/squirrel/user", func(router chi.Router) {
 		router.Post("/", h.Create)
 		router.Get("/", h.List)
 		router.Get("/m2m", h.ListM2M)
@@ -42,13 +43,15 @@ func Register(r *chi.Mux, db *sqlx.DB) {
 		router.Delete("/{userID}", h.Delete)
 	})
 
-	r.Route("/api/sqlx/country", func(router chi.Router) {
+	r.Route("/api/squirrel/country", func(router chi.Router) {
 		router.Get("/", h.Countries)
 	})
+
 }
 
 func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
-	request := NewUserRequest()
+	request := sqlx2.NewUserRequest()
+
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		respond.Error(w, http.StatusBadRequest, message.ErrBadRequest)
@@ -72,7 +75,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respond.Json(w, http.StatusOK, &UserResponse{
+	respond.Json(w, http.StatusOK, &sqlx2.UserResponse{
 		ID:              u.ID,
 		FirstName:       u.FirstName,
 		MiddleName:      u.MiddleName.String,
@@ -82,7 +85,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *handler) List(w http.ResponseWriter, r *http.Request) {
+func (h handler) List(w http.ResponseWriter, r *http.Request) {
 	f := filters(r)
 
 	users, err := h.db.List(r.Context(), f)
@@ -127,7 +130,7 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req UserUpdateRequest
+	var req sqlx2.UserUpdateRequest
 	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		respond.Error(w, http.StatusBadRequest, err)
@@ -152,7 +155,7 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respond.Json(w, http.StatusOK, &UserResponse{
+	respond.Json(w, http.StatusOK, &sqlx2.UserResponse{
 		ID:              uint(userID),
 		FirstName:       u.FirstName,
 		MiddleName:      u.MiddleName,

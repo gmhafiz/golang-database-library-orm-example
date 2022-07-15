@@ -1,9 +1,9 @@
 package sqlboiler
 
 import (
-	"net/url"
-
 	"godb/filter"
+	"godb/param"
+	"net/http"
 )
 
 type Filter struct {
@@ -12,16 +12,22 @@ type Filter struct {
 	Email           string
 	FirstName       string
 	FavouriteColour string
+
+	LastNames []string
 }
 
-func filters(queries url.Values) *Filter {
-	f := filter.New(queries)
+func filters(r *http.Request) *Filter {
+	f := filter.New(r.URL.Query())
+
+	lastNames := param.ToStrSlice(r, "last_name")
 
 	return &Filter{
 		Base: *f,
 
-		Email:           queries.Get("email"),
-		FirstName:       queries.Get("first_name"),
-		FavouriteColour: queries.Get("favourite_colour"),
+		Email:           r.URL.Query().Get("email"),
+		FirstName:       r.URL.Query().Get("first_name"),
+		FavouriteColour: r.URL.Query().Get("favourite_colour"),
+
+		LastNames: lastNames,
 	}
 }

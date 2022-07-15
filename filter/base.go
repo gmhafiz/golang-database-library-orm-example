@@ -22,7 +22,7 @@ const (
 type Filter struct {
 	Page          int  `json:"page"`
 	Offset        int  `json:"offset"`
-	Limit         uint `json:"size"`
+	Limit         int  `json:"size"`
 	DisablePaging bool `json:"disable_paging"`
 
 	Sort   map[string]string `json:"sort"`
@@ -70,7 +70,7 @@ func New(queries url.Values) *Filter {
 	return &Filter{
 		Page:          page,
 		Offset:        offset,
-		Limit:         uint(limit),
+		Limit:         limit,
 		DisablePaging: disablePaging,
 		Sort:          sortKey,
 	}

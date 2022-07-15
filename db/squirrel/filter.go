@@ -1,4 +1,4 @@
-package sqlx
+package squirrel
 
 import (
 	"net/http"

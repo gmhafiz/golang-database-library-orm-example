@@ -3,10 +3,15 @@ package sqlc
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
 	"github.com/jmoiron/sqlx"
-
 	sqlx2 "godb/db/sqlx"
+	"godb/respond/message"
+	"log"
+	"net/http"
 )
 
 type database struct {
@@ -20,7 +25,7 @@ func NewRepo(db *sqlx.DB) *database {
 }
 
 func (r *database) Create(ctx context.Context, request *sqlx2.UserRequest, hash string) (*User, error) {
-	u, err := r.db.CreateUser(ctx, CreateUserParams{
+	u, _ := r.db.CreateUser(ctx, CreateUserParams{
 		FirstName: request.FirstName,
 		MiddleName: sql.NullString{
 			String: request.MiddleName,
@@ -31,7 +36,47 @@ func (r *database) Create(ctx context.Context, request *sqlx2.UserRequest, hash 
 		FavouriteColour: ValidColours(request.FavouriteColour),
 		Password:        hash,
 	})
+	err := &pgconn.PgError{
+		Severity:         "ERROR",
+		Code:             "23505",
+		Message:          "duplicate key value violates unique constraint \"users_email_key\"",
+		Detail:           "Key (email)=(john@example.com) already exists.",
+		Hint:             "",
+		Position:         0,
+		InternalPosition: 0,
+		InternalQuery:    "",
+		Where:            "",
+		SchemaName:       "public",
+		TableName:        "users",
+		ColumnName:       "",
+		DataTypeName:     "",
+		ConstraintName:   "users_email_key",
+		File:             "nbtinsert.c",
+		Line:             0,
+		Routine:          "_bt_check_unique",
+	}
 	if err != nil {
+		log.Println(err)
+
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			switch pgErr.Code {
+			case pgerrcode.UniqueViolation:
+				return &User{}, &sqlx2.Err{
+					Msg:    message.ErrUniqueKeyViolation.Error(),
+					Status: http.StatusBadRequest,
+				}
+			default:
+				return &User{}, &sqlx2.Err{
+					Msg:    message.ErrDefault.Error(),
+					Status: http.StatusInternalServerError,
+				}
+			}
+		}
+
+		//if errors.Is(err, sql.ErrNoRows) {
+		//	return &User{}, &sqlx2.Err{Msg: message.ErrRecordNotFound.Error()}
+		//}
 		return nil, err
 	}
 
@@ -42,6 +87,11 @@ func (r *database) List(ctx context.Context, f *Filter) (l []ListUsersRow, err e
 	if f.FirstName != "" || f.Email != "" || f.FavouriteColour != "" {
 		return r.ListFilterByColumn(ctx, f)
 	}
+
+	if len(f.LastName) > 0 {
+		return r.ListFilterWhereIn(ctx, f)
+	}
+
 	if len(f.Base.Sort) > 0 {
 		return r.ListFilterSort(ctx, f)
 	}
@@ -59,6 +109,9 @@ func (r *database) Get(ctx context.Context, userID int64) (GetUserRow, error) {
 func (r *database) Update(ctx context.Context, userID int64, req *sqlx2.UserUpdateRequest) (*GetUserRow, error) {
 	currUser, err := r.Get(ctx, userID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New("no record found")
+		}
 		return nil, err
 	}
 

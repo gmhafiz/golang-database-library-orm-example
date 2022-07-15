@@ -16,11 +16,11 @@ import (
 	"godb/config"
 	"godb/db/ent"
 	"godb/db/ent/ent/gen"
-	//_ "godb/db/ent/ent/gen/runtime"
 	gormDB "godb/db/gorm"
 	"godb/db/sqlboiler"
 	"godb/db/sqlc"
 	"godb/db/sqlx"
+	"godb/db/squirrel"
 	"godb/middleware"
 )
 
@@ -72,7 +72,6 @@ func (a *App) Run() {
 func (a *App) SetupRouter() {
 	a.router = chi.NewRouter()
 	a.router.Use(middleware.Json)
-	a.router.Use(middleware.Audit)
 	a.router.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		_, _ = w.Write([]byte(`{"message": "endpoint not found"}`))
@@ -80,6 +79,7 @@ func (a *App) SetupRouter() {
 
 	sqlx.Register(a.router, a.sqlx)
 	sqlc.Register(a.router, a.sqlx)
+	squirrel.Register(a.router, a.sqlx)
 	gormDB.Register(a.router, a.gorm)
 	sqlboiler.Register(a.router, a.sqlx)
 	ent.Register(a.router, a.ent)

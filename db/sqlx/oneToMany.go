@@ -26,7 +26,7 @@ const (
 	                ) addresslist) as address
 	from countries AS c;
 */
-func (r *database) Countries(ctx context.Context) ([]*CountryResponseWithAddress, error) {
+func (r *repository) Countries(ctx context.Context) ([]*CountryResponseWithAddress, error) {
 	var resp []*CountryResponseWithAddress
 
 	rows, err := r.db.QueryContext(ctx, GetWithAddresses2)

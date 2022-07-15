@@ -6,18 +6,18 @@ import (
 	"strings"
 )
 
-func (r *database) ListFilterByColumn(ctx context.Context, filters *Filter) (users []*UserResponse, err error) {
-	selectClause := "SELECT * FROM users "  // notice the space at the end?
-	paginateClause := " LIMIT 30 OFFSET 0;" // and at the beginning?
+func (r *repository) ListFilterByColumn(ctx context.Context, filters *Filter) (users []*UserResponse, err error) {
+	selectClause := "SELECT * FROM users " // notice the space at the end?
+	paginateClause := " LIMIT 30 OFFSET 0" // and at the beginning?
 
 	whereClauses := make([]string, 0)
 	arguments := make([]interface{}, 0)
 	if filters.Email != "" {
-		// Note that if postgres database created was non-deterministic (for case-insensitive)
+		// Note that if postgres repository created was non-deterministic (for case-insensitive)
 		// then we need to append `COLLATE case_insensitive` at the end of
 		// the full query.
 		//
-		// Here we simply lower our input text and lower the database value.
+		// Here we simply lower our input text and lower the repository value.
 		whereClauses = append(whereClauses, "LOWER(email) = ?")
 		arguments = append(arguments, strings.ToLower(filters.Email))
 	}
@@ -34,10 +34,10 @@ func (r *database) ListFilterByColumn(ctx context.Context, filters *Filter) (use
 
 	if len(whereClauses) > 0 {
 		fullQuery += "WHERE "
-		for _, clause := range whereClauses {
-			fullQuery += clause
-		}
+		fullQuery += strings.Join(whereClauses, " AND ")
 	}
+
+	fullQuery += " ORDER by id" // space at beginning
 
 	fullQuery += paginateClause
 
@@ -67,20 +67,21 @@ func (r *database) ListFilterByColumn(ctx context.Context, filters *Filter) (use
 	return users, nil
 }
 
-func (r *database) ListFilterSort(ctx context.Context, filters *Filter) (users []*UserResponse, err error) {
+func (r *repository) ListFilterSort(ctx context.Context, filters *Filter) (users []*UserResponse, err error) {
 	selectClause := "SELECT * FROM users "
 	paginateClause := " LIMIT 30 OFFSET 0;"
 	sortClauses := ""
 
 	fullQuery := selectClause
 
-	if len(filters.Base.Sort) > 0 {
-		sortClauses += " ORDER BY "
-		for col, order := range filters.Base.Sort {
-			sortClauses += fmt.Sprintf(" %s ", col)
-			sortClauses += fmt.Sprintf(" %s ", order)
-		}
+	sortClauses += " ORDER BY "
+	sortJoined := ""
+	var sort []string
+	for col, order := range filters.Base.Sort {
+		sort = append(sort, fmt.Sprintf(" %s ", col)+" "+fmt.Sprintf(" %s ", order))
+		sortJoined = strings.Join(sort, ",")
 	}
+	sortClauses += sortJoined
 
 	fullQuery += sortClauses
 	fullQuery += paginateClause
@@ -110,7 +111,7 @@ func (r *database) ListFilterSort(ctx context.Context, filters *Filter) (users [
 	return users, nil
 }
 
-func (r *database) ListFilterPagination(ctx context.Context, filters *Filter) (users []*UserResponse, err error) {
+func (r *repository) ListFilterPagination(ctx context.Context, filters *Filter) (users []*UserResponse, err error) {
 	selectClause := "SELECT * FROM users "
 
 	orderClause := " ORDER BY id"

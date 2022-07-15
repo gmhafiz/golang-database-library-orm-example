@@ -39,7 +39,7 @@ type userAddress struct {
 	AddressID int `db:"address_id"`
 }
 
-func (r *database) ListM2M(ctx context.Context) ([]*UserResponseWithAddressesSqlx, error) {
+func (r *repository) ListM2M(ctx context.Context) ([]*UserResponseWithAddressesSqlx, error) {
 	users, err := r.db.QueryContext(ctx, Users)
 	if err != nil {
 		return nil, fmt.Errorf("db error")
@@ -165,7 +165,7 @@ type address struct {
 	CountryID uint           `db:"country_id"`
 }
 
-//func (r *database) ListAddress(ctx context.Context, userID int64) error {
+//func (r *repository) ListAddress(ctx context.Context, userID int64) error {
 //	rows, err := r.db.QueryContext(ctx, UserWithAddresses, userID)
 //	if err != nil {
 //		return fmt.Errorf("db error")

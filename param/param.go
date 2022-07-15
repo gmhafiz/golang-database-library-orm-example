@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -30,4 +31,22 @@ func Int64(r *http.Request, param string) (int64, error) {
 
 func String(r *http.Request, param string) string {
 	return chi.URLParam(r, param)
+}
+
+// ToStrSlice turn comma separated query param to str slice
+func ToStrSlice(r *http.Request, s string) []string {
+	v := r.URL.Query()[s]
+	if len(v) == 0 {
+		return []string{}
+	}
+
+	str := strings.Split(v[0], ",")
+
+	ints := make([]string, 0)
+
+	for _, val := range str {
+		ints = append(ints, val)
+	}
+
+	return ints
 }

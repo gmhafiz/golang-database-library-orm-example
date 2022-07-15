@@ -1,7 +1,9 @@
 package ent
 
 import (
-	"net/url"
+	"godb/param"
+	"net/http"
+	"strconv"
 
 	"godb/db/ent/ent/gen/predicate"
 	"godb/db/ent/ent/gen/user"
@@ -11,24 +13,33 @@ import (
 type Filter struct {
 	Base filter.Filter
 
+	PaginateLastId int64
+
 	Email           string
 	FirstName       string
+	LastName        []string
 	FavouriteColour string
 
 	PredicateUser []predicate.User
 }
 
-func filters(queries url.Values) *Filter {
-	base := filter.New(queries)
+func filters(r *http.Request) *Filter {
+	base := filter.New(r.URL.Query())
+
+	paginateLastId, _ := strconv.ParseInt(r.URL.Query().Get("last_token"), 10, 64)
 
 	f := &Filter{
 		Base: *base,
 
-		Email:           queries.Get("email"),
-		FirstName:       queries.Get("first_name"),
-		FavouriteColour: queries.Get("favourite_colour"),
+		PaginateLastId: paginateLastId,
+
+		Email:           r.URL.Query().Get("email"),
+		FirstName:       r.URL.Query().Get("first_name"),
+		LastName:        param.ToStrSlice(r, "last_name"),
+		FavouriteColour: r.URL.Query().Get("favourite_colour"),
 	}
 
+	// Automatically parse at handler layer.
 	f.UserFilter()
 
 	return f

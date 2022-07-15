@@ -419,7 +419,7 @@ func (q *Queries) SelectUsers(ctx context.Context) ([]SelectUsersRow, error) {
 	return items, nil
 }
 
-const updateUser = `-- name: UpdateUser :exec
+const updatehUser = `-- name: UpdateUser :exec
 UPDATE users
 SET first_name=$1,
     middle_name=$2,
@@ -437,6 +437,16 @@ type UpdateUserParams struct {
 	FavouriteColour ValidColours
 	ID              int64
 }
+
+const updateUser = `-- name: UpdateUser :exec
+UPDATE users
+SET first_name=$1,
+    middle_name=$2,
+    last_name=$3,
+    email=$4,
+    favourite_colour=$5
+WHERE id = $6
+`
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
 	_, err := q.db.ExecContext(ctx, updateUser,

@@ -9,7 +9,7 @@ Content-Type: application/json
 {
   "first_name": "Jake34",
   "last_name": "Doe",
-  "email": "jake34@example.com",
+  "email": "jake35@example.com",
   "password": "password"
 }
 
@@ -18,7 +18,7 @@ GET http://localhost:3080/api/sqlx/user
 Accept: application/json
 
 ### GET request by ID
-GET http://localhost:3080/api/sqlx/user/1
+GET http://localhost:3080/api/sqlx/user/14747
 Accept: application/json
 
 
@@ -38,26 +38,20 @@ Content-Type: application/json
 DELETE  http://localhost:3080/api/sqlx/user/13
 Content-Type: application/json
 
-### GET country with addresses
-GET http://localhost:3080/api/sqlx/country
-Accept: application/json
-
-
-### GET users with their addresses
-GET http://localhost:3080/api/sqlx/user/m2m
-Accept: application/json
-
-
 ### List filter users by favourite_colour
 GET http://localhost:3080/api/sqlx/user?favourite_colour=blue
 Accept: application/json
 
-### List filter users by name
-GET http://localhost:3080/api/sqlx/user?first_name=jake
+### List filter users by name and favourite colour
+GET http://localhost:3080/api/sqlx/user?first_name=jake&favourite_colour=blue
 Accept: application/json
 
-### List Sort users by first_name in descending order
-GET http://localhost:3080/api/sqlx/user?sort=first_name,asc
+### List Sort users by first_name in descending order then colour
+GET http://localhost:3080/api/sqlx/user?sort=first_name,asc&sort=favourite_colour,desc
+Accept: application/json
+
+### List filter users by WHERE last_name IN ('Donovan', 'Campbell')
+GET http://localhost:3080/api/sqlx/user?last_name=Donovan,Campbell
 Accept: application/json
 
 ### List Sort users inject
@@ -68,6 +62,14 @@ Accept: application/json
 GET http://localhost:3080/api/sqlx/user?page=2
 Accept: application/json
 
+### GET country with addresses
+GET http://localhost:3080/api/sqlx/country
+Accept: application/json
+
+
+### GET users with their addresses
+GET http://localhost:3080/api/sqlx/user/m2m
+Accept: application/json
 
 ################################################################################
 # sqlc
@@ -110,20 +112,6 @@ Content-Type: application/json
 DELETE  http://localhost:3080/api/sqlc/user/22
 Content-Type: application/json
 
-### GET country with addresses
-GET http://localhost:3080/api/sqlc/country
-Accept: application/json
-
-
-### GET users with their addresses
-GET http://localhost:3080/api/sqlc/user/m2m
-Accept: application/json
-
-
-### List filter users by favourite_colour
-GET http://localhost:3080/api/sqlc/user?favourite_colour=red
-Accept: application/json
-
 ### List filter users by name
 GET http://localhost:3080/api/sqlc/user?first_name=bruce
 Accept: application/json
@@ -136,11 +124,95 @@ Accept: application/json
 GET http://localhost:3080/api/sqlc/user?sort=id;select%20*%20FROM%20users;,--;
 Accept: application/json
 
+### List filter users by WHERE last_name IN ('Donovan', 'Campbell')
+GET http://localhost:3080/api/sqlc/user?last_name=Donovan,Campbell
+Accept: application/json
+
 ### List Paginate User records
 GET http://localhost:3080/api/sqlc/user?page=2
 Accept: application/json
 
+### GET country with addresses
+GET http://localhost:3080/api/sqlc/country
+Accept: application/json
 
+
+### GET users with their addresses
+GET http://localhost:3080/api/sqlc/user/m2m
+Accept: application/json
+
+################################################################################
+# squirrel
+################################################################################
+
+### Create POST request with json body
+POST http://localhost:3080/api/squirrel/user
+Content-Type: application/json
+
+{
+  "first_name": "Jake98",
+  "last_name": "Doe",
+  "email": "jake98@example.com",
+  "password": "password"
+}
+
+### List
+GET http://localhost:3080/api/squirrel/user
+Accept: application/json
+
+### GET request by ID
+GET http://localhost:3080/api/squirrel/user/14747
+Accept: application/json
+
+
+### Update PUT request with json body
+PUT  http://localhost:3080/api/squirrel/user/1
+Content-Type: application/json
+
+{
+  "first_name": "John",
+  "middle_name": "Middle",
+  "last_name": "Doe",
+  "email": "john-changed25yitty@example.com",
+  "favourite_colour": "green"
+}
+
+### Delete DELETE request with json body
+DELETE  http://localhost:3080/api/squirrel/user/34
+Content-Type: application/json
+
+### List filter users by favourite_colour
+GET http://localhost:3080/api/squirrel/user?favourite_colour=blue
+Accept: application/json
+
+### List filter users by name and favourite colour
+GET http://localhost:3080/api/squirrel/user?first_name=jake&favourite_colour=blue
+Accept: application/json
+
+### List Sort users by first_name in descending order then colour
+GET http://localhost:3080/api/squirrel/user?sort=first_name,asc&sort=favourite_colour,desc
+Accept: application/json
+
+### List filter users by WHERE last_name IN ('Donovan', 'Campbell')
+GET http://localhost:3080/api/squirrel/user?last_name=Donovan,Campbell
+Accept: application/json
+
+### List Sort users inject
+GET http://localhost:3080/api/squirrel/user?sort=id;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List Paginate User records
+GET http://localhost:3080/api/squirrel/user?page=2
+Accept: application/json
+
+### GET country with addresses
+GET http://localhost:3080/api/squirrel/country
+Accept: application/json
+
+
+### GET users with their addresses
+GET http://localhost:3080/api/squirrel/user/m2m
+Accept: application/json
 
 ################################################################################
 # gorm
@@ -183,14 +255,6 @@ Content-Type: application/json
 DELETE  http://localhost:3080/api/gorm/user/23
 Content-Type: application/json
 
-### GET country with addresses
-GET http://localhost:3080/api/gorm/country
-Accept: application/json
-
-### GET users with their addresses
-GET http://localhost:3080/api/gorm/user/m2m
-Accept: application/json
-
 ### List filter users by email
 GET http://localhost:3080/api/gorm/user?email=john@example.com
 Accept: application/json
@@ -203,12 +267,24 @@ Accept: application/json
 GET http://localhost:3080/api/gorm/user?sort=first_name,asc
 Accept: application/json
 
+### List filter users by WHERE last_name IN ('Donovan', 'Campbell')
+GET http://localhost:3080/api/gorm/user?last_name=Donovan,Campbell
+Accept: application/json
+
 ### List Sort users inject
 GET http://localhost:3080/api/gorm/user?sort=id;select%20*%20FROM%20users;,--;
 Accept: application/json
 
 ### List Paginate User records
 GET http://localhost:3080/api/gorm/user?page=2
+Accept: application/json
+
+### GET country with addresses
+GET http://localhost:3080/api/gorm/country
+Accept: application/json
+
+### GET users with their addresses
+GET http://localhost:3080/api/gorm/user/m2m
 Accept: application/json
 
 ################################################################################
@@ -232,7 +308,7 @@ GET http://localhost:3080/api/sqlboiler/user
 Accept: application/json
 
 ### GET request by ID
-GET http://localhost:3080/api/sqlboiler/user/1
+GET http://localhost:3080/api/sqlboiler/user/1464464363464
 Accept: application/json
 
 ### Update PUT request with json body
@@ -251,15 +327,6 @@ Content-Type: application/json
 DELETE  http://localhost:3080/api/sqlboiler/user/27
 Content-Type: application/json
 
-### GET country with addresses
-GET http://localhost:3080/api/sqlboiler/country
-Accept: application/json
-
-### GET users with their addresses
-GET http://localhost:3080/api/sqlboiler/user/m2m
-Accept: application/json
-
-
 ### List filter users by favourite_colour
 GET http://localhost:3080/api/sqlboiler/user?favourite_colour=red
 Accept: application/json
@@ -269,16 +336,28 @@ Accept: application/json
 GET http://localhost:3080/api/sqlboiler/user?email=john@example.com
 Accept: application/json
 
-### List filter users by email
+### List filter users by first name
 GET http://localhost:3080/api/sqlboiler/user?first_name=jake
 Accept: application/json
 
 ### List Sort users by first_name in descending order
-GET http://localhost:3080/api/sqlboiler/user?sort=first_name,asc
+GET http://localhost:3080/api/sqlboiler/user?sort=first_name,desc
+Accept: application/json
+
+### List filter users by WHERE last_name IN ('Donovan', 'Campbell')
+GET http://localhost:3080/api/sqlboiler/user?last_name=Donovan,Campbell
 Accept: application/json
 
 ### List Paginate User records
 GET http://localhost:3080/api/sqlboiler/user?page=2
+Accept: application/json
+
+### GET country with addresses
+GET http://localhost:3080/api/sqlboiler/country
+Accept: application/json
+
+### GET users with their addresses
+GET http://localhost:3080/api/sqlboiler/user/m2m
 Accept: application/json
 
 ################################################################################
@@ -302,7 +381,7 @@ GET http://localhost:3080/api/ent/user
 Accept: application/json
 
 ### GET request by ID
-GET http://localhost:3080/api/ent/user/1
+GET http://localhost:3080/api/ent/user/1856856856684
 Accept: application/json
 
 ### Update PUT request with json body
@@ -317,15 +396,6 @@ Content-Type: application/json
 
 ### Delete DELETE request with json body
 DELETE  http://localhost:3080/api/ent/user/20
-
-### GET country with addresses
-GET http://localhost:3080/api/ent/country
-Accept: application/json
-
-### GET users with their addresses
-GET http://localhost:3080/api/ent/user/m2m
-Accept: application/json
-
 
 ### List filter users by email
 GET http://localhost:3080/api/ent/user?email=john@example.com
@@ -351,5 +421,24 @@ Accept: application/json
 ### List Paginate User records
 GET http://localhost:3080/api/ent/user?page=2
 Accept: application/json
+
+### List Paginate User records
+# The sort column and direction are compulsory if we are listing using last token.
+GET http://localhost:3080/api/ent/u1ser?last_token=6&limit=3&sort=id,asc
+Accept: application/json
+
+### List filter users by WHERE last_name IN ('Donovan', 'Campbell')
+GET http://localhost:3080/api/ent/user?last_name=Donovan,Campbell
+Accept: application/json
+
+
+### GET country with addresses
+GET http://localhost:3080/api/ent/country
+Accept: application/json
+
+### GET users with their addresses
+GET http://localhost:3080/api/ent/user/m2m
+Accept: application/json
+
 
 ################################################################################

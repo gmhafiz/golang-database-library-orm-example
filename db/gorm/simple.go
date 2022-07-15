@@ -47,12 +47,14 @@ func (r *repo) List(ctx context.Context, f *Filter) ([]*User, error) {
 	if f.Base.Page > 1 {
 		return r.ListFilterPagination(ctx, f)
 	}
+	if len(f.LastName) > 0 {
+		return r.ListFilterWhereIn(ctx, f)
+	}
 
 	var users []*User
 	err := r.db.WithContext(ctx).
 		Select([]string{"id", "first_name", "middle_name", "last_name", "email", "favourite_colour"}).
-		Limit(int(f.Base.Limit)).
-		Offset(f.Base.Offset).
+		Order("id").
 		Find(&users).
 		Error
 	//err := r.db.WithContext(ctx).Select([]string{"id", "first_name", "middle_name", "last_name", "email"}).Find(&users, User{FirstName: "John"}).Limit(30).Error
@@ -95,4 +97,16 @@ func (r *repo) Update(ctx context.Context, userID int64, req *sqlx.UserUpdateReq
 
 func (r *repo) Delete(ctx context.Context, userID int64) error {
 	return r.db.WithContext(ctx).Delete(&User{}, userID).Error
+}
+
+func (r *repo) ListFilterWhereIn(ctx context.Context, f *Filter) (users []*User, err error) {
+	err = r.db.WithContext(ctx).
+		Where("last_name IN ?", f.LastName).
+		Find(&users).
+		Error
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }

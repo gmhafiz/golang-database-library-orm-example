@@ -2,7 +2,10 @@ package sqlboiler
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
+	"github.com/samber/lo"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/volatiletech/null/v8"
@@ -52,11 +55,12 @@ func (r *database) List(ctx context.Context, f *Filter) ([]*sqlx2.UserResponse, 
 	if f.Base.Page > 1 {
 		return r.ListFilterPagination(ctx, f)
 	}
+	if len(f.LastNames) > 0 {
+		return r.ListFilterWhereIn(ctx, f)
+	}
 
 	users, err := models.Users(
 		qm.OrderBy(models.UserColumns.ID),
-		qm.Limit(int(f.Base.Limit)),
-		qm.Offset(f.Base.Offset),
 	).
 		All(ctx, r.db)
 	if err != nil {
@@ -78,7 +82,15 @@ func (r *database) List(ctx context.Context, f *Filter) ([]*sqlx2.UserResponse, 
 }
 
 func (r *database) Get(ctx context.Context, userID int64) (*models.User, error) {
-	return models.FindUser(ctx, r.db, userID)
+	user, err := models.FindUser(ctx, r.db, userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New("no record found")
+		}
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func (r *database) Update(ctx context.Context, id int64, req sqlx2.UserUpdateRequest) (*models.User, error) {
@@ -151,4 +163,35 @@ func (r *database) Delete(ctx context.Context, userID int64) error {
 	}
 
 	return nil
+}
+
+func (r *database) ListFilterWhereIn(ctx context.Context, f *Filter) (users []*sqlx2.UserResponse, err error) {
+	// Accepts slice of interface, not slice of string. Not generic. So need to
+	// convert each element to interface{}, or 'any' in Go v1.18
+	args := lo.Map(f.LastNames, func(t string, _ int) any {
+		return t
+	})
+
+	all, err := models.Users(
+		//qm.WhereIn("last_name", args...), // Does not work. Needs IN operator
+		//qm.WhereIn("last_name IN ($1, $2)", "Donovan", "Campbell"), // Is what we want
+		qm.WhereIn("last_name IN ?", args...),
+	).
+		All(ctx, r.db)
+	if err != nil {
+		return nil, fmt.Errorf("error getting users")
+	}
+
+	for _, i := range all {
+		users = append(users, &sqlx2.UserResponse{
+			ID:              uint(i.ID),
+			FirstName:       i.FirstName,
+			MiddleName:      i.MiddleName.String,
+			LastName:        i.LastName,
+			Email:           i.Email,
+			FavouriteColour: i.FavouriteColour.String,
+		})
+	}
+
+	return users, nil
 }

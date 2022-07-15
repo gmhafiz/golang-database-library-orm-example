@@ -53,9 +53,16 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, err := h.db.Create(r.Context(), request, hash)
+	var customErr *sqlx2.Err
 	if err != nil {
-		respond.Error(w, http.StatusInternalServerError, err)
-		return
+		switch {
+		case errors.As(err, &customErr):
+			respond.Error(w, customErr.Status, customErr)
+			return
+		default:
+			respond.Error(w, http.StatusInternalServerError, message.ErrDefault)
+			return
+		}
 	}
 
 	respond.Json(w, http.StatusCreated, &sqlx2.UserResponse{
@@ -69,7 +76,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
-	f := filters(r.URL.Query())
+	f := filters(r)
 
 	users, err := h.db.List(r.Context(), f)
 	if err != nil {

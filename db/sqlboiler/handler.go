@@ -70,7 +70,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
-	f := filters(r.URL.Query())
+	f := filters(r)
 
 	userResponse, err := h.db.List(r.Context(), f)
 	if err != nil {
@@ -90,7 +90,7 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 
 	u, err := h.db.Get(r.Context(), userID)
 	if err != nil {
-		respond.Error(w, http.StatusInternalServerError, message.ErrDBScan)
+		respond.Error(w, http.StatusInternalServerError, err)
 		return
 	}
 

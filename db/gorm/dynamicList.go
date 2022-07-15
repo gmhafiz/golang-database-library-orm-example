@@ -11,7 +11,7 @@ func (r *repo) ListFilterByColumn(ctx context.Context, f *Filter) ([]*User, erro
 	err := r.db.WithContext(ctx).
 		Select([]string{"id", "first_name", "middle_name", "last_name", "email", "favourite_colour"}).
 		Offset(f.Base.Offset).
-		Limit(int(f.Base.Limit)).
+		Limit(f.Base.Limit).
 
 		// Cannot use struct field when we want to use ILIKE clause.
 		// Instead, we use Where() and Or() methods.
@@ -44,7 +44,7 @@ func (r *repo) ListFilterSort(ctx context.Context, f *Filter) (users []*User, er
 	}
 
 	err = r.db.WithContext(ctx).
-		Limit(int(f.Base.Limit)).
+		Limit(f.Base.Limit).
 		Order(strings.Join(orderClause, ",")).
 		Find(&users).
 		Error
@@ -56,8 +56,8 @@ func (r *repo) ListFilterSort(ctx context.Context, f *Filter) (users []*User, er
 }
 
 func (r *repo) ListFilterPagination(ctx context.Context, f *Filter) (users []*User, err error) {
-	err = r.db.Debug().WithContext(ctx).
-		Limit(int(f.Base.Limit)).
+	err = r.db.WithContext(ctx).
+		Limit(f.Base.Limit).
 		Offset(f.Base.Offset).
 		Order("id").
 		Find(&users). // order matters!

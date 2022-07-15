@@ -2,6 +2,7 @@ package sqlboiler
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/volatiletech/null/v8"
@@ -19,10 +20,10 @@ func (r *database) ListFilterByColumn(ctx context.Context, f *Filter) (users []*
 	}
 
 	if f.FirstName != "" {
-		// doesn't work with mismatched case
+		// The following doesn't work with mismatched case
 		//mods = append(mods, models.UserWhere.FirstName.EQ(strings.ToLower(f.FirstName)))
 
-		// use `qm.Where()` to use ILIKE
+		// Instead, use `qm.Where()` to use ILIKE
 		mods = append(mods, qm.Where("first_name ILIKE ?", strings.ToLower(f.FirstName)))
 	}
 	if f.FavouriteColour != "" {
@@ -53,8 +54,8 @@ func (r *database) ListFilterByColumn(ctx context.Context, f *Filter) (users []*
 func (r *database) ListFilterSort(ctx context.Context, f *Filter) (users []*sqlx2.UserResponse, err error) {
 	var mods []qm.QueryMod
 
-	for key := range f.Base.Sort {
-		mods = append(mods, qm.OrderBy(key)) // todo: ORDER col ASC
+	for key, order := range f.Base.Sort {
+		mods = append(mods, qm.OrderBy(fmt.Sprintf("%s %s", key, order)))
 	}
 
 	mods = append(mods, qm.OrderBy(models.UserColumns.ID))
@@ -82,10 +83,10 @@ func (r *database) ListFilterPagination(ctx context.Context, f *Filter) (users [
 	var mods []qm.QueryMod
 
 	if f.Base.Limit != 0 && !f.Base.DisablePaging {
-		mods = append(mods, qm.Limit(int(f.Base.Limit)))
+		mods = append(mods, qm.Limit(f.Base.Limit))
 	}
 	if f.Base.Offset != 0 && !f.Base.DisablePaging {
-		mods = append(mods, qm.Offset(int(f.Base.Offset)))
+		mods = append(mods, qm.Offset(f.Base.Offset))
 	}
 
 	mods = append(mods, qm.OrderBy(models.UserColumns.ID))

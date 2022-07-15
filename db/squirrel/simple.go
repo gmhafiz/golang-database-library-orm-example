@@ -1,0 +1,211 @@
+package squirrel
+
+import (
+	"context"
+	"database/sql"
+	"errors"
+	"fmt"
+
+	sq "github.com/Masterminds/squirrel"
+	"github.com/jmoiron/sqlx"
+
+	sqlx2 "godb/db/sqlx"
+)
+
+type repository struct {
+	db sq.StatementBuilderType
+}
+
+func (r repository) Create(ctx context.Context, request *sqlx2.UserRequest, hash string) (*userDB, error) {
+	var u userDB
+
+	query := r.db.Insert("users").
+		Columns("first_name", "middle_name", "last_name", "email", "password", "favourite_colour").
+		Values(request.FirstName, request.MiddleName, request.LastName, request.Email, hash, request.FavouriteColour).
+		Suffix(`RETURNING "id", "first_name", "middle_name", "last_name", "email", "favourite_colour"`)
+
+	err := query.
+		QueryRowContext(ctx).
+		Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email, &u.FavouriteColour)
+	if err != nil {
+		return nil, err
+	}
+
+	return &u, nil
+}
+
+func (r repository) List(ctx context.Context, f *Filter) (users []*sqlx2.UserResponse, err error) {
+	if f.FirstName != "" || f.Email != "" || f.FavouriteColour != "" {
+		return r.ListFilterByColumn(ctx, f)
+	}
+	if len(f.Base.Sort) > 0 {
+		return r.ListFilterSort(ctx, f)
+	}
+
+	if len(f.LastName) > 0 {
+		return r.ListFilterWhereIn(ctx, f)
+	}
+
+	if f.Base.Page > 1 {
+		return r.ListFilterPagination(ctx, f)
+	}
+
+	rows, err := r.db.
+		Select("*").
+		From("users").
+		OrderBy("id").
+		QueryContext(ctx)
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			return
+		}
+	}(rows)
+
+	for rows.Next() {
+		var u userDB
+		err = rows.Scan(
+			&u.ID,
+			&u.FirstName,
+			&u.MiddleName,
+			&u.LastName,
+			&u.Email,
+			&u.Password,
+			&u.FavouriteColour,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("db scanning error")
+		}
+		users = append(users, &sqlx2.UserResponse{
+			ID:              u.ID,
+			FirstName:       u.FirstName,
+			MiddleName:      u.MiddleName.String,
+			LastName:        u.LastName,
+			Email:           u.Email,
+			FavouriteColour: u.FavouriteColour,
+		})
+	}
+
+	return users, nil
+}
+
+func (r *repository) Get(ctx context.Context, userID int64) (*sqlx2.UserResponse, error) {
+	rows := r.db.
+		Select("*").
+		From("users").
+		Where(sq.Eq{"id": userID}).
+		QueryRowContext(ctx)
+
+	var u userDB
+	err := rows.Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email, &u.Password, &u.FavouriteColour)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New("no record found")
+		}
+		return nil, err
+	}
+
+	return &sqlx2.UserResponse{
+		ID:              u.ID,
+		FirstName:       u.FirstName,
+		MiddleName:      u.MiddleName.String,
+		LastName:        u.LastName,
+		Email:           u.Email,
+		FavouriteColour: u.FavouriteColour,
+	}, nil
+}
+
+func (r repository) Update(ctx context.Context, id int64, req *sqlx2.UserUpdateRequest) (*sqlx2.UserResponse, error) {
+	currUser, err := r.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	currUser.FirstName = req.FirstName
+	currUser.MiddleName = req.MiddleName
+	currUser.LastName = req.LastName
+	currUser.Email = req.Email
+	currUser.FavouriteColour = req.FavouriteColour
+
+	_, err = r.db.Update("users").
+		Set("first_name", currUser.FirstName).
+		Set("middle_name", currUser.MiddleName).
+		Set("last_name", currUser.LastName).
+		Set("email", currUser.Email).
+		Set("favourite_colour", currUser.FavouriteColour).
+		Where(sq.Eq{"id": id}).
+		ExecContext(ctx)
+	if err != nil {
+		return nil, nil
+	}
+
+	return r.Get(ctx, id)
+}
+
+func (r repository) Delete(ctx context.Context, id int64) (sql.Result, error) {
+	_, err := r.db.Delete("users").
+		Where(sq.Eq{"id": id}).
+		ExecContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+func (r repository) ListFilterWhereIn(ctx context.Context, f *Filter) (users []*sqlx2.UserResponse, err error) {
+	var dbScan []*userDB
+
+	rows, err := r.db.
+		Select("*").
+		From("users").
+		Where(sq.Eq{"last_name": f.LastName}).
+		QueryContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			return
+		}
+	}(rows)
+
+	for rows.Next() {
+		var u userDB
+		err := rows.Scan(
+			&u.ID,
+			&u.FirstName,
+			&u.MiddleName,
+			&u.LastName,
+			&u.Email,
+			&u.Password,
+			&u.FavouriteColour,
+		)
+		if err != nil {
+			return nil, err
+		}
+		dbScan = append(dbScan, &u)
+	}
+
+	for _, val := range dbScan {
+		users = append(users, &sqlx2.UserResponse{
+			ID:              val.ID,
+			FirstName:       val.FirstName,
+			MiddleName:      val.MiddleName.String,
+			LastName:        val.LastName,
+			Email:           val.Email,
+			FavouriteColour: val.FavouriteColour,
+		})
+	}
+
+	return users, nil
+}
+
+func NewRepo(db *sqlx.DB) *repository {
+	return &repository{
+		db: sq.StatementBuilder.
+			PlaceholderFormat(sq.Dollar).
+			RunWith(db.DB),
+	}
+}

@@ -36,11 +36,11 @@ type UserUpdateRequest struct {
 
 type UserResponse struct {
 	ID              uint   `json:"id,omitempty"`
-	FirstName       string `json:"first_name"`
+	FirstName       string `json:"first_name,omitempty"`
 	MiddleName      string `json:"middle_name,omitempty"`
-	LastName        string `json:"last_name"`
-	Email           string `json:"email"`
-	FavouriteColour string `json:"favourite_color"`
+	LastName        string `json:"last_name,omitempty"`
+	Email           string `json:"email,omitempty"`
+	FavouriteColour string `json:"favourite_color,omitempty"`
 }
 
 type UserResponseEnt struct {
@@ -54,32 +54,32 @@ type UserResponseEnt struct {
 
 type UserResponseWithAddress struct {
 	ID              uint              `json:"id,omitempty"`
-	FirstName       string            `json:"first_name"`
+	FirstName       string            `json:"first_name,omitempty"`
 	MiddleName      string            `json:"middle_name,omitempty"`
-	LastName        string            `json:"last_name"`
-	Email           string            `json:"email"`
-	FavouriteColour string            `json:"favourite_colour"`
-	Address         AddressForCountry `json:"address"`
+	LastName        string            `json:"last_name,omitempty"`
+	Email           string            `json:"email,omitempty"`
+	FavouriteColour string            `json:"favourite_colour,omitempty"`
+	Address         AddressForCountry `json:"address,omitempty"`
 }
 
 type UserResponseWithAddressesSqlx struct {
 	ID              uint   `json:"id,omitempty"`
-	FirstName       string `json:"first_name"`
+	FirstName       string `json:"first_name,omitempty"`
 	MiddleName      string `json:"middle_name,omitempty"`
-	LastName        string `json:"last_name"`
-	Email           string `json:"email"`
-	FavouriteColour string `json:"favourite_colour"`
+	LastName        string `json:"last_name,omitempty"`
+	Email           string `json:"email,omitempty"`
+	FavouriteColour string `json:"favourite_colour,omitempty"`
 
 	Address []*AddressForCountry `json:"address"`
 }
 
 type UserResponseWithAddresses struct {
 	ID              uint    `json:"id,omitempty" `
-	FirstName       string  `json:"first_name"`
+	FirstName       string  `json:"first_name,omitempty"`
 	MiddleName      *string `json:"middle_name,omitempty"`
-	LastName        string  `json:"last_name"`
-	Email           string  `json:"email"`
-	FavouriteColour string  `json:"favourite_colour"`
+	LastName        string  `json:"last_name,omitempty"`
+	Email           string  `json:"email,omitempty"`
+	FavouriteColour string  `json:"favourite_colour,omitempty"`
 
 	Address []*gen.Address `json:"address"`
 }
@@ -87,17 +87,17 @@ type UserResponseWithAddresses struct {
 type AddressResponse struct {
 	ID        uint           `json:"id,omitempty"`
 	Line1     string         `json:"line_1,omitempty"`
-	Line2     sql.NullString `json:"line_2"`
-	Postcode  sql.NullInt32  `json:"postcode"`
-	City      sql.NullString `json:"city"`
-	State     sql.NullString `json:"state"`
+	Line2     sql.NullString `json:"line_2,omitempty"`
+	Postcode  sql.NullInt32  `json:"postcode,omitempty"`
+	City      sql.NullString `json:"city,omitempty"`
+	State     sql.NullString `json:"state,omitempty"`
 	CountryID sql.NullInt64  `json:"country_id,omitempty"`
 }
 
 type CountryResponseWithAddress struct {
-	Id   int    `json:"id"`
-	Code string `json:"code"`
-	Name string `json:"name"`
+	Id   int    `json:"id,omitempty"`
+	Code string `json:"code,omitempty"`
+	Name string `json:"name,omitempty"`
 
 	Addresses []*AddressForCountry `json:"address"`
 }
@@ -105,8 +105,8 @@ type CountryResponseWithAddress struct {
 type AddressForCountry struct {
 	ID       uint   `json:"id,omitempty"`
 	Line1    string `json:"line_1,omitempty"`
-	Line2    string `json:"line_2"`
-	Postcode int32  `json:"postcode"`
-	City     string `json:"city"`
-	State    string `json:"state"`
+	Line2    string `json:"line_2,omitempty"`
+	Postcode int32  `json:"postcode,omitempty"`
+	City     string `json:"city,omitempty"`
+	State    string `json:"state,omitempty"`
 }

@@ -39,6 +39,7 @@ WHERE id = $1;
 -- name: ListUsers :many
 SELECT id, first_name, middle_name, last_name, email, favourite_colour
 FROM users
+ORDER BY id
 LIMIT 30
 OFFSET 0;
 

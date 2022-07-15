@@ -1,6 +1,8 @@
 package message
 
-import "errors"
+import (
+	"errors"
+)
 
 var (
 	ErrDBScan        = errors.New("db scanning error")
@@ -9,7 +11,8 @@ var (
 
 	ErrUniqueKeyViolation = errors.New("error unique key violation")
 	ErrRecordNotFound     = errors.New("error record not found")
-	ErrUpdating           = errors.New("error updating")
 	ErrDeleting           = errors.New("error deleting")
 	ErrRetrieving         = errors.New("error retrieving")
+
+	ErrDefault = errors.New("whoops, something wrong happened")
 )

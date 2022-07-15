@@ -104,3 +104,7 @@ func (r *database) ListFilterPagination(ctx context.Context, f *Filter) (l []Lis
 	}
 	return l, nil
 }
+
+func (r *database) ListFilterWhereIn(ctx context.Context, f *Filter) ([]ListUsersRow, error) {
+	return []ListUsersRow{}, nil
+}
