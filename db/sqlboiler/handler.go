@@ -4,13 +4,13 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"godb/db"
 	"net/http"
 
 	"github.com/alexedwards/argon2id"
 	"github.com/go-chi/chi/v5"
 	"github.com/jmoiron/sqlx"
 
-	sqlx2 "godb/db/sqlx"
 	"godb/param"
 	"godb/respond"
 	"godb/respond/message"
@@ -40,7 +40,7 @@ func Register(r *chi.Mux, db *sqlx.DB) {
 }
 
 func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
-	request := sqlx2.NewUserRequest()
+	request := db.NewUserRequest()
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		respond.Error(w, http.StatusBadRequest, message.ErrBadRequest)
@@ -59,18 +59,20 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respond.Json(w, http.StatusCreated, &sqlx2.UserResponse{
+	respond.Json(w, http.StatusCreated, &db.UserResponse{
 		ID:              uint(u.ID),
 		FirstName:       u.FirstName,
 		MiddleName:      u.MiddleName.String,
 		LastName:        u.LastName,
 		Email:           u.Email,
 		FavouriteColour: u.FavouriteColour.String,
+
+		// Password is omitted from client response
 	})
 }
 
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
-	f := filters(r)
+	f := db.Filters(r.URL.Query())
 
 	userResponse, err := h.db.List(r.Context(), f)
 	if err != nil {
@@ -94,7 +96,7 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respond.Json(w, http.StatusOK, &sqlx2.UserResponse{
+	respond.Json(w, http.StatusOK, &db.UserResponse{
 		ID:         uint(u.ID),
 		FirstName:  u.FirstName,
 		MiddleName: u.MiddleName.String,
@@ -110,7 +112,7 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req sqlx2.UserUpdateRequest
+	var req db.UserUpdateRequest
 	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		respond.Error(w, http.StatusBadRequest, message.ErrBadRequest)
@@ -133,7 +135,7 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respond.Json(w, http.StatusOK, &sqlx2.UserResponse{
+	respond.Json(w, http.StatusOK, &db.UserResponse{
 		ID:         uint(userID),
 		FirstName:  updated.FirstName,
 		MiddleName: updated.MiddleName.String,

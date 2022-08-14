@@ -1,7 +1,8 @@
-package sqlx
+package db
 
 import (
 	"database/sql"
+	"encoding/json"
 )
 
 const DefaultUserColor = "red"
@@ -82,6 +83,15 @@ type UserResponseWithAddresses struct {
 	Address []*Address `json:"address"`
 }
 
+// Address is the model entity for the Address schema.
+type Address struct {
+	ID       uint    `json:"id,omitempty"`
+	Line1    string  `json:"line_1,omitempty"`
+	Line2    *string `json:"line_2,omitempty"`
+	Postcode int     `json:"postcode,omitempty"`
+	State    string  `json:"state,omitempty"`
+}
+
 type AddressResponse struct {
 	ID        uint           `json:"id,omitempty"`
 	Line1     string         `json:"line_1,omitempty"`
@@ -100,11 +110,9 @@ type CountryResponseWithAddress struct {
 	Addresses []*AddressForCountry `json:"address"`
 }
 
-type AddressForCountry struct {
-	ID       uint   `json:"id,omitempty"`
-	Line1    string `json:"line_1,omitempty"`
-	Line2    string `json:"line_2,omitempty"`
-	Postcode int32  `json:"postcode,omitempty"`
-	City     string `json:"city,omitempty"`
-	State    string `json:"state,omitempty"`
+// Scan When scanning the result, we are actually getting an array of uint8.
+// These json payload is then unmarshalled into our custom struct.
+func (m *CountryResponseWithAddress) Scan(src interface{}) error {
+	val := src.([]uint8)
+	return json.Unmarshal(val, &m)
 }

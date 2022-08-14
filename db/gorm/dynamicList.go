@@ -3,12 +3,13 @@ package gorm
 import (
 	"context"
 	"fmt"
+	"godb/db"
 	"strings"
 )
 
-func (r *repo) ListFilterByColumn(ctx context.Context, f *Filter) ([]*User, error) {
+func (r *repo) ListFilterByColumn(ctx context.Context, f *db.Filter) ([]*User, error) {
 	var users []*User
-	err := r.db.WithContext(ctx).
+	builder := r.db.WithContext(ctx).
 		Select([]string{"id", "first_name", "middle_name", "last_name", "email", "favourite_colour"}).
 		Offset(f.Base.Offset).
 		Limit(f.Base.Limit).
@@ -22,9 +23,13 @@ func (r *repo) ListFilterByColumn(ctx context.Context, f *Filter) ([]*User, erro
 		//}).
 
 		Where("email = ? ", f.Email).
-		Or("first_name ILIKE ?", f.FirstName).
-		Or("favourite_colour = ?", f.FavouriteColour).
+		Or("first_name ILIKE ?", f.FirstName)
 
+	if f.FavouriteColour != "" {
+		builder = builder.Or("favourite_colour = ?", f.FavouriteColour)
+	}
+
+	err := builder.
 		// Compiler won't complain about missing Find() method!
 		// Order is also important. If you put Find() in between of Limit() and
 		// Where(), you will get a wrong result!
@@ -37,7 +42,7 @@ func (r *repo) ListFilterByColumn(ctx context.Context, f *Filter) ([]*User, erro
 	return users, nil
 }
 
-func (r *repo) ListFilterSort(ctx context.Context, f *Filter) (users []*User, err error) {
+func (r *repo) ListFilterSort(ctx context.Context, f *db.Filter) (users []*User, err error) {
 	var orderClause []string
 	for col, order := range f.Base.Sort {
 		orderClause = append(orderClause, fmt.Sprintf("%s %s", col, order))
@@ -55,7 +60,7 @@ func (r *repo) ListFilterSort(ctx context.Context, f *Filter) (users []*User, er
 	return users, nil
 }
 
-func (r *repo) ListFilterPagination(ctx context.Context, f *Filter) (users []*User, err error) {
+func (r *repo) ListFilterPagination(ctx context.Context, f *db.Filter) (users []*User, err error) {
 	err = r.db.WithContext(ctx).
 		Limit(f.Base.Limit).
 		Offset(f.Base.Offset).

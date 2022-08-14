@@ -3,6 +3,7 @@ package sqlc
 import (
 	"encoding/json"
 	"errors"
+	"godb/db"
 	"net/http"
 
 	"github.com/alexedwards/argon2id"
@@ -19,9 +20,9 @@ type handler struct {
 	db *database
 }
 
-func Register(r *chi.Mux, db *sqlx.DB) {
+func Register(r *chi.Mux, db *sqlx.DB, dbType string) {
 	h := &handler{
-		db: NewRepo(db),
+		db: NewRepo(db, dbType),
 	}
 
 	r.Route("/api/sqlc/user", func(router chi.Router) {
@@ -39,7 +40,7 @@ func Register(r *chi.Mux, db *sqlx.DB) {
 }
 
 func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
-	request := sqlx2.NewUserRequest()
+	request := db.NewUserRequest()
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		respond.Error(w, http.StatusBadRequest, message.ErrBadRequest)
@@ -65,7 +66,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	respond.Json(w, http.StatusCreated, &sqlx2.UserResponse{
+	respond.Json(w, http.StatusCreated, &db.UserResponse{
 		ID:              uint(user.ID),
 		FirstName:       user.FirstName,
 		MiddleName:      user.MiddleName.String,
@@ -76,7 +77,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
-	f := filters(r)
+	f := db.Filters(r.URL.Query())
 
 	users, err := h.db.List(r.Context(), f)
 	if err != nil {
@@ -84,19 +85,7 @@ func (h *handler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var userResponse []*sqlx2.UserResponse
-	for _, user := range users {
-		userResponse = append(userResponse, &sqlx2.UserResponse{
-			ID:              uint(user.ID),
-			FirstName:       user.FirstName,
-			MiddleName:      user.MiddleName.String,
-			LastName:        user.LastName,
-			Email:           user.Email,
-			FavouriteColour: string(user.FavouriteColour),
-		})
-	}
-
-	respond.Json(w, http.StatusOK, userResponse)
+	respond.Json(w, http.StatusOK, users)
 }
 
 func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
@@ -112,7 +101,7 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respond.Json(w, http.StatusOK, &sqlx2.UserResponse{
+	respond.Json(w, http.StatusOK, &db.UserResponse{
 		ID:              uint(user.ID),
 		FirstName:       user.FirstName,
 		MiddleName:      user.MiddleName.String,
@@ -129,7 +118,7 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req sqlx2.UserUpdateRequest
+	var req db.UserUpdateRequest
 	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		respond.Error(w, http.StatusBadRequest, message.ErrBadRequest)
@@ -148,7 +137,7 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respond.Json(w, http.StatusOK, &sqlx2.UserResponse{
+	respond.Json(w, http.StatusOK, &db.UserResponse{
 		ID:              uint(userID),
 		FirstName:       updated.FirstName,
 		MiddleName:      updated.MiddleName.String,

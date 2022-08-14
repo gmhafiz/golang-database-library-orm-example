@@ -17,6 +17,10 @@ Content-Type: application/json
 GET http://localhost:3080/api/sqlx/user
 Accept: application/json
 
+### List filter users by WHERE last_name IN ('Donovan', 'Campbell')
+GET http://localhost:3080/api/sqlx/user?last_name=Donovan,Campbell
+Accept: application/json
+
 ### GET request by ID
 GET http://localhost:3080/api/sqlx/user/14747
 Accept: application/json
@@ -50,12 +54,12 @@ Accept: application/json
 GET http://localhost:3080/api/sqlx/user?sort=first_name,asc&sort=favourite_colour,desc
 Accept: application/json
 
-### List filter users by WHERE last_name IN ('Donovan', 'Campbell')
-GET http://localhost:3080/api/sqlx/user?last_name=Donovan,Campbell
-Accept: application/json
-
 ### List Sort users inject
 GET http://localhost:3080/api/sqlx/user?sort=id;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/sqlx/user?favourite_colour=blue;select%20*%20FROM%20users;,--;
 Accept: application/json
 
 ### List Paginate User records
@@ -91,6 +95,10 @@ Content-Type: application/json
 GET http://localhost:3080/api/sqlc/user
 Accept: application/json
 
+### List filter users by WHERE last_name IN ('Donovan', 'Campbell')
+GET http://localhost:3080/api/sqlc/user?last_name=Donovan,Campbell
+Accept: application/json
+
 ### GET request by ID
 GET http://localhost:3080/api/sqlc/user/1
 Accept: application/json
@@ -117,15 +125,15 @@ GET http://localhost:3080/api/sqlc/user?first_name=bruce
 Accept: application/json
 
 ### List Sort users by first_name in descending order
-GET http://localhost:3080/api/sqlc/user?sort=first_name,asc
+GET http://localhost:3080/api/sqlc/user?sort=first_name,asc&sort=favourite_colour,desc
 Accept: application/json
 
 ### List Sort users inject
 GET http://localhost:3080/api/sqlc/user?sort=id;select%20*%20FROM%20users;,--;
 Accept: application/json
 
-### List filter users by WHERE last_name IN ('Donovan', 'Campbell')
-GET http://localhost:3080/api/sqlc/user?last_name=Donovan,Campbell
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/sqlc/user?first_name=Bruce;select%20*%20FROM%20users;,--;
 Accept: application/json
 
 ### List Paginate User records
@@ -160,8 +168,12 @@ Content-Type: application/json
 GET http://localhost:3080/api/squirrel/user
 Accept: application/json
 
+### List filter users by WHERE last_name IN ('Donovan', 'Campbell')
+GET http://localhost:3080/api/squirrel/user?last_name=Donovan,Campbell
+Accept: application/json
+
 ### GET request by ID
-GET http://localhost:3080/api/squirrel/user/14747
+GET http://localhost:3080/api/squirrel/user/1
 Accept: application/json
 
 
@@ -193,12 +205,12 @@ Accept: application/json
 GET http://localhost:3080/api/squirrel/user?sort=first_name,asc&sort=favourite_colour,desc
 Accept: application/json
 
-### List filter users by WHERE last_name IN ('Donovan', 'Campbell')
-GET http://localhost:3080/api/squirrel/user?last_name=Donovan,Campbell
-Accept: application/json
-
 ### List Sort users inject
 GET http://localhost:3080/api/squirrel/user?sort=id;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/squirrel/user?first_name=Bruce;select%20*%20FROM%20users;,--;
 Accept: application/json
 
 ### List Paginate User records
@@ -226,12 +238,16 @@ Content-Type: application/json
 {
   "first_name": "Jake",
   "last_name": "Doe",
-  "email": "jake2@example.com",
+  "email": "jake24@example.com",
   "password": "password"
 }
 
 ### GET List request
 GET http://localhost:3080/api/gorm/user
+Accept: application/json
+
+### List filter users by WHERE last_name IN ('Donovan', 'Campbell')
+GET http://localhost:3080/api/gorm/user?last_name=Donovan,Campbell
 Accept: application/json
 
 ### GET request by ID
@@ -260,19 +276,19 @@ GET http://localhost:3080/api/gorm/user?email=john@example.com
 Accept: application/json
 
 ### List filter users by email
-GET http://localhost:3080/api/gorm/user?first_name=jake
+GET http://localhost:3080/api/gorm/user?first_name=Jake
 Accept: application/json
 
 ### List Sort users by first_name in descending order
 GET http://localhost:3080/api/gorm/user?sort=first_name,asc
 Accept: application/json
 
-### List filter users by WHERE last_name IN ('Donovan', 'Campbell')
-GET http://localhost:3080/api/gorm/user?last_name=Donovan,Campbell
-Accept: application/json
-
 ### List Sort users inject
 GET http://localhost:3080/api/gorm/user?sort=id;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/gorm/user?first_name=Bruce;select%20*%20FROM%20users;,--;
 Accept: application/json
 
 ### List Paginate User records
@@ -305,6 +321,10 @@ Content-Type: application/json
 
 ### GET list request
 GET http://localhost:3080/api/sqlboiler/user
+Accept: application/json
+
+### List filter users by WHERE last_name IN ('Donovan', 'Campbell')
+GET http://localhost:3080/api/sqlboiler/user?last_name=Donovan,Campbell
 Accept: application/json
 
 ### GET request by ID
@@ -344,8 +364,12 @@ Accept: application/json
 GET http://localhost:3080/api/sqlboiler/user?sort=first_name,desc
 Accept: application/json
 
-### List filter users by WHERE last_name IN ('Donovan', 'Campbell')
-GET http://localhost:3080/api/sqlboiler/user?last_name=Donovan,Campbell
+### List Sort users inject
+GET http://localhost:3080/api/sqlboiler/user?sort=id;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/sqlboiler/user?first_name=Bruce;select%20*%20FROM%20users;,--;
 Accept: application/json
 
 ### List Paginate User records
@@ -372,13 +396,18 @@ Content-Type: application/json
 {
   "first_name": "Jake5",
   "last_name": "Doe",
-  "email": "jake63@example.com",
+  "email": "jake69@example.com",
   "password": "password"
 }
 
 ### GET list request
 GET http://localhost:3080/api/ent/user
 Accept: application/json
+
+### List filter users by WHERE last_name IN ('Donovan', 'Campbell')
+GET http://localhost:3080/api/ent/user?last_name=Donovan,Campbell
+Accept: application/json
+
 
 ### GET request by ID
 GET http://localhost:3080/api/ent/user/1856856856684
@@ -417,6 +446,9 @@ Accept: application/json
 GET http://localhost:3080/api/ent/user?sort=id;select%20*%20FROM%20users;,--;
 Accept: application/json
 
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/ent/user?first_name=Bruce;select%20*%20FROM%20users;,--;
+Accept: application/json
 
 ### List Paginate User records
 GET http://localhost:3080/api/ent/user?page=2
@@ -426,11 +458,6 @@ Accept: application/json
 # The sort column and direction are compulsory if we are listing using last token.
 GET http://localhost:3080/api/ent/u1ser?last_token=6&limit=3&sort=id,asc
 Accept: application/json
-
-### List filter users by WHERE last_name IN ('Donovan', 'Campbell')
-GET http://localhost:3080/api/ent/user?last_name=Donovan,Campbell
-Accept: application/json
-
 
 ### GET country with addresses
 GET http://localhost:3080/api/ent/country

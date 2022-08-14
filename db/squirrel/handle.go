@@ -3,16 +3,17 @@ package squirrel
 import (
 	"encoding/json"
 	"errors"
-	"github.com/alexedwards/argon2id"
-	"godb/param"
-	"godb/respond"
-	"godb/respond/message"
 	"net/http"
 
+	"github.com/alexedwards/argon2id"
 	"github.com/go-chi/chi/v5"
 	"github.com/jmoiron/sqlx"
 
-	sqlx2 "godb/db/sqlx"
+	"godb/db"
+	sqlx2 "godb/db"
+	"godb/param"
+	"godb/respond"
+	"godb/respond/message"
 )
 
 type handler struct {
@@ -86,7 +87,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h handler) List(w http.ResponseWriter, r *http.Request) {
-	f := filters(r)
+	f := db.Filters(r.URL.Query())
 
 	users, err := h.db.List(r.Context(), f)
 	if err != nil {

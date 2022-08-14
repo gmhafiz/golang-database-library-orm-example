@@ -4,6 +4,7 @@ Examples of using various popular database libraries and ORM in Go.
 
  - [sqlx](https://jmoiron.github.io/sqlx/)
  - [sqlc](https://docs.sqlc.dev)
+ - [squirrel](https://github.com/Masterminds/squirrel)
  - [Gorm](https://github.com/go-gorm/gorm)
  - [sqlboiler](https://github.com/volatiletech/sqlboiler)
  - [ent](https://entgo.io/docs/getting-started)
@@ -14,7 +15,7 @@ The aim is to demonstrate and compare usage for several operations
  2. 1-to-Many queries
  3. Many-to-many queries
  4. Dynamic list filter from query parameter 
- 5. Transaction
+ 5. (Coming) Transaction
 
 # Schema
 
@@ -35,7 +36,7 @@ Setup postgres database by either running from docker-compose or manually.
 
 This creates both `postgres` database (which this repo uses) and `ent` database which is used by ent ORM.
 
-If you create the database manually, execute the `database/01-schema.sql` script.
+If you create the database manually, execute the `database/01-postgres-schema.sql` script.
 
 Default database credentials are defined in `config/config.go`. These can be overwritten by setting environment variables. For example:
 

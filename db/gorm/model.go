@@ -1,13 +1,14 @@
 package gorm
 
 import (
-	"fmt"
 	"log"
 
+	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
 	"godb/config"
+	"godb/db/sqlx"
 )
 
 type User struct {
@@ -48,17 +49,21 @@ type Address struct {
 }
 
 func New(c config.Database) *gorm.DB {
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
-		c.User,
-		c.Password,
-		c.Host,
-		c.Port,
-		c.Name,
-		c.SSLMode,
-	)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
-		log.Panic(err)
+	driver := &gorm.DB{}
+
+	switch c.Type {
+	case "postgres", "postgresql", "psql", "pgsql", "pgx":
+		db, err := gorm.Open(postgres.Open(sqlx.Dsn(c)), &gorm.Config{})
+		if err != nil {
+			log.Panic(err)
+		}
+		driver = db
+	case "mysql", "mariadb":
+		db, err := gorm.Open(mysql.Open(sqlx.Dsn(c)), &gorm.Config{})
+		if err != nil {
+			log.Panic(err)
+		}
+		driver = db
 	}
 
 	//err = db.AutoMigrate(&User{}, &Country{}, &Address{})
@@ -66,5 +71,5 @@ func New(c config.Database) *gorm.DB {
 	//	log.Panic(err)
 	//}
 
-	return db
+	return driver
 }

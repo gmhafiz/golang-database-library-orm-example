@@ -1,42 +1,28 @@
 package ent
 
 import (
-	"godb/param"
-	"net/http"
+	"net/url"
 	"strconv"
 
+	"godb/db"
 	"godb/db/ent/ent/gen/predicate"
 	"godb/db/ent/ent/gen/user"
-	"godb/filter"
 )
 
-type Filter struct {
-	Base filter.Filter
+type filter struct {
+	*db.Filter
 
-	PaginateLastId int64
-
-	Email           string
-	FirstName       string
-	LastName        []string
-	FavouriteColour string
-
-	PredicateUser []predicate.User
+	PredicateUser  []predicate.User
+	PaginateLastID uint
 }
 
-func filters(r *http.Request) *Filter {
-	base := filter.New(r.URL.Query())
+func filters(v url.Values) *filter {
+	paginateLastId, _ := strconv.ParseInt(v.Get("last_token"), 10, 64)
 
-	paginateLastId, _ := strconv.ParseInt(r.URL.Query().Get("last_token"), 10, 64)
-
-	f := &Filter{
-		Base: *base,
-
-		PaginateLastId: paginateLastId,
-
-		Email:           r.URL.Query().Get("email"),
-		FirstName:       r.URL.Query().Get("first_name"),
-		LastName:        param.ToStrSlice(r, "last_name"),
-		FavouriteColour: r.URL.Query().Get("favourite_colour"),
+	f := &filter{
+		db.Filters(v),
+		nil,
+		uint(paginateLastId),
 	}
 
 	// Automatically parse at handler layer.
@@ -47,7 +33,7 @@ func filters(r *http.Request) *Filter {
 
 // UserFilter automatically parses query parameters into ent's predicate if they
 // exist.
-func (f *Filter) UserFilter() {
+func (f *filter) UserFilter() {
 	var predicateUser []predicate.User
 
 	if f.Email != "" {

@@ -3,14 +3,14 @@ package squirrel
 import (
 	"context"
 	"database/sql"
-	sq "github.com/Masterminds/squirrel"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/samber/lo"
 
-	sqlx2 "godb/db/sqlx"
+	"godb/db"
 )
 
-func (r repository) Countries(ctx context.Context) (resp []*sqlx2.CountryResponseWithAddress, err error) {
+func (r repository) Countries(ctx context.Context) (resp []*db.CountryResponseWithAddress, err error) {
 	rows, err := r.db.
 		Select("*").
 		From("countries").
@@ -26,9 +26,9 @@ func (r repository) Countries(ctx context.Context) (resp []*sqlx2.CountryRespons
 		}
 	}(rows)
 
-	var countries []*Country
+	var countries []*db.Country
 	for rows.Next() {
-		var country Country
+		var country db.Country
 		err := rows.Scan(&country.ID, &country.Name, &country.Code)
 		if err != nil {
 			return nil, err
@@ -36,7 +36,7 @@ func (r repository) Countries(ctx context.Context) (resp []*sqlx2.CountryRespons
 		countries = append(countries, &country)
 	}
 
-	countryIDs := lo.Map(countries, func(t *Country, _ int) int {
+	countryIDs := lo.Map(countries, func(t *db.Country, _ int) int {
 		return t.ID
 	})
 
@@ -48,9 +48,9 @@ func (r repository) Countries(ctx context.Context) (resp []*sqlx2.CountryRespons
 		return nil, err
 	}
 
-	var addresses []*Address
+	var addresses []*db.AddressDB
 	for rows.Next() {
-		var address Address
+		var address db.AddressDB
 		err := rows.Scan(&address.ID, &address.Line1, &address.Line2, &address.Postcode, &address.City, &address.State, &address.CountryID)
 		if err != nil {
 			return nil, err
@@ -60,16 +60,16 @@ func (r repository) Countries(ctx context.Context) (resp []*sqlx2.CountryRespons
 	}
 
 	for _, c := range countries {
-		country := &sqlx2.CountryResponseWithAddress{
+		country := &db.CountryResponseWithAddress{
 			Id:        c.ID,
 			Code:      c.Code,
 			Name:      c.Name,
-			Addresses: make([]*sqlx2.AddressForCountry, 0),
+			Addresses: make([]*db.AddressForCountry, 0),
 		}
 		resp = append(resp, country)
 		for _, a := range addresses {
 			if a.CountryID == c.ID {
-				country.Addresses = append(country.Addresses, &sqlx2.AddressForCountry{
+				country.Addresses = append(country.Addresses, &db.AddressForCountry{
 					ID:       uint(a.ID),
 					Line1:    a.Line1,
 					Line2:    a.Line2,

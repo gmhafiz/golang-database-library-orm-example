@@ -1,7 +1,12 @@
 version: 1
 packages:
-  - path: "db/sqlc"
-    name: "sqlc"
+  - path: "db/sqlc/pg"
+    name: "pg"
     engine: "postgresql"
-    schema: "database/01-schema.sql"
-    queries: "database/query.sql"
+    schema: "database/01-postgres-schema.sql"
+    queries: "database/postgres-query.sql"
+  - path: "db/sqlc/mariadb"
+    name: "mariadb"
+    engine: "mysql"
+    schema: "database/01-mariadb-schema.sql"
+    queries: "database/mariadb-query.sql"

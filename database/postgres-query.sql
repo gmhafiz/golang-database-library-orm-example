@@ -15,8 +15,8 @@ ORDER BY (CASE
               WHEN @first_name_asc::text = 'first_name' THEN first_name
               WHEN @email_asc::text = 'email' THEN email
 --               WHEN @favourite_colour_asc::text = 'favourite_colour' THEN favourite_colour
-             END),
-         id
+             END)
+
 OFFSET @sql_offset LIMIT @sql_limit ;
 -- SELECT *
 -- FROM users
@@ -84,7 +84,7 @@ LIMIT 30;
 SELECT DISTINCT ua.user_id, ua.address_id
 FROM "addresses" a
          LEFT JOIN "user_addresses" ua ON a.id = ua.address_id
-WHERE ua.user_id = ANY($1::int[]);;
+WHERE ua.user_id = ANY($1::int[]);
 
 -- name: SelectAddress :many
 SELECT a.*

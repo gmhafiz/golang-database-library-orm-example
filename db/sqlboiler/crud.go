@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/samber/lo"
+	"godb/db"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/volatiletech/null/v8"
@@ -13,7 +14,6 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 
 	"godb/db/sqlboiler/models"
-	sqlx2 "godb/db/sqlx"
 )
 
 type database struct {
@@ -26,26 +26,26 @@ func NewRepo(db *sqlx.DB) *database {
 	}
 }
 
-func (r *database) Create(ctx context.Context, request *sqlx2.UserRequest, hash string) (*models.User, error) {
+func (r *database) Create(ctx context.Context, request *db.UserRequest, hash string) (*models.User, error) {
 	user := &models.User{
 		FirstName: request.FirstName,
 		MiddleName: null.String{
 			String: request.MiddleName,
-			Valid:  true,
+			Valid:  len(request.MiddleName) > 0,
 		},
 		LastName: request.LastName,
 		Email:    request.Email,
 		Password: hash,
 		FavouriteColour: null.String{
 			String: request.FavouriteColour,
-			Valid:  true,
+			Valid:  len(request.FavouriteColour) > 0,
 		},
 	}
 
 	return user, user.Insert(ctx, r.db, boil.Infer())
 }
 
-func (r *database) List(ctx context.Context, f *Filter) ([]*sqlx2.UserResponse, error) {
+func (r *database) List(ctx context.Context, f *db.Filter) ([]*db.UserResponse, error) {
 	if f.FirstName != "" || f.Email != "" || f.FavouriteColour != "" {
 		return r.ListFilterByColumn(ctx, f)
 	}
@@ -55,7 +55,7 @@ func (r *database) List(ctx context.Context, f *Filter) ([]*sqlx2.UserResponse, 
 	if f.Base.Page > 1 {
 		return r.ListFilterPagination(ctx, f)
 	}
-	if len(f.LastNames) > 0 {
+	if len(f.LastName) > 0 {
 		return r.ListFilterWhereIn(ctx, f)
 	}
 
@@ -67,9 +67,9 @@ func (r *database) List(ctx context.Context, f *Filter) ([]*sqlx2.UserResponse, 
 		return nil, fmt.Errorf("error getting users")
 	}
 
-	var userResponse []*sqlx2.UserResponse
+	var userResponse []*db.UserResponse
 	for _, user := range users {
-		userResponse = append(userResponse, &sqlx2.UserResponse{
+		userResponse = append(userResponse, &db.UserResponse{
 			ID:              uint(user.ID),
 			FirstName:       user.FirstName,
 			MiddleName:      user.MiddleName.String,
@@ -93,7 +93,7 @@ func (r *database) Get(ctx context.Context, userID int64) (*models.User, error) 
 	return user, nil
 }
 
-func (r *database) Update(ctx context.Context, id int64, req sqlx2.UserUpdateRequest) (*models.User, error) {
+func (r *database) Update(ctx context.Context, id int64, req db.UserUpdateRequest) (*models.User, error) {
 	user, err := r.Get(ctx, id)
 	if err != nil {
 		return nil, err
@@ -102,15 +102,16 @@ func (r *database) Update(ctx context.Context, id int64, req sqlx2.UserUpdateReq
 	user.FirstName = req.FirstName
 	user.MiddleName = null.String{
 		String: req.MiddleName,
-		Valid:  true,
+		Valid:  len(req.MiddleName) > 0,
 	}
 	user.LastName = req.LastName
 	user.Email = req.Email
 	user.FavouriteColour = null.String{
 		String: req.FavouriteColour,
-		Valid:  true,
+		Valid:  len(req.FavouriteColour) > 0,
 	}
 
+	// Ignore number of affected rows with underscore
 	_, err = user.Update(ctx, r.db, boil.Infer())
 	if err != nil {
 		return nil, err
@@ -165,10 +166,10 @@ func (r *database) Delete(ctx context.Context, userID int64) error {
 	return nil
 }
 
-func (r *database) ListFilterWhereIn(ctx context.Context, f *Filter) (users []*sqlx2.UserResponse, err error) {
+func (r *database) ListFilterWhereIn(ctx context.Context, f *db.Filter) (users []*db.UserResponse, err error) {
 	// Accepts slice of interface, not slice of string. Not generic. So need to
 	// convert each element to interface{}, or 'any' in Go v1.18
-	args := lo.Map(f.LastNames, func(t string, _ int) any {
+	args := lo.Map(f.LastName, func(t string, _ int) any {
 		return t
 	})
 
@@ -183,7 +184,7 @@ func (r *database) ListFilterWhereIn(ctx context.Context, f *Filter) (users []*s
 	}
 
 	for _, i := range all {
-		users = append(users, &sqlx2.UserResponse{
+		users = append(users, &db.UserResponse{
 			ID:              uint(i.ID),
 			FirstName:       i.FirstName,
 			MiddleName:      i.MiddleName.String,

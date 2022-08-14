@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"godb/db"
 	"log"
 
 	"github.com/jmoiron/sqlx"
@@ -30,8 +31,8 @@ func NewRepo(db *sqlx.DB) *repository {
 	}
 }
 
-func (r *repository) Create(ctx context.Context, request *UserRequest, hash string) (*userDB, error) {
-	var u userDB
+func (r *repository) Create(ctx context.Context, request *db.UserRequest, hash string) (*db.UserDB, error) {
+	var u db.UserDB
 	err := r.db.QueryRowContext(ctx, Insert,
 		request.FirstName,
 		request.MiddleName,
@@ -55,13 +56,13 @@ func (r *repository) Create(ctx context.Context, request *UserRequest, hash stri
 	return &u, nil
 }
 
-func (r *repository) List(ctx context.Context, f *Filter) (users []*UserResponse, err error) {
-	if f.FirstName != "" || f.Email != "" || f.FavouriteColour != "" {
-		return r.ListFilterByColumn(ctx, f)
-	}
-
+func (r *repository) List(ctx context.Context, f *db.Filter) (users []*db.UserResponse, err error) {
 	if len(f.LastName) > 0 {
 		return r.ListFilterWhereIn(ctx, f)
+	}
+
+	if f.FirstName != "" || f.Email != "" || f.FavouriteColour != "" {
+		return r.ListFilterByColumn(ctx, f)
 	}
 
 	if len(f.Base.Sort) > 0 {
@@ -78,12 +79,12 @@ func (r *repository) List(ctx context.Context, f *Filter) (users []*UserResponse
 	}
 
 	for rows.Next() {
-		var u userDB
+		var u db.UserDB
 		err = rows.StructScan(&u)
 		if err != nil {
 			return nil, fmt.Errorf("db scanning error")
 		}
-		users = append(users, &UserResponse{
+		users = append(users, &db.UserResponse{
 			ID:              u.ID,
 			FirstName:       u.FirstName,
 			MiddleName:      u.MiddleName.String,
@@ -95,18 +96,18 @@ func (r *repository) List(ctx context.Context, f *Filter) (users []*UserResponse
 	return users, nil
 }
 
-func (r *repository) Get(ctx context.Context, userID int64) (*UserResponse, error) {
-	var u userDB
+func (r *repository) Get(ctx context.Context, userID int64) (*db.UserResponse, error) {
+	var u db.UserDB
 	err := r.db.GetContext(ctx, &u, Get, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return &UserResponse{}, &Err{Msg: message.ErrRecordNotFound.Error()}
+			return &db.UserResponse{}, &Err{Msg: message.ErrRecordNotFound.Error()}
 		}
 		log.Println(err)
-		return &UserResponse{}, &Err{Msg: message.ErrInternalError.Error()}
+		return &db.UserResponse{}, &Err{Msg: message.ErrInternalError.Error()}
 	}
 
-	return &UserResponse{
+	return &db.UserResponse{
 		ID:              u.ID,
 		FirstName:       u.FirstName,
 		MiddleName:      u.MiddleName.String,
@@ -116,7 +117,7 @@ func (r *repository) Get(ctx context.Context, userID int64) (*UserResponse, erro
 	}, nil
 }
 
-func (r *repository) Update(ctx context.Context, userID int64, req *UserUpdateRequest) (*UserResponse, error) {
+func (r *repository) Update(ctx context.Context, userID int64, req *db.UserUpdateRequest) (*db.UserResponse, error) {
 	currUser, err := r.Get(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -147,7 +148,7 @@ func (r *repository) Delete(ctx context.Context, userID int64) (sql.Result, erro
 	return r.db.ExecContext(ctx, Delete, userID)
 }
 
-func (r *repository) ListFilterWhereIn(ctx context.Context, f *Filter) (users []*UserResponse, err error) {
+func (r *repository) ListFilterWhereIn(ctx context.Context, f *db.Filter) (users []*db.UserResponse, err error) {
 	query, args, err := sqlx.In("SELECT * FROM users WHERE last_name IN (?)", f.LastName)
 	if err != nil {
 		return nil, fmt.Errorf("error creating query: %w", err)
@@ -155,7 +156,7 @@ func (r *repository) ListFilterWhereIn(ctx context.Context, f *Filter) (users []
 
 	query = sqlx.Rebind(sqlx.DOLLAR, query) // no need this for mysql as it defaults to ?
 
-	var dbScan []*userDB
+	var dbScan []*db.UserDB
 
 	err = r.db.SelectContext(ctx, &dbScan, query, args...)
 	if err != nil {
@@ -163,7 +164,7 @@ func (r *repository) ListFilterWhereIn(ctx context.Context, f *Filter) (users []
 	}
 
 	for _, val := range dbScan {
-		users = append(users, &UserResponse{
+		users = append(users, &db.UserResponse{
 			ID:              val.ID,
 			FirstName:       val.FirstName,
 			MiddleName:      val.MiddleName.String,

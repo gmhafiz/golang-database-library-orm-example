@@ -6,7 +6,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"godb/db/sqlx"
+	"godb/db"
 )
 
 type repo struct {
@@ -19,7 +19,7 @@ func NewRepo(db *gorm.DB) *repo {
 	}
 }
 
-func (r *repo) Create(ctx context.Context, u *sqlx.UserRequest, hash string) (*User, error) {
+func (r *repo) Create(ctx context.Context, u *db.UserRequest, hash string) (*User, error) {
 	user := &User{
 		FirstName:       u.FirstName,
 		MiddleName:      u.MiddleName,
@@ -29,7 +29,7 @@ func (r *repo) Create(ctx context.Context, u *sqlx.UserRequest, hash string) (*U
 		FavouriteColour: u.FavouriteColour,
 	}
 
-	err := r.db.WithContext(ctx).Create(user).Error
+	err := r.db.Debug().WithContext(ctx).Create(user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (r *repo) Create(ctx context.Context, u *sqlx.UserRequest, hash string) (*U
 	return user, nil
 }
 
-func (r *repo) List(ctx context.Context, f *Filter) ([]*User, error) {
+func (r *repo) List(ctx context.Context, f *db.Filter) ([]*User, error) {
 	if f.Email != "" || f.FirstName != "" {
 		return r.ListFilterByColumn(ctx, f)
 	}
@@ -69,7 +69,10 @@ func (r *repo) List(ctx context.Context, f *Filter) ([]*User, error) {
 func (r *repo) Get(ctx context.Context, userID int64) (*User, error) {
 	var user User
 
-	err := r.db.WithContext(ctx).First(&user, userID).Error // First() also can accept a `var user []*User`
+	err := r.db.WithContext(ctx).
+		// First() also can accept a `var user []*User` which can return more than one record!
+		First(&user, userID).
+		Error
 	if err != nil {
 		return nil, err
 	}
@@ -77,8 +80,8 @@ func (r *repo) Get(ctx context.Context, userID int64) (*User, error) {
 	return &user, nil
 }
 
-func (r *repo) Update(ctx context.Context, userID int64, req *sqlx.UserUpdateRequest) (*User, error) {
-	u := &User{}
+func (r *repo) Update(ctx context.Context, userID int64, req *db.UserUpdateRequest) (*User, error) {
+	var u User
 	u.ID = int(userID)
 	r.db.First(&u)
 
@@ -99,7 +102,7 @@ func (r *repo) Delete(ctx context.Context, userID int64) error {
 	return r.db.WithContext(ctx).Delete(&User{}, userID).Error
 }
 
-func (r *repo) ListFilterWhereIn(ctx context.Context, f *Filter) (users []*User, err error) {
+func (r *repo) ListFilterWhereIn(ctx context.Context, f *db.Filter) (users []*User, err error) {
 	err = r.db.WithContext(ctx).
 		Where("last_name IN ?", f.LastName).
 		Find(&users).

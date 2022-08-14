@@ -4,30 +4,31 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"godb/db"
 
 	"github.com/jmoiron/sqlx"
 )
 
 const (
-	UserWithAddresses = `
+	QueryUserWithAddresses = `
 		SELECT u.*, a.* 
 		FROM users u 
 			LEFT JOIN user_addresses ua on u.id = ua.user_id 
 			LEFT JOIN addresses a on a.id = ua.address_id 
 		WHERE u.id = $1`
 
-	Users = `
+	QueryUsers = `
 		SELECT u.id, u.first_name, u.middle_name, u.last_name, u.email 
 		FROM "users" u 
 		LIMIT 30;
 `
-	UsersAddress = `
+	QueryUsersAddress = `
 		SELECT DISTINCT ua.user_id AS user_id, ua.address_id AS address_id 
 		FROM "addresses" a 
 			LEFT JOIN "user_addresses" ua ON a.id = ua.address_id 
 		WHERE ua.user_id IN (?);
 `
-	Address = `
+	QueryAddress = `
 		SELECT a.* 
 		FROM addresses a
 		WHERE a.id IN (?);
@@ -39,32 +40,32 @@ type userAddress struct {
 	AddressID int `db:"address_id"`
 }
 
-func (r *repository) ListM2M(ctx context.Context) ([]*UserResponseWithAddressesSqlx, error) {
-	users, err := r.db.QueryContext(ctx, Users)
+func (r *repository) ListM2M(ctx context.Context) ([]*db.UserResponseWithAddressesSqlx, error) {
+	users, err := r.db.QueryContext(ctx, QueryUsers)
 	if err != nil {
 		return nil, fmt.Errorf("db error")
 	}
 	defer users.Close()
 
-	var all []*UserResponseWithAddressesSqlx
+	var all []*db.UserResponseWithAddressesSqlx
 	for users.Next() {
-		var u userDB
+		var u db.UserDB
 		if err := users.Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email); err != nil {
 			return nil, fmt.Errorf("db scanning error")
 		}
-		all = append(all, &UserResponseWithAddressesSqlx{
+		all = append(all, &db.UserResponseWithAddressesSqlx{
 			ID:         u.ID,
 			FirstName:  u.FirstName,
 			MiddleName: u.MiddleName.String,
 			LastName:   u.LastName,
 			Email:      u.Email,
-			Address:    []*AddressForCountry{},
+			Address:    []*db.AddressForCountry{},
 		})
 	}
 
 	userIDs := getUserIDs(all)
 
-	query, args, err := sqlx.In(UsersAddress, userIDs)
+	query, args, err := sqlx.In(QueryUsersAddress, userIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +87,7 @@ func (r *repository) ListM2M(ctx context.Context) ([]*UserResponseWithAddressesS
 	defer userAddresses.Close()
 
 	addressIDs := getAddressIDs(uas)
-	query, args, err = sqlx.In(Address, addressIDs)
+	query, args, err = sqlx.In(QueryAddress, addressIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +113,7 @@ func (r *repository) ListM2M(ctx context.Context) ([]*UserResponseWithAddressesS
 			if u.UserID == int(user.ID) {
 				for _, addr := range allAddresses {
 					if addr.ID == uint(u.AddressID) {
-						user.Address = append(user.Address, &AddressForCountry{
+						user.Address = append(user.Address, &db.AddressForCountry{
 							ID:       addr.ID,
 							Line1:    addr.Line1,
 							Line2:    addr.Line2.String,
@@ -142,7 +143,7 @@ func getAddressIDs(uas []*userAddress) (ids []int) {
 	return ids
 }
 
-func getUserIDs(users []*UserResponseWithAddressesSqlx) (ids []interface{}) {
+func getUserIDs(users []*db.UserResponseWithAddressesSqlx) (ids []interface{}) {
 	seen := make(map[int]bool)
 	for _, user := range users {
 		ok := seen[int(user.ID)]

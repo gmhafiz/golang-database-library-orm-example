@@ -5,85 +5,75 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
 	"github.com/jmoiron/sqlx"
+	"github.com/samber/lo"
+
+	"godb/db"
+	"godb/db/sqlc/mariadb"
+	"godb/db/sqlc/pg"
 	sqlx2 "godb/db/sqlx"
 	"godb/respond/message"
-	"log"
-	"net/http"
 )
 
 type database struct {
-	db *Queries
+	db      *pg.Queries
+	mariaDB *mariadb.Queries
+
+	sqlx *sqlx.DB
+
+	dbType string
 }
 
-func NewRepo(db *sqlx.DB) *database {
+func NewRepo(db *sqlx.DB, dbType string) *database {
 	return &database{
-		db: New(db),
+		db:      pg.New(db),
+		mariaDB: mariadb.New(db),
+		sqlx:    db,
+		dbType:  dbType,
 	}
 }
 
-func (r *database) Create(ctx context.Context, request *sqlx2.UserRequest, hash string) (*User, error) {
-	u, _ := r.db.CreateUser(ctx, CreateUserParams{
+func (r *database) Create(ctx context.Context, request *db.UserRequest, hash string) (*pg.User, error) {
+	u, err := r.db.CreateUser(ctx, pg.CreateUserParams{
 		FirstName: request.FirstName,
 		MiddleName: sql.NullString{
 			String: request.MiddleName,
-			Valid:  true,
+			Valid:  len(request.MiddleName) > 0,
 		},
 		LastName:        request.LastName,
 		Email:           request.Email,
-		FavouriteColour: ValidColours(request.FavouriteColour),
+		FavouriteColour: pg.ValidColours(request.FavouriteColour),
 		Password:        hash,
 	})
-	err := &pgconn.PgError{
-		Severity:         "ERROR",
-		Code:             "23505",
-		Message:          "duplicate key value violates unique constraint \"users_email_key\"",
-		Detail:           "Key (email)=(john@example.com) already exists.",
-		Hint:             "",
-		Position:         0,
-		InternalPosition: 0,
-		InternalQuery:    "",
-		Where:            "",
-		SchemaName:       "public",
-		TableName:        "users",
-		ColumnName:       "",
-		DataTypeName:     "",
-		ConstraintName:   "users_email_key",
-		File:             "nbtinsert.c",
-		Line:             0,
-		Routine:          "_bt_check_unique",
-	}
 	if err != nil {
-		log.Println(err)
-
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {
 			case pgerrcode.UniqueViolation:
-				return &User{}, &sqlx2.Err{
+				return &pg.User{}, &sqlx2.Err{
 					Msg:    message.ErrUniqueKeyViolation.Error(),
 					Status: http.StatusBadRequest,
 				}
 			default:
-				return &User{}, &sqlx2.Err{
+				return &pg.User{}, &sqlx2.Err{
 					Msg:    message.ErrDefault.Error(),
 					Status: http.StatusInternalServerError,
 				}
 			}
 		}
 
-		//if errors.Is(err, sql.ErrNoRows) {
-		//	return &User{}, &sqlx2.Err{Msg: message.ErrRecordNotFound.Error()}
-		//}
 		return nil, err
 	}
 
 	return &u, nil
 }
 
-func (r *database) List(ctx context.Context, f *Filter) (l []ListUsersRow, err error) {
+func (r *database) List(ctx context.Context, f *db.Filter) (l []db.UserResponse, err error) {
 	if f.FirstName != "" || f.Email != "" || f.FavouriteColour != "" {
 		return r.ListFilterByColumn(ctx, f)
 	}
@@ -99,14 +89,30 @@ func (r *database) List(ctx context.Context, f *Filter) (l []ListUsersRow, err e
 		return r.ListFilterPagination(ctx, f)
 	}
 
-	return r.db.ListUsers(ctx)
+	users, err := r.db.ListUsers(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, row := range users {
+		l = append(l, db.UserResponse{
+			ID:              uint(row.ID),
+			FirstName:       row.FirstName,
+			MiddleName:      row.MiddleName.String,
+			LastName:        row.LastName,
+			Email:           row.Email,
+			FavouriteColour: string(row.FavouriteColour),
+		})
+	}
+
+	return l, nil
 }
 
-func (r *database) Get(ctx context.Context, userID int64) (GetUserRow, error) {
+func (r *database) Get(ctx context.Context, userID int64) (pg.GetUserRow, error) {
 	return r.db.GetUser(ctx, userID)
 }
 
-func (r *database) Update(ctx context.Context, userID int64, req *sqlx2.UserUpdateRequest) (*GetUserRow, error) {
+func (r *database) Update(ctx context.Context, userID int64, req *db.UserUpdateRequest) (*pg.GetUserRow, error) {
 	currUser, err := r.Get(ctx, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -118,13 +124,13 @@ func (r *database) Update(ctx context.Context, userID int64, req *sqlx2.UserUpda
 	currUser.FirstName = req.FirstName
 	currUser.MiddleName = sql.NullString{
 		String: req.MiddleName,
-		Valid:  true,
+		Valid:  len(req.MiddleName) > 0,
 	}
 	currUser.LastName = req.LastName
 	currUser.Email = req.Email
-	currUser.FavouriteColour = ValidColours(req.FavouriteColour)
+	currUser.FavouriteColour = pg.ValidColours(req.FavouriteColour)
 
-	err = r.db.UpdateUser(ctx, UpdateUserParams{
+	err = r.db.UpdateUser(ctx, pg.UpdateUserParams{
 		FirstName:       currUser.FirstName,
 		MiddleName:      currUser.MiddleName,
 		LastName:        currUser.LastName,
@@ -138,7 +144,7 @@ func (r *database) Update(ctx context.Context, userID int64, req *sqlx2.UserUpda
 
 	u, err := r.db.GetUser(ctx, userID)
 	if err != nil {
-		return nil, fmt.Errorf("error getting a user: %w", err)
+		return nil, errors.New("error getting a user")
 	}
 
 	return &u, nil
@@ -146,4 +152,74 @@ func (r *database) Update(ctx context.Context, userID int64, req *sqlx2.UserUpda
 
 func (r *database) Delete(ctx context.Context, id int64) error {
 	return r.db.DeleteUser(ctx, id)
+}
+
+func (r *database) ListFilterWhereIn(ctx context.Context, f *db.Filter) (result []db.UserResponse, err error) {
+	switch r.dbType {
+	case "postgres", "postgresql", "psql", "pgsql", "pgx":
+		users, err := r.db.SelectWhereInLastNames(ctx, f.LastName)
+		if err != nil {
+			return nil, errors.New("error getting users")
+		}
+
+		for _, val := range users {
+			result = append(result, db.UserResponse{
+				ID:              uint(val.ID),
+				FirstName:       val.FirstName,
+				MiddleName:      val.MiddleName.String,
+				LastName:        val.LastName,
+				Email:           val.Email,
+				FavouriteColour: string(val.FavouriteColour),
+			})
+		}
+	case "mysql", "mariadb":
+		// No native support for mysql/mariadb :(
+		// See https://github.com/kyleconroy/sqlc/issues/695
+
+		// So use sqlx.In(), or try this:
+		in, err := r.mariaDB.SelectWhereInLastNamesIn(ctx, f.LastName)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Println(in)
+
+		// Or the long way:
+		mysqlQuery := fmt.Sprintf(`SELECT * FROM users WHERE last_name IN (?%v);`, strings.Repeat(",?", len(f.LastName)-1))
+
+		args := lo.Map(f.LastName, func(t string, _ int) any {
+			return t
+		})
+
+		rows, err := r.sqlx.QueryContext(ctx, mysqlQuery, args...)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var item db.UserDB
+			err := rows.Scan(
+				&item.ID,
+				&item.FirstName,
+				&item.MiddleName,
+				&item.LastName,
+				&item.Email,
+				&item.Password,
+				&item.FavouriteColour,
+			)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, db.UserResponse{
+				ID:              item.ID,
+				FirstName:       item.FirstName,
+				MiddleName:      item.MiddleName.String,
+				LastName:        item.LastName,
+				Email:           item.Email,
+				FavouriteColour: item.FavouriteColour,
+			})
+		}
+	}
+
+	return result, nil
 }

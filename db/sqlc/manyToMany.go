@@ -3,25 +3,25 @@ package sqlc
 import (
 	"context"
 	"fmt"
-
-	"godb/db/sqlx"
+	"godb/db"
+	"godb/db/sqlc/pg"
 )
 
-func (r *database) ListM2M(ctx context.Context) ([]*sqlx.UserResponseWithAddressesSqlx, error) {
+func (r *database) ListM2M(ctx context.Context) ([]*db.UserResponseWithAddressesSqlx, error) {
 	users, err := r.db.SelectUsers(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error selecting users")
 	}
 
-	var all []*sqlx.UserResponseWithAddressesSqlx
+	var all []*db.UserResponseWithAddressesSqlx
 	for _, u := range users {
-		all = append(all, &sqlx.UserResponseWithAddressesSqlx{
+		all = append(all, &db.UserResponseWithAddressesSqlx{
 			ID:         uint(u.ID),
 			FirstName:  u.FirstName,
 			MiddleName: u.MiddleName.String,
 			LastName:   u.LastName,
 			Email:      u.Email,
-			Address:    []*sqlx.AddressForCountry{},
+			Address:    []*db.AddressForCountry{},
 		})
 	}
 
@@ -45,7 +45,7 @@ func (r *database) ListM2M(ctx context.Context) ([]*sqlx.UserResponseWithAddress
 			if u.UserID.Int64 == int64(user.ID) {
 				for _, addr := range address {
 					if addr.ID == u.AddressID.Int64 {
-						user.Address = append(user.Address, &sqlx.AddressForCountry{
+						user.Address = append(user.Address, &db.AddressForCountry{
 							ID:       uint(addr.ID),
 							Line1:    addr.Line1,
 							Line2:    addr.Line2.String,
@@ -62,7 +62,7 @@ func (r *database) ListM2M(ctx context.Context) ([]*sqlx.UserResponseWithAddress
 	return all, nil
 }
 
-func getUserIDs(users []SelectUsersRow) (ids []int32) {
+func getUserIDs(users []pg.SelectUsersRow) (ids []int32) {
 	seen := make(map[int]bool)
 	for _, user := range users {
 		ok := seen[int(user.ID)]
@@ -75,7 +75,7 @@ func getUserIDs(users []SelectUsersRow) (ids []int32) {
 	return ids
 }
 
-func getAddressIDs(uas []SelectUserAddressesRow) (ids []int32) {
+func getAddressIDs(uas []pg.SelectUserAddressesRow) (ids []int32) {
 	seen := make(map[int64]bool)
 	for _, item := range uas {
 		ok := seen[item.UserID.Int64]

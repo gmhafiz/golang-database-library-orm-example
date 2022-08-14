@@ -4,17 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"godb/db"
 	"log"
 
 	"godb/db/ent/ent/gen"
 	"godb/db/ent/ent/gen/user"
-	"godb/db/sqlx"
 )
 
-func (r *database) Create(ctx context.Context, request *sqlx.UserRequest, hash string) (*gen.User, error) {
-	saved, err := r.db.User.Create().
+func (r *database) Create(ctx context.Context, request *db.UserRequest, hash string) (*gen.User, error) {
+	saved, err := r.db.Debug().User.Create().
 		SetFirstName(request.FirstName).
-		SetNillableMiddleName(&request.MiddleName).
+		SetNillableMiddleName(nil). // Does not insert anything to this column
+		//SetMiddleName(request.MiddleName). // Inserts empyy string
 		SetLastName(request.LastName).
 		SetEmail(request.Email).
 		SetPassword(hash).
@@ -27,7 +28,7 @@ func (r *database) Create(ctx context.Context, request *sqlx.UserRequest, hash s
 	return saved, nil
 }
 
-func (r *database) List(ctx context.Context, f *Filter) ([]*gen.User, error) {
+func (r *database) List(ctx context.Context, f *filter) ([]*gen.User, error) {
 	if f.FirstName != "" || f.Email != "" || f.FavouriteColour != "" {
 		return r.ListFilterByColumn(ctx, f)
 	}
@@ -40,7 +41,7 @@ func (r *database) List(ctx context.Context, f *Filter) ([]*gen.User, error) {
 		return r.ListFilterPagination(ctx, f)
 	}
 
-	if f.PaginateLastId != 0 {
+	if f.PaginateLastID != 0 {
 		return r.ListFilterPaginationByID(ctx, f)
 	}
 
@@ -50,6 +51,8 @@ func (r *database) List(ctx context.Context, f *Filter) ([]*gen.User, error) {
 
 	return r.db.User.Query().
 		Order(gen.Asc(user.FieldID)).
+		Limit(30).
+		Offset(0).
 		All(ctx)
 }
 
@@ -65,7 +68,7 @@ func (r *database) Get(ctx context.Context, userID uint64) (*gen.User, error) {
 	return u, nil
 }
 
-func (r *database) Update(ctx context.Context, userID int64, req *sqlx.UserUpdateRequest) (*gen.User, error) {
+func (r *database) Update(ctx context.Context, userID int64, req *db.UserUpdateRequest) (*gen.User, error) {
 	return r.db.User.UpdateOneID(uint(userID)).
 		SetFirstName(req.FirstName).
 		SetNillableMiddleName(&req.MiddleName).
@@ -78,7 +81,7 @@ func (r *database) Delete(ctx context.Context, userID int64) error {
 	return r.db.User.DeleteOneID(uint(userID)).Exec(ctx)
 }
 
-func (r *database) ListFilterWhereIn(ctx context.Context, f *Filter) ([]*gen.User, error) {
+func (r *database) ListFilterWhereIn(ctx context.Context, f *filter) ([]*gen.User, error) {
 	return r.db.User.Query().
 		Where(user.LastNameIn(f.LastName...)).
 		All(ctx)

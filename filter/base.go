@@ -51,18 +51,11 @@ func New(queries url.Values) *Filter {
 	if queries.Has(queryParamSort) {
 		s := queries[queryParamSort]
 		for _, val := range s {
-			//// new strings.Cut() in go v1.18
-			//key, order, found := strings.Cut(val, ",")
-			//if found {
-			//	sortKey[key] = strings.ToUpper(order)
-			//} else {
-			//	sortKey[key] = "asc"
-			//}
-			split := strings.Split(val, ",")
-			if len(split) == 2 {
-				sortKey[split[0]] = strings.ToUpper(split[1])
+			key, order, found := strings.Cut(val, ",")
+			if found {
+				sortKey[key] = strings.ToUpper(order)
 			} else {
-				sortKey[split[0]] = SqlAsc
+				sortKey[key] = "asc"
 			}
 		}
 	}

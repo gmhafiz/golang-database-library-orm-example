@@ -4,12 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
 	sq "github.com/Masterminds/squirrel"
 
-	sqlx2 "godb/db/sqlx"
+	"godb/db"
 )
 
-func (r repository) ListFilterByColumn(ctx context.Context, f *Filter) (users []*sqlx2.UserResponse, err error) {
+func (r repository) ListFilterByColumn(ctx context.Context, f *db.Filter) (users []*db.UserResponse, err error) {
 	builder := r.db.
 		Select("*").
 		From("users").
@@ -40,7 +41,7 @@ func (r repository) ListFilterByColumn(ctx context.Context, f *Filter) (users []
 	}(rows)
 
 	for rows.Next() {
-		var u userDB
+		var u db.UserDB
 		err = rows.Scan(
 			&u.ID,
 			&u.FirstName,
@@ -53,7 +54,7 @@ func (r repository) ListFilterByColumn(ctx context.Context, f *Filter) (users []
 		if err != nil {
 			return nil, fmt.Errorf("db scanning error")
 		}
-		users = append(users, &sqlx2.UserResponse{
+		users = append(users, &db.UserResponse{
 			ID:              u.ID,
 			FirstName:       u.FirstName,
 			MiddleName:      u.MiddleName.String,
@@ -66,12 +67,26 @@ func (r repository) ListFilterByColumn(ctx context.Context, f *Filter) (users []
 	return users, nil
 }
 
-func (r repository) ListFilterSort(ctx context.Context, f *Filter) (users []*sqlx2.UserResponse, err error) {
+func (r repository) ListFilterSort(ctx context.Context, f *db.Filter) (users []*db.UserResponse, err error) {
 	builder := r.db.Select("*").
 		From("users")
 
 	for col, order := range f.Base.Sort {
-		builder = builder.OrderBy(col + " " + order)
+		// vulnerable to sql injection
+		//builder = builder.OrderBy(col + " " + order)
+
+		switch col {
+		case "first_name":
+			builder = builder.OrderBy("first_name" + " " + order)
+		case "last_name":
+			builder = builder.OrderBy("last_name" + " " + order)
+		case "middle_name":
+			builder = builder.OrderBy("middle_name" + " " + order)
+		case "email":
+			builder = builder.OrderBy("email" + " " + order)
+		case "favourite_colour":
+			builder = builder.OrderBy("favourite_colour" + " " + order)
+		}
 	}
 
 	rows, err := builder.QueryContext(ctx)
@@ -87,7 +102,7 @@ func (r repository) ListFilterSort(ctx context.Context, f *Filter) (users []*sql
 	}(rows)
 
 	for rows.Next() {
-		var u userDB
+		var u db.UserDB
 		err = rows.Scan(
 			&u.ID,
 			&u.FirstName,
@@ -100,7 +115,7 @@ func (r repository) ListFilterSort(ctx context.Context, f *Filter) (users []*sql
 		if err != nil {
 			return nil, fmt.Errorf("db scanning error")
 		}
-		users = append(users, &sqlx2.UserResponse{
+		users = append(users, &db.UserResponse{
 			ID:              u.ID,
 			FirstName:       u.FirstName,
 			MiddleName:      u.MiddleName.String,
@@ -113,7 +128,7 @@ func (r repository) ListFilterSort(ctx context.Context, f *Filter) (users []*sql
 	return users, nil
 }
 
-func (r repository) ListFilterPagination(ctx context.Context, f *Filter) (users []*sqlx2.UserResponse, err error) {
+func (r repository) ListFilterPagination(ctx context.Context, f *db.Filter) (users []*db.UserResponse, err error) {
 	rows, err := r.db.
 		Select("*").
 		From("users").
@@ -133,7 +148,7 @@ func (r repository) ListFilterPagination(ctx context.Context, f *Filter) (users 
 	}(rows)
 
 	for rows.Next() {
-		var u userDB
+		var u db.UserDB
 		err = rows.Scan(
 			&u.ID,
 			&u.FirstName,
@@ -146,7 +161,7 @@ func (r repository) ListFilterPagination(ctx context.Context, f *Filter) (users 
 		if err != nil {
 			return nil, fmt.Errorf("db scanning error")
 		}
-		users = append(users, &sqlx2.UserResponse{
+		users = append(users, &db.UserResponse{
 			ID:              u.ID,
 			FirstName:       u.FirstName,
 			MiddleName:      u.MiddleName.String,

@@ -3,6 +3,7 @@ package param
 import (
 	"errors"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -34,13 +35,13 @@ func String(r *http.Request, param string) string {
 }
 
 // ToStrSlice turn comma separated query param to str slice
-func ToStrSlice(r *http.Request, s string) []string {
-	v := r.URL.Query()[s]
-	if len(v) == 0 {
+func ToStrSlice(v url.Values, s string) []string {
+	values := v[s]
+	if len(values) == 0 {
 		return []string{}
 	}
 
-	str := strings.Split(v[0], ",")
+	str := strings.Split(values[0], ",")
 
 	ints := make([]string, 0)
 

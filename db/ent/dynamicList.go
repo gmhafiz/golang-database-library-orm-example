@@ -2,40 +2,40 @@ package ent
 
 import (
 	"context"
+
 	"godb/db/ent/ent/gen"
+	"godb/db/ent/ent/gen/predicate"
 	"godb/db/ent/ent/gen/user"
-	"godb/filter"
+	baseFilter "godb/filter"
 )
 
 // ListFilterByColumn filters using `predicate`.
-func (r *database) ListFilterByColumn(ctx context.Context, f *Filter) ([]*gen.User, error) {
-	// We can put the logic to parse query here, or we make it as a method to
-	// Filter struct (see db/ent/filter.go).
-	//var predicateUser []predicate.User
-	//
-	//if f.Email != "" {
-	//	predicateUser = append(predicateUser, user.EmailEQ(f.Email))
-	//}
-	//if f.FirstName != "" {
-	//	predicateUser = append(predicateUser, user.FirstNameContainsFold(f.FirstName))
-	//}
-	//if f.FavouriteColour != "" {
-	//	predicateUser = append(predicateUser, user.FavouriteColourEQ(user.FavouriteColour(f.FavouriteColour)))
-	//}
+func (r *database) ListFilterByColumn(ctx context.Context, f *filter) ([]*gen.User, error) {
+	var predicateUser []predicate.User
+	if f.Email != "" {
+		predicateUser = append(predicateUser, user.EmailEQ(f.Email))
+	}
+	if f.FirstName != "" {
+		//predicateUser = append(predicateUser, user.FirstNameContainsFold(f.FirstName))
+		predicateUser = append(predicateUser, user.FirstNameEQ(f.FirstName))
+	}
+	if f.FavouriteColour != "" {
+		predicateUser = append(predicateUser, user.FavouriteColourEQ(user.FavouriteColour(f.FavouriteColour)))
+	}
 
-	return r.db.User.Query().
-		Where(f.PredicateUser...).
+	return r.db.Debug().User.Query().
+		Where(predicateUser...).
 		Order(gen.Asc(user.FieldID)).
 		Limit(f.Base.Limit).
 		Offset(f.Base.Offset).
 		All(ctx)
 }
 
-func (r *database) ListFilterSort(ctx context.Context, f *Filter) ([]*gen.User, error) {
+func (r *database) ListFilterSort(ctx context.Context, f *filter) ([]*gen.User, error) {
 	var orderFunc []gen.OrderFunc
 
 	for col, ord := range f.Base.Sort {
-		if ord == filter.SqlAsc {
+		if ord == baseFilter.SqlAsc {
 			orderFunc = append(orderFunc, gen.Asc(col))
 		} else {
 			orderFunc = append(orderFunc, gen.Desc(col))
@@ -53,7 +53,7 @@ func (r *database) ListFilterSort(ctx context.Context, f *Filter) ([]*gen.User, 
 // for small dataset but potentially slow if dataset is large, and you need the
 // offset to start from a large number. See ListFilterPaginationByID below
 // for pagination using by cursor method.
-func (r *database) ListFilterPagination(ctx context.Context, f *Filter) ([]*gen.User, error) {
+func (r *database) ListFilterPagination(ctx context.Context, f *filter) ([]*gen.User, error) {
 	query := r.db.User.Query()
 	if f.Base.Limit != 0 && !f.Base.DisablePaging {
 		query = query.Limit(f.Base.Limit)
@@ -87,10 +87,10 @@ WHERE id > {last_token}
 ORDER by {column} {direction}
 LIMIT 3
 */
-func (r *database) ListFilterPaginationByID(ctx context.Context, f *Filter) ([]*gen.User, error) {
+func (r *database) ListFilterPaginationByID(ctx context.Context, f *filter) ([]*gen.User, error) {
 	var orderFunc []gen.OrderFunc
 	for col, ord := range f.Base.Sort {
-		if ord == filter.SqlAsc {
+		if ord == baseFilter.SqlAsc {
 			orderFunc = append(orderFunc, gen.Asc(col))
 		} else {
 			orderFunc = append(orderFunc, gen.Desc(col))
@@ -99,7 +99,7 @@ func (r *database) ListFilterPaginationByID(ctx context.Context, f *Filter) ([]*
 
 	orderFunc = append(orderFunc, gen.Asc(user.FieldID))
 
-	return r.db.User.Query().Where(user.IDGT(uint(f.PaginateLastId))).
+	return r.db.User.Query().Where(user.IDGT(f.PaginateLastID)).
 		Limit(f.Base.Limit).
 		Order(orderFunc...).
 		All(ctx)

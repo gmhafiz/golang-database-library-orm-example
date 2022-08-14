@@ -77,8 +77,8 @@ func (a *App) SetupRouter() {
 		_, _ = w.Write([]byte(`{"message": "endpoint not found"}`))
 	})
 
-	sqlx.Register(a.router, a.sqlx)
-	sqlc.Register(a.router, a.sqlx)
+	sqlx.Register(a.router, a.sqlx, a.config.DB.Type)
+	sqlc.Register(a.router, a.sqlx, a.config.DB.Type)
 	squirrel.Register(a.router, a.sqlx)
 	gormDB.Register(a.router, a.gorm)
 	sqlboiler.Register(a.router, a.sqlx)

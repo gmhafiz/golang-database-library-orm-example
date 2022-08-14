@@ -6,18 +6,18 @@ import (
 	"errors"
 	"fmt"
 
+	//sqlx2 "godb/db"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
-
-	sqlx2 "godb/db/sqlx"
+	"godb/db"
 )
 
 type repository struct {
 	db sq.StatementBuilderType
 }
 
-func (r repository) Create(ctx context.Context, request *sqlx2.UserRequest, hash string) (*userDB, error) {
-	var u userDB
+func (r repository) Create(ctx context.Context, request *db.UserRequest, hash string) (*db.UserDB, error) {
+	var u db.UserDB
 
 	query := r.db.Insert("users").
 		Columns("first_name", "middle_name", "last_name", "email", "password", "favourite_colour").
@@ -34,16 +34,16 @@ func (r repository) Create(ctx context.Context, request *sqlx2.UserRequest, hash
 	return &u, nil
 }
 
-func (r repository) List(ctx context.Context, f *Filter) (users []*sqlx2.UserResponse, err error) {
+func (r repository) List(ctx context.Context, f *db.Filter) (users []*db.UserResponse, err error) {
+	if len(f.LastName) > 0 {
+		return r.ListFilterWhereIn(ctx, f)
+	}
+
 	if f.FirstName != "" || f.Email != "" || f.FavouriteColour != "" {
 		return r.ListFilterByColumn(ctx, f)
 	}
 	if len(f.Base.Sort) > 0 {
 		return r.ListFilterSort(ctx, f)
-	}
-
-	if len(f.LastName) > 0 {
-		return r.ListFilterWhereIn(ctx, f)
 	}
 
 	if f.Base.Page > 1 {
@@ -55,6 +55,10 @@ func (r repository) List(ctx context.Context, f *Filter) (users []*sqlx2.UserRes
 		From("users").
 		OrderBy("id").
 		QueryContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	defer func(rows *sql.Rows) {
 		err := rows.Close()
 		if err != nil {
@@ -63,7 +67,7 @@ func (r repository) List(ctx context.Context, f *Filter) (users []*sqlx2.UserRes
 	}(rows)
 
 	for rows.Next() {
-		var u userDB
+		var u db.UserDB
 		err = rows.Scan(
 			&u.ID,
 			&u.FirstName,
@@ -76,7 +80,7 @@ func (r repository) List(ctx context.Context, f *Filter) (users []*sqlx2.UserRes
 		if err != nil {
 			return nil, fmt.Errorf("db scanning error")
 		}
-		users = append(users, &sqlx2.UserResponse{
+		users = append(users, &db.UserResponse{
 			ID:              u.ID,
 			FirstName:       u.FirstName,
 			MiddleName:      u.MiddleName.String,
@@ -89,14 +93,14 @@ func (r repository) List(ctx context.Context, f *Filter) (users []*sqlx2.UserRes
 	return users, nil
 }
 
-func (r *repository) Get(ctx context.Context, userID int64) (*sqlx2.UserResponse, error) {
+func (r repository) Get(ctx context.Context, userID int64) (*db.UserResponse, error) {
 	rows := r.db.
 		Select("*").
 		From("users").
 		Where(sq.Eq{"id": userID}).
 		QueryRowContext(ctx)
 
-	var u userDB
+	var u db.UserDB
 	err := rows.Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email, &u.Password, &u.FavouriteColour)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -105,7 +109,7 @@ func (r *repository) Get(ctx context.Context, userID int64) (*sqlx2.UserResponse
 		return nil, err
 	}
 
-	return &sqlx2.UserResponse{
+	return &db.UserResponse{
 		ID:              u.ID,
 		FirstName:       u.FirstName,
 		MiddleName:      u.MiddleName.String,
@@ -115,7 +119,7 @@ func (r *repository) Get(ctx context.Context, userID int64) (*sqlx2.UserResponse
 	}, nil
 }
 
-func (r repository) Update(ctx context.Context, id int64, req *sqlx2.UserUpdateRequest) (*sqlx2.UserResponse, error) {
+func (r repository) Update(ctx context.Context, id int64, req *db.UserUpdateRequest) (*db.UserResponse, error) {
 	currUser, err := r.Get(ctx, id)
 	if err != nil {
 		return nil, err
@@ -153,8 +157,8 @@ func (r repository) Delete(ctx context.Context, id int64) (sql.Result, error) {
 	return nil, nil
 }
 
-func (r repository) ListFilterWhereIn(ctx context.Context, f *Filter) (users []*sqlx2.UserResponse, err error) {
-	var dbScan []*userDB
+func (r repository) ListFilterWhereIn(ctx context.Context, f *db.Filter) (users []*db.UserResponse, err error) {
+	var dbScan []*db.UserDB
 
 	rows, err := r.db.
 		Select("*").
@@ -172,7 +176,7 @@ func (r repository) ListFilterWhereIn(ctx context.Context, f *Filter) (users []*
 	}(rows)
 
 	for rows.Next() {
-		var u userDB
+		var u db.UserDB
 		err := rows.Scan(
 			&u.ID,
 			&u.FirstName,
@@ -189,7 +193,7 @@ func (r repository) ListFilterWhereIn(ctx context.Context, f *Filter) (users []*
 	}
 
 	for _, val := range dbScan {
-		users = append(users, &sqlx2.UserResponse{
+		users = append(users, &db.UserResponse{
 			ID:              val.ID,
 			FirstName:       val.FirstName,
 			MiddleName:      val.MiddleName.String,

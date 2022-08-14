@@ -9,10 +9,10 @@ import (
 
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
-	_ "godb/db/ent/ent/gen/runtime"
 
 	"godb/config"
 	"godb/db/ent/ent/gen"
+	_ "godb/db/ent/ent/gen/runtime"
 )
 
 type database struct {
@@ -20,12 +20,36 @@ type database struct {
 }
 
 func New(cfg config.Database) *gen.Client {
-	db, err := sql.Open("pgx", fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s", cfg.Host, cfg.Port, cfg.User, "ent", cfg.Password, cfg.SSLMode))
-	if err != nil {
-		log.Fatal(err)
-	}
+	drv := &entsql.Driver{}
 
-	drv := entsql.OpenDB(dialect.Postgres, db)
+	switch cfg.Type {
+	case "postgres", "postgresql", "psql", "pgsql", "pgx":
+		db, err := sql.Open("pgx", fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s", cfg.Host, cfg.Port, cfg.User, "ent", cfg.Password, cfg.SSLMode))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		drv = entsql.OpenDB(dialect.Postgres, db)
+
+	case "mysql", "mariadb":
+		dsn := fmt.Sprintf("%s:%s@(%s:%d)/%s?parseTime=true",
+			cfg.User,
+			cfg.Password,
+			cfg.Host,
+			cfg.Port,
+			cfg.Name,
+		)
+
+		db, err := sql.Open(cfg.Type, dsn)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		drv = entsql.OpenDB(dialect.MySQL, db)
+
+	default:
+		log.Fatal(`Must choose a database driver: "postgres", "mariadb"`)
+	}
 
 	client := gen.NewClient(gen.Driver(drv))
 

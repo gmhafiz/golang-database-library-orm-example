@@ -2,8 +2,8 @@ package sqlx
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"godb/db"
 )
 
 const (
@@ -26,8 +26,8 @@ const (
 	                ) addresslist) as address
 	from countries AS c;
 */
-func (r *repository) Countries(ctx context.Context) ([]*CountryResponseWithAddress, error) {
-	var resp []*CountryResponseWithAddress
+func (r *repository) Countries(ctx context.Context) ([]*db.CountryResponseWithAddress, error) {
+	var resp []*db.CountryResponseWithAddress
 
 	rows, err := r.db.QueryContext(ctx, GetWithAddresses2)
 	if err != nil {
@@ -36,7 +36,7 @@ func (r *repository) Countries(ctx context.Context) ([]*CountryResponseWithAddre
 	defer rows.Close()
 
 	for rows.Next() {
-		var i CountryResponseWithAddress
+		var i db.CountryResponseWithAddress
 		err = rows.Scan(&i)
 		if err != nil {
 			return nil, err
@@ -45,11 +45,4 @@ func (r *repository) Countries(ctx context.Context) ([]*CountryResponseWithAddre
 	}
 
 	return resp, nil
-}
-
-// Scan When scanning the result, we are actually getting an array of uint8.
-// These json payload is then unmarshalled into our custom struct.
-func (m *CountryResponseWithAddress) Scan(src interface{}) error {
-	val := src.([]uint8)
-	return json.Unmarshal(val, &m)
 }

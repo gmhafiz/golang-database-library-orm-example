@@ -2,14 +2,14 @@ package sqlboiler
 
 import (
 	"context"
+	"godb/db"
 
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 
 	"godb/db/sqlboiler/models"
-	"godb/db/sqlx"
 )
 
-func (r *database) Countries(ctx context.Context) ([]*sqlx.CountryResponseWithAddress, error) {
+func (r *database) Countries(ctx context.Context) ([]*db.CountryResponseWithAddress, error) {
 	countries, err := models.Countries(
 		qm.Load(models.CountryRels.Addresses),
 		qm.Limit(30),
@@ -19,9 +19,9 @@ func (r *database) Countries(ctx context.Context) ([]*sqlx.CountryResponseWithAd
 		return nil, err
 	}
 
-	var all []*sqlx.CountryResponseWithAddress
+	var all []*db.CountryResponseWithAddress
 	for _, country := range countries {
-		resp := &sqlx.CountryResponseWithAddress{
+		resp := &db.CountryResponseWithAddress{
 			Id:        int(country.ID),
 			Code:      country.Code,
 			Name:      country.Name,
@@ -33,10 +33,10 @@ func (r *database) Countries(ctx context.Context) ([]*sqlx.CountryResponseWithAd
 	return all, err
 }
 
-func getAddress(addresses models.AddressSlice) []*sqlx.AddressForCountry {
-	var all []*sqlx.AddressForCountry
+func getAddress(addresses models.AddressSlice) []*db.AddressForCountry {
+	var all []*db.AddressForCountry
 	for _, address := range addresses {
-		all = append(all, &sqlx.AddressForCountry{
+		all = append(all, &db.AddressForCountry{
 			ID:       uint(address.ID),
 			Line1:    address.Line1,
 			Line2:    address.Line2.String,

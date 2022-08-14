@@ -1,47 +1,44 @@
--- CREATE SCHEMA ent;
-
-BEGIN;
-
 CREATE TABLE IF NOT EXISTS countries
 (
-    id   BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id   bigint unsigned not null auto_increment primary key,
     code text not null,
     name text not null
 );
 
 CREATE TABLE IF NOT EXISTS addresses
 (
-    id        BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id         bigint unsigned not null auto_increment primary key,
     line_1     text not null,
     line_2     text,
-    postcode   int ,
+    postcode   int,
     city       text,
     state      text,
-    country_id bigint
-        constraint addresses_countries_id_fk
-            references countries ON DELETE CASCADE
+    country_id bigint unsigned,
+
+    constraint addresses_countries_id_fk foreign key(country_id)
+        references countries(id) ON DELETE CASCADE
 );
 
-CREATE TYPE valid_colours AS ENUM ('red', 'green', 'blue');
 CREATE TABLE IF NOT EXISTS users
 (
-    id               BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    first_name       text                                         not null,
+    id               bigint unsigned not null auto_increment primary key,
+    first_name       text                          not null,
     middle_name      text,
-    last_name        text                                         not null,
-    email            text                                         not null unique,
-    password         text                                         not null,
-    favourite_colour valid_colours default 'green'::valid_colours not null
+    last_name        text                          not null,
+    email            text                          not null unique,
+    password         text                          not null,
+    favourite_colour enum ('red', 'green', 'blue') not null
 );
 
 CREATE TABLE IF NOT EXISTS user_addresses
 (
-    user_id    bigint
-        constraint user_addresses_users_id_fk
-            references users ON DELETE CASCADE,
-    address_id bigint
-        constraint user_addresses_addresses_id_fk
-            references addresses ON DELETE CASCADE,
+    user_id    bigint unsigned,
+    address_id bigint unsigned,
+
+    constraint user_addresses_users_id_fk foreign key (user_id)
+        references users(id) ON DELETE CASCADE,
+    constraint user_addresses_addresses_id_fk foreign key (address_id)
+        references addresses(id) ON DELETE CASCADE,
     constraint user_addresses_pk
         primary key (user_id, address_id)
 );
@@ -131,15 +128,8 @@ CREATE VIEW country_address as
 select c.id,
        c.code,
        c.name,
-       (
-           select array_to_json(array_agg(row_to_json(addresslist.*))) as array_to_json
-           from (
-                    select a.*
-                    from addresses a
-                    where c.id = a.country_id
-                ) addresslist) as address
+       (select json_arrayagg(json_object(
+               a.id, a.line_1, a.line_1, a.postcode, a.city, a.state))
+        from addresses a
+        where c.id = a.country_id)
 from countries AS c;
-
-CREATE COLLATION case_insensitive (provider = icu, locale = 'und-u-ks-level2', deterministic = false);
-
-COMMIT;

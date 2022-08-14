@@ -2,12 +2,13 @@ package sqlc
 
 import (
 	"context"
-	"database/sql"
+	"godb/db"
+	"godb/db/sqlc/pg"
 	"log"
 )
 
-func (r *database) ListFilterByColumn(ctx context.Context, f *Filter) (l []ListUsersRow, err error) {
-	p := ListDynamicUsersParams{
+func (r *database) ListFilterByColumn(ctx context.Context, f *db.Filter) (l []db.UserResponse, err error) {
+	p := pg.ListDynamicUsersParams{
 		FirstName: f.FirstName,
 		Email:     f.Email,
 		//FavouriteColourPresent: f.FavouriteColour,
@@ -21,24 +22,21 @@ func (r *database) ListFilterByColumn(ctx context.Context, f *Filter) (l []ListU
 		return nil, err
 	}
 	for _, user := range dynamicList {
-		l = append(l, ListUsersRow{
-			ID:        user.ID,
-			FirstName: user.FirstName,
-			MiddleName: sql.NullString{
-				String: user.MiddleName.String,
-				Valid:  true,
-			},
+		l = append(l, db.UserResponse{
+			ID:              uint(user.ID),
+			FirstName:       user.FirstName,
+			MiddleName:      user.MiddleName.String,
 			LastName:        user.LastName,
 			Email:           user.Email,
-			FavouriteColour: user.FavouriteColour,
+			FavouriteColour: string(user.FavouriteColour),
 		})
 	}
 
 	return l, nil
 }
 
-func (r *database) ListFilterSort(ctx context.Context, f *Filter) (l []ListUsersRow, err error) {
-	p := ListDynamicUsersParams{
+func (r *database) ListFilterSort(ctx context.Context, f *db.Filter) (l []db.UserResponse, err error) {
+	p := pg.ListDynamicUsersParams{
 		// fixme: optional filter favourite_colour
 		SqlOffset: int32(f.Base.Offset),
 		SqlLimit:  int32(f.Base.Limit),
@@ -46,6 +44,7 @@ func (r *database) ListFilterSort(ctx context.Context, f *Filter) (l []ListUsers
 
 	if len(f.Base.Sort) > 0 {
 		for col, order := range f.Base.Sort {
+			// repeat with each column you want to sort.
 			if col == "first_name" {
 				if order == "ASC" {
 					p.FirstNameAsc = col
@@ -62,23 +61,21 @@ func (r *database) ListFilterSort(ctx context.Context, f *Filter) (l []ListUsers
 		return nil, err
 	}
 	for _, user := range dynamicList {
-		l = append(l, ListUsersRow{
-			ID:        user.ID,
-			FirstName: user.FirstName,
-			MiddleName: sql.NullString{
-				String: user.MiddleName.String,
-				Valid:  true,
-			},
+		l = append(l, db.UserResponse{
+			ID:              uint(user.ID),
+			FirstName:       user.FirstName,
+			MiddleName:      user.MiddleName.String,
 			LastName:        user.LastName,
 			Email:           user.Email,
-			FavouriteColour: user.FavouriteColour,
+			FavouriteColour: string(user.FavouriteColour),
 		})
 	}
+
 	return l, nil
 }
 
-func (r *database) ListFilterPagination(ctx context.Context, f *Filter) (l []ListUsersRow, err error) {
-	p := ListDynamicUsersParams{
+func (r *database) ListFilterPagination(ctx context.Context, f *db.Filter) (l []db.UserResponse, err error) {
+	p := pg.ListDynamicUsersParams{
 		// fixme: optional filter favourite_colour
 		SqlOffset: int32(f.Base.Offset),
 		SqlLimit:  int32(f.Base.Limit),
@@ -90,21 +87,14 @@ func (r *database) ListFilterPagination(ctx context.Context, f *Filter) (l []Lis
 		return nil, err
 	}
 	for _, user := range dynamicList {
-		l = append(l, ListUsersRow{
-			ID:        user.ID,
-			FirstName: user.FirstName,
-			MiddleName: sql.NullString{
-				String: user.MiddleName.String,
-				Valid:  true,
-			},
+		l = append(l, db.UserResponse{
+			ID:              uint(user.ID),
+			FirstName:       user.FirstName,
+			MiddleName:      user.MiddleName.String,
 			LastName:        user.LastName,
 			Email:           user.Email,
-			FavouriteColour: user.FavouriteColour,
+			FavouriteColour: string(user.FavouriteColour),
 		})
 	}
 	return l, nil
-}
-
-func (r *database) ListFilterWhereIn(ctx context.Context, f *Filter) ([]ListUsersRow, error) {
-	return []ListUsersRow{}, nil
 }

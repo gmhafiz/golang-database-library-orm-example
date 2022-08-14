@@ -7,6 +7,7 @@ import (
 )
 
 func Error(w http.ResponseWriter, statusCode int, message error) {
+	w.Header().Set("Content-Type", "application/problem+json")
 	w.WriteHeader(statusCode)
 
 	var p map[string]string

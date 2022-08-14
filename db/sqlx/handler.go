@@ -9,13 +9,15 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/jmoiron/sqlx"
 
+	"godb/db"
 	"godb/param"
 	"godb/respond"
 	"godb/respond/message"
 )
 
 type handler struct {
-	db *repository
+	db      *repository
+	generic *genericRepository
 }
 
 type Err struct {
@@ -27,9 +29,11 @@ func (e *Err) Error() string {
 	return e.Msg
 }
 
-func Register(r *chi.Mux, db *sqlx.DB) {
+func Register(r *chi.Mux, db *sqlx.DB, dbType string) {
+	repo := NewRepo(db)
 	h := &handler{
-		db: NewRepo(db),
+		db:      NewRepo(db),
+		generic: NewGenericRepo(repo),
 	}
 
 	r.Route("/api/sqlx/user", func(router chi.Router) {
@@ -48,19 +52,24 @@ func Register(r *chi.Mux, db *sqlx.DB) {
 }
 
 func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
-	request := NewUserRequest()
+	// 1. real-world application must perform request validation
+
+	// 2. Transform into request struct
+	request := db.NewUserRequest()
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		respond.Error(w, http.StatusBadRequest, message.ErrBadRequest)
 		return
 	}
 
+	// Some business logic
 	hash, err := argon2id.CreateHash(request.Password, argon2id.DefaultParams)
 	if err != nil {
 		respond.Error(w, http.StatusInternalServerError, message.ErrInternalError)
 		return
 	}
 
+	// 3. Call data access layer.
 	u, err := h.db.Create(r.Context(), request, hash)
 	if err != nil {
 		var errStruct *Err
@@ -72,7 +81,8 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respond.Json(w, http.StatusOK, &UserResponse{
+	// 4. Respond with custom struct
+	respond.Json(w, http.StatusOK, &db.UserResponse{
 		ID:              u.ID,
 		FirstName:       u.FirstName,
 		MiddleName:      u.MiddleName.String,
@@ -83,7 +93,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
-	f := filters(r)
+	f := db.Filters(r.URL.Query())
 
 	users, err := h.db.List(r.Context(), f)
 	if err != nil {
@@ -127,7 +137,7 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req UserUpdateRequest
+	var req db.UserUpdateRequest
 	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		respond.Error(w, http.StatusBadRequest, err)
@@ -152,7 +162,7 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respond.Json(w, http.StatusOK, &UserResponse{
+	respond.Json(w, http.StatusOK, &db.UserResponse{
 		ID:              uint(userID),
 		FirstName:       u.FirstName,
 		MiddleName:      u.MiddleName,

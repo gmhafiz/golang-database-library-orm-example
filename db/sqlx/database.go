@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
 
@@ -14,16 +15,7 @@ import (
 )
 
 func New(c config.Database) *sqlx.DB {
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
-		c.User,
-		c.Password,
-		c.Host,
-		c.Port,
-		c.Name,
-		c.SSLMode,
-	)
-
-	db, err := sqlx.Connect("pgx", dsn)
+	db, err := sqlx.Open(c.Type, Dsn(c))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -31,6 +23,33 @@ func New(c config.Database) *sqlx.DB {
 	Alive(db.DB)
 
 	return db
+}
+
+func Dsn(c config.Database) string {
+	var dsn string
+	switch c.Type {
+	case "postgres", "postgresql", "psql", "pgsql", "pgx":
+		dsn = fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
+			c.User,
+			c.Password,
+			c.Host,
+			c.Port,
+			c.Name,
+			c.SSLMode,
+		)
+	case "mysql", "mariadb":
+		dsn = fmt.Sprintf("%s:%s@(%s:%d)/%s?parseTime=true",
+			c.User,
+			c.Password,
+			c.Host,
+			c.Port,
+			c.Name,
+		)
+	default:
+		log.Fatal(`Must choose a database driver: "postgres", "mariadb"`)
+	}
+
+	return dsn
 }
 
 func Alive(db *sql.DB) {

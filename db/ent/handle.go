@@ -2,6 +2,7 @@ package ent
 
 import (
 	"encoding/json"
+	"godb/db"
 	"net/http"
 
 	"github.com/alexedwards/argon2id"
@@ -9,7 +10,6 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 
 	"godb/db/ent/ent/gen"
-	"godb/db/sqlx"
 	"godb/param"
 	"godb/respond"
 	"godb/respond/message"
@@ -41,7 +41,7 @@ func Register(r *chi.Mux, db *gen.Client) {
 }
 
 func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
-	request := sqlx.NewUserRequest()
+	request := db.NewUserRequest()
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		respond.Error(w, http.StatusBadRequest, err)
@@ -68,7 +68,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
-	f := filters(r)
+	f := filters(r.URL.Query())
 
 	all, err := h.db.List(r.Context(), f)
 	if err != nil {
@@ -92,7 +92,7 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respond.Json(w, http.StatusOK, &sqlx.UserResponse{
+	respond.Json(w, http.StatusOK, &db.UserResponse{
 		ID:              u.ID,
 		FirstName:       u.FirstName,
 		MiddleName:      *u.MiddleName,
@@ -109,7 +109,7 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req sqlx.UserUpdateRequest
+	var req db.UserUpdateRequest
 	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		respond.Error(w, http.StatusBadRequest, err)

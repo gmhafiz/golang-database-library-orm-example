@@ -3,13 +3,13 @@ package gorm
 import (
 	"encoding/json"
 	"errors"
+	"godb/db"
 	"net/http"
 
 	"github.com/alexedwards/argon2id"
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 
-	"godb/db/sqlx"
 	"godb/param"
 	"godb/respond"
 )
@@ -38,7 +38,7 @@ func Register(r *chi.Mux, db *gorm.DB) {
 }
 
 func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
-	request := sqlx.NewUserRequest()
+	request := db.NewUserRequest()
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		respond.Error(w, http.StatusBadRequest, errors.New("bad request"))
@@ -61,7 +61,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
-	f := filters(r)
+	f := db.Filters(r.URL.Query())
 
 	userResponse, err := h.db.List(r.Context(), f)
 	if err != nil {
@@ -95,7 +95,7 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req sqlx.UserUpdateRequest
+	var req db.UserUpdateRequest
 	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		respond.Error(w, http.StatusInternalServerError, err)

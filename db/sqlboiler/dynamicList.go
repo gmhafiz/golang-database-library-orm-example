@@ -3,16 +3,17 @@ package sqlboiler
 import (
 	"context"
 	"fmt"
+	"godb/db"
 	"strings"
 
 	"github.com/volatiletech/null/v8"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 
 	"godb/db/sqlboiler/models"
-	sqlx2 "godb/db/sqlx"
 )
 
-func (r *database) ListFilterByColumn(ctx context.Context, f *Filter) (users []*sqlx2.UserResponse, err error) {
+func (r *database) ListFilterByColumn(ctx context.Context, f *db.Filter) (users []*db.UserResponse, err error) {
 	var mods []qm.QueryMod
 
 	if f.Email != "" {
@@ -38,7 +39,7 @@ func (r *database) ListFilterByColumn(ctx context.Context, f *Filter) (users []*
 	}
 
 	for _, i := range all {
-		users = append(users, &sqlx2.UserResponse{
+		users = append(users, &db.UserResponse{
 			ID:              uint(i.ID),
 			FirstName:       i.FirstName,
 			MiddleName:      i.MiddleName.String,
@@ -51,22 +52,30 @@ func (r *database) ListFilterByColumn(ctx context.Context, f *Filter) (users []*
 	return users, nil
 }
 
-func (r *database) ListFilterSort(ctx context.Context, f *Filter) (users []*sqlx2.UserResponse, err error) {
+func (r *database) ListFilterSort(ctx context.Context, f *db.Filter) (users []*db.UserResponse, err error) {
 	var mods []qm.QueryMod
 
 	for key, order := range f.Base.Sort {
-		mods = append(mods, qm.OrderBy(fmt.Sprintf("%s %s", key, order)))
+		// vulnerable to sql injection
+		//mods = append(mods, qm.OrderBy(fmt.Sprintf("%s %s", key, order)))
+
+		switch key {
+		// whitelist columns.
+		case "first_name", "last_name", "middle_name", "email", "favourite_colour":
+			mods = append(mods, qm.OrderBy(fmt.Sprintf("%s %s", key, order)))
+		}
 	}
 
 	mods = append(mods, qm.OrderBy(models.UserColumns.ID))
 
+	boil.DebugMode = true
 	all, err := models.Users(mods...).All(ctx, r.db)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, i := range all {
-		users = append(users, &sqlx2.UserResponse{
+		users = append(users, &db.UserResponse{
 			ID:              uint(i.ID),
 			FirstName:       i.FirstName,
 			MiddleName:      i.MiddleName.String,
@@ -79,7 +88,7 @@ func (r *database) ListFilterSort(ctx context.Context, f *Filter) (users []*sqlx
 	return users, nil
 }
 
-func (r *database) ListFilterPagination(ctx context.Context, f *Filter) (users []*sqlx2.UserResponse, err error) {
+func (r *database) ListFilterPagination(ctx context.Context, f *db.Filter) (users []*db.UserResponse, err error) {
 	var mods []qm.QueryMod
 
 	if f.Base.Limit != 0 && !f.Base.DisablePaging {
@@ -97,7 +106,7 @@ func (r *database) ListFilterPagination(ctx context.Context, f *Filter) (users [
 	}
 
 	for _, i := range all {
-		users = append(users, &sqlx2.UserResponse{
+		users = append(users, &db.UserResponse{
 			ID:              uint(i.ID),
 			FirstName:       i.FirstName,
 			MiddleName:      i.MiddleName.String,
