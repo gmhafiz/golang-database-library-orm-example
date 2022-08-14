@@ -4,6 +4,7 @@ package gen
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"godb/db/ent/ent/gen/address"
 	"godb/db/ent/ent/gen/country"
@@ -366,7 +367,7 @@ func (cuo *CountryUpdateOne) sqlSave(ctx context.Context) (_node *Country, err e
 	}
 	id, ok := cuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Country.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`gen: missing "Country.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := cuo.fields; len(fields) > 0 {

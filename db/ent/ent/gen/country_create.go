@@ -124,10 +124,10 @@ func (cc *CountryCreate) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (cc *CountryCreate) check() error {
 	if _, ok := cc.mutation.Code(); !ok {
-		return &ValidationError{Name: "code", err: errors.New(`gen: missing required field "code"`)}
+		return &ValidationError{Name: "code", err: errors.New(`gen: missing required field "Country.code"`)}
 	}
 	if _, ok := cc.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`gen: missing required field "name"`)}
+		return &ValidationError{Name: "name", err: errors.New(`gen: missing required field "Country.name"`)}
 	}
 	return nil
 }

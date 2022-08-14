@@ -2,8 +2,6 @@ package sqlx
 
 import (
 	"database/sql"
-
-	"godb/db/ent/ent/gen"
 )
 
 const DefaultUserColor = "red"
@@ -81,7 +79,7 @@ type UserResponseWithAddresses struct {
 	Email           string  `json:"email,omitempty"`
 	FavouriteColour string  `json:"favourite_colour,omitempty"`
 
-	Address []*gen.Address `json:"address"`
+	Address []*Address `json:"address"`
 }
 
 type AddressResponse struct {

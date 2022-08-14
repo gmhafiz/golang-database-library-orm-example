@@ -13,7 +13,7 @@ var (
 		{Name: "id", Type: field.TypeUint, Increment: true},
 		{Name: "line_1", Type: field.TypeString},
 		{Name: "line_2", Type: field.TypeString, Nullable: true},
-		{Name: "postcode", Type: field.TypeUint},
+		{Name: "postcode", Type: field.TypeInt},
 		{Name: "state", Type: field.TypeString},
 		{Name: "country_addresses", Type: field.TypeUint, Nullable: true},
 	}

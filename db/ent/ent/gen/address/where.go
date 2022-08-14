@@ -107,7 +107,7 @@ func Line2(v string) predicate.Address {
 }
 
 // Postcode applies equality check predicate on the "postcode" field. It's identical to PostcodeEQ.
-func Postcode(v uint) predicate.Address {
+func Postcode(v int) predicate.Address {
 	return predicate.Address(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldPostcode), v))
 	})
@@ -357,21 +357,21 @@ func Line2ContainsFold(v string) predicate.Address {
 }
 
 // PostcodeEQ applies the EQ predicate on the "postcode" field.
-func PostcodeEQ(v uint) predicate.Address {
+func PostcodeEQ(v int) predicate.Address {
 	return predicate.Address(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldPostcode), v))
 	})
 }
 
 // PostcodeNEQ applies the NEQ predicate on the "postcode" field.
-func PostcodeNEQ(v uint) predicate.Address {
+func PostcodeNEQ(v int) predicate.Address {
 	return predicate.Address(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldPostcode), v))
 	})
 }
 
 // PostcodeIn applies the In predicate on the "postcode" field.
-func PostcodeIn(vs ...uint) predicate.Address {
+func PostcodeIn(vs ...int) predicate.Address {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -388,7 +388,7 @@ func PostcodeIn(vs ...uint) predicate.Address {
 }
 
 // PostcodeNotIn applies the NotIn predicate on the "postcode" field.
-func PostcodeNotIn(vs ...uint) predicate.Address {
+func PostcodeNotIn(vs ...int) predicate.Address {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -405,28 +405,28 @@ func PostcodeNotIn(vs ...uint) predicate.Address {
 }
 
 // PostcodeGT applies the GT predicate on the "postcode" field.
-func PostcodeGT(v uint) predicate.Address {
+func PostcodeGT(v int) predicate.Address {
 	return predicate.Address(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldPostcode), v))
 	})
 }
 
 // PostcodeGTE applies the GTE predicate on the "postcode" field.
-func PostcodeGTE(v uint) predicate.Address {
+func PostcodeGTE(v int) predicate.Address {
 	return predicate.Address(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldPostcode), v))
 	})
 }
 
 // PostcodeLT applies the LT predicate on the "postcode" field.
-func PostcodeLT(v uint) predicate.Address {
+func PostcodeLT(v int) predicate.Address {
 	return predicate.Address(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldPostcode), v))
 	})
 }
 
 // PostcodeLTE applies the LTE predicate on the "postcode" field.
-func PostcodeLTE(v uint) predicate.Address {
+func PostcodeLTE(v int) predicate.Address {
 	return predicate.Address(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldPostcode), v))
 	})

@@ -90,3 +90,6 @@ WHERE ua.user_id = ANY($1::int[]);;
 SELECT a.*
 FROM addresses a
 WHERE a.id = ANY($1::int[]);
+
+-- name: SelectWhereInLastNames :many
+SELECT * FROM users WHERE last_name = ANY(@last_name::text[]);

@@ -4,6 +4,7 @@ package gen
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"godb/db/ent/ent/gen/address"
 	"godb/db/ent/ent/gen/country"
@@ -55,15 +56,15 @@ func (au *AddressUpdate) ClearLine2() *AddressUpdate {
 }
 
 // SetPostcode sets the "postcode" field.
-func (au *AddressUpdate) SetPostcode(u uint) *AddressUpdate {
+func (au *AddressUpdate) SetPostcode(i int) *AddressUpdate {
 	au.mutation.ResetPostcode()
-	au.mutation.SetPostcode(u)
+	au.mutation.SetPostcode(i)
 	return au
 }
 
-// AddPostcode adds u to the "postcode" field.
-func (au *AddressUpdate) AddPostcode(u uint) *AddressUpdate {
-	au.mutation.AddPostcode(u)
+// AddPostcode adds i to the "postcode" field.
+func (au *AddressUpdate) AddPostcode(i int) *AddressUpdate {
+	au.mutation.AddPostcode(i)
 	return au
 }
 
@@ -233,14 +234,14 @@ func (au *AddressUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := au.mutation.Postcode(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint,
+			Type:   field.TypeInt,
 			Value:  value,
 			Column: address.FieldPostcode,
 		})
 	}
 	if value, ok := au.mutation.AddedPostcode(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint,
+			Type:   field.TypeInt,
 			Value:  value,
 			Column: address.FieldPostcode,
 		})
@@ -387,15 +388,15 @@ func (auo *AddressUpdateOne) ClearLine2() *AddressUpdateOne {
 }
 
 // SetPostcode sets the "postcode" field.
-func (auo *AddressUpdateOne) SetPostcode(u uint) *AddressUpdateOne {
+func (auo *AddressUpdateOne) SetPostcode(i int) *AddressUpdateOne {
 	auo.mutation.ResetPostcode()
-	auo.mutation.SetPostcode(u)
+	auo.mutation.SetPostcode(i)
 	return auo
 }
 
-// AddPostcode adds u to the "postcode" field.
-func (auo *AddressUpdateOne) AddPostcode(u uint) *AddressUpdateOne {
-	auo.mutation.AddPostcode(u)
+// AddPostcode adds i to the "postcode" field.
+func (auo *AddressUpdateOne) AddPostcode(i int) *AddressUpdateOne {
+	auo.mutation.AddPostcode(i)
 	return auo
 }
 
@@ -545,7 +546,7 @@ func (auo *AddressUpdateOne) sqlSave(ctx context.Context) (_node *Address, err e
 	}
 	id, ok := auo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Address.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`gen: missing "Address.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := auo.fields; len(fields) > 0 {
@@ -589,14 +590,14 @@ func (auo *AddressUpdateOne) sqlSave(ctx context.Context) (_node *Address, err e
 	}
 	if value, ok := auo.mutation.Postcode(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint,
+			Type:   field.TypeInt,
 			Value:  value,
 			Column: address.FieldPostcode,
 		})
 	}
 	if value, ok := auo.mutation.AddedPostcode(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint,
+			Type:   field.TypeInt,
 			Value:  value,
 			Column: address.FieldPostcode,
 		})

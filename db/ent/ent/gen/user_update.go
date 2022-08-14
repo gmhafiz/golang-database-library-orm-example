@@ -4,6 +4,7 @@ package gen
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"godb/db/ent/ent/gen/address"
 	"godb/db/ent/ent/gen/predicate"
@@ -190,7 +191,7 @@ func (uu *UserUpdate) ExecX(ctx context.Context) {
 func (uu *UserUpdate) check() error {
 	if v, ok := uu.mutation.FavouriteColour(); ok {
 		if err := user.FavouriteColourValidator(v); err != nil {
-			return &ValidationError{Name: "favourite_colour", err: fmt.Errorf("gen: validator failed for field \"favourite_colour\": %w", err)}
+			return &ValidationError{Name: "favourite_colour", err: fmt.Errorf(`gen: validator failed for field "User.favourite_colour": %w`, err)}
 		}
 	}
 	return nil
@@ -505,7 +506,7 @@ func (uuo *UserUpdateOne) ExecX(ctx context.Context) {
 func (uuo *UserUpdateOne) check() error {
 	if v, ok := uuo.mutation.FavouriteColour(); ok {
 		if err := user.FavouriteColourValidator(v); err != nil {
-			return &ValidationError{Name: "favourite_colour", err: fmt.Errorf("gen: validator failed for field \"favourite_colour\": %w", err)}
+			return &ValidationError{Name: "favourite_colour", err: fmt.Errorf(`gen: validator failed for field "User.favourite_colour": %w`, err)}
 		}
 	}
 	return nil
@@ -524,7 +525,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	id, ok := uuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing User.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`gen: missing "User.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := uuo.fields; len(fields) > 0 {

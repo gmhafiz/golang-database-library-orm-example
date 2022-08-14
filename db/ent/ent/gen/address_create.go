@@ -42,8 +42,8 @@ func (ac *AddressCreate) SetNillableLine2(s *string) *AddressCreate {
 }
 
 // SetPostcode sets the "postcode" field.
-func (ac *AddressCreate) SetPostcode(u uint) *AddressCreate {
-	ac.mutation.SetPostcode(u)
+func (ac *AddressCreate) SetPostcode(i int) *AddressCreate {
+	ac.mutation.SetPostcode(i)
 	return ac
 }
 
@@ -164,13 +164,13 @@ func (ac *AddressCreate) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (ac *AddressCreate) check() error {
 	if _, ok := ac.mutation.Line1(); !ok {
-		return &ValidationError{Name: "line_1", err: errors.New(`gen: missing required field "line_1"`)}
+		return &ValidationError{Name: "line_1", err: errors.New(`gen: missing required field "Address.line_1"`)}
 	}
 	if _, ok := ac.mutation.Postcode(); !ok {
-		return &ValidationError{Name: "postcode", err: errors.New(`gen: missing required field "postcode"`)}
+		return &ValidationError{Name: "postcode", err: errors.New(`gen: missing required field "Address.postcode"`)}
 	}
 	if _, ok := ac.mutation.State(); !ok {
-		return &ValidationError{Name: "state", err: errors.New(`gen: missing required field "state"`)}
+		return &ValidationError{Name: "state", err: errors.New(`gen: missing required field "Address.state"`)}
 	}
 	return nil
 }
@@ -223,7 +223,7 @@ func (ac *AddressCreate) createSpec() (*Address, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := ac.mutation.Postcode(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint,
+			Type:   field.TypeInt,
 			Value:  value,
 			Column: address.FieldPostcode,
 		})

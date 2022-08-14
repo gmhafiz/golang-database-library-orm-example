@@ -173,23 +173,23 @@ func (uc *UserCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.FirstName(); !ok {
-		return &ValidationError{Name: "first_name", err: errors.New(`gen: missing required field "first_name"`)}
+		return &ValidationError{Name: "first_name", err: errors.New(`gen: missing required field "User.first_name"`)}
 	}
 	if _, ok := uc.mutation.LastName(); !ok {
-		return &ValidationError{Name: "last_name", err: errors.New(`gen: missing required field "last_name"`)}
+		return &ValidationError{Name: "last_name", err: errors.New(`gen: missing required field "User.last_name"`)}
 	}
 	if _, ok := uc.mutation.Email(); !ok {
-		return &ValidationError{Name: "email", err: errors.New(`gen: missing required field "email"`)}
+		return &ValidationError{Name: "email", err: errors.New(`gen: missing required field "User.email"`)}
 	}
 	if _, ok := uc.mutation.Password(); !ok {
-		return &ValidationError{Name: "password", err: errors.New(`gen: missing required field "password"`)}
+		return &ValidationError{Name: "password", err: errors.New(`gen: missing required field "User.password"`)}
 	}
 	if _, ok := uc.mutation.FavouriteColour(); !ok {
-		return &ValidationError{Name: "favourite_colour", err: errors.New(`gen: missing required field "favourite_colour"`)}
+		return &ValidationError{Name: "favourite_colour", err: errors.New(`gen: missing required field "User.favourite_colour"`)}
 	}
 	if v, ok := uc.mutation.FavouriteColour(); ok {
 		if err := user.FavouriteColourValidator(v); err != nil {
-			return &ValidationError{Name: "favourite_colour", err: fmt.Errorf(`gen: validator failed for field "favourite_colour": %w`, err)}
+			return &ValidationError{Name: "favourite_colour", err: fmt.Errorf(`gen: validator failed for field "User.favourite_colour": %w`, err)}
 		}
 	}
 	return nil

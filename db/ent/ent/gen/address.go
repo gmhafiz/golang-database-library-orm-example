@@ -21,7 +21,7 @@ type Address struct {
 	// Line2 holds the value of the "line_2" field.
 	Line2 *string `json:"line_2,omitempty"`
 	// Postcode holds the value of the "postcode" field.
-	Postcode uint `json:"postcode,omitempty"`
+	Postcode int `json:"postcode,omitempty"`
 	// State holds the value of the "state" field.
 	State string `json:"state,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -113,7 +113,7 @@ func (a *Address) assignValues(columns []string, values []interface{}) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field postcode", values[i])
 			} else if value.Valid {
-				a.Postcode = uint(value.Int64)
+				a.Postcode = int(value.Int64)
 			}
 		case address.FieldState:
 			if value, ok := values[i].(*sql.NullString); !ok {
