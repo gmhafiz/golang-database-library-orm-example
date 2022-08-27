@@ -29,6 +29,7 @@ func (r *database) ListFilterByColumn(ctx context.Context, f *db.Filter) (l []db
 			LastName:        user.LastName,
 			Email:           user.Email,
 			FavouriteColour: string(user.FavouriteColour),
+			UpdatedAt:       user.UpdatedAt.String(),
 		})
 	}
 
@@ -68,6 +69,7 @@ func (r *database) ListFilterSort(ctx context.Context, f *db.Filter) (l []db.Use
 			LastName:        user.LastName,
 			Email:           user.Email,
 			FavouriteColour: string(user.FavouriteColour),
+			UpdatedAt:       user.UpdatedAt.String(),
 		})
 	}
 
@@ -94,6 +96,7 @@ func (r *database) ListFilterPagination(ctx context.Context, f *db.Filter) (l []
 			LastName:        user.LastName,
 			Email:           user.Email,
 			FavouriteColour: string(user.FavouriteColour),
+			UpdatedAt:       user.UpdatedAt.String(),
 		})
 	}
 	return l, nil

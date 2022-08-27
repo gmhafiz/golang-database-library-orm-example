@@ -67,6 +67,7 @@ func (r *repository) ListFilterByColumn(ctx context.Context, filters *db.Filter)
 			LastName:        u.LastName,
 			Email:           u.Email,
 			FavouriteColour: u.FavouriteColour,
+			UpdatedAt:       u.UpdatedAt.String(),
 		})
 	}
 
@@ -118,6 +119,7 @@ func (r *repository) ListFilterSort(ctx context.Context, filters *db.Filter) (us
 			LastName:        u.LastName,
 			Email:           u.Email,
 			FavouriteColour: u.FavouriteColour,
+			UpdatedAt:       u.UpdatedAt.String(),
 		})
 	}
 
@@ -154,6 +156,7 @@ func (r *repository) ListFilterPagination(ctx context.Context, filters *db.Filte
 			LastName:        u.LastName,
 			Email:           u.Email,
 			FavouriteColour: u.FavouriteColour,
+			UpdatedAt:       u.UpdatedAt.String(),
 		})
 	}
 

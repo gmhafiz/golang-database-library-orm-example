@@ -15,9 +15,10 @@ func (r *database) Create(ctx context.Context, request *db.UserRequest, hash str
 	saved, err := r.db.Debug().User.Create().
 		SetFirstName(request.FirstName).
 		SetNillableMiddleName(nil). // Does not insert anything to this column
-		//SetMiddleName(request.MiddleName). // Inserts empyy string
+		//SetMiddleName(request.MiddleName). // Inserts empty string
 		SetLastName(request.LastName).
 		SetEmail(request.Email).
+		SetFavouriteColour(user.FavouriteColour(request.FavouriteColour)).
 		SetPassword(hash).
 		Save(ctx)
 	if err != nil {
@@ -45,7 +46,7 @@ func (r *database) List(ctx context.Context, f *filter) ([]*gen.User, error) {
 		return r.ListFilterPaginationByID(ctx, f)
 	}
 
-	if len(f.LastName) > 0 {
+	if len(f.LastNames) > 0 {
 		return r.ListFilterWhereIn(ctx, f)
 	}
 
@@ -83,6 +84,6 @@ func (r *database) Delete(ctx context.Context, userID int64) error {
 
 func (r *database) ListFilterWhereIn(ctx context.Context, f *filter) ([]*gen.User, error) {
 	return r.db.User.Query().
-		Where(user.LastNameIn(f.LastName...)).
+		Where(user.LastNameIn(f.LastNames...)).
 		All(ctx)
 }

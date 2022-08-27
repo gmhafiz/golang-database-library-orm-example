@@ -3,6 +3,7 @@ package sqlc
 import (
 	"context"
 	"fmt"
+
 	"godb/db"
 	"godb/db/sqlc/pg"
 )
@@ -22,6 +23,7 @@ func (r *database) ListM2M(ctx context.Context) ([]*db.UserResponseWithAddresses
 			LastName:   u.LastName,
 			Email:      u.Email,
 			Address:    []*db.AddressForCountry{},
+			UpdatedAt:  u.UpdatedAt.String(),
 		})
 	}
 

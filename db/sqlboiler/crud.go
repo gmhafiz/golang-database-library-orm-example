@@ -5,14 +5,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/samber/lo"
-	"godb/db"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/samber/lo"
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 
+	"godb/db"
 	"godb/db/sqlboiler/models"
 )
 
@@ -55,7 +55,7 @@ func (r *database) List(ctx context.Context, f *db.Filter) ([]*db.UserResponse, 
 	if f.Base.Page > 1 {
 		return r.ListFilterPagination(ctx, f)
 	}
-	if len(f.LastName) > 0 {
+	if len(f.LastNames) > 0 {
 		return r.ListFilterWhereIn(ctx, f)
 	}
 
@@ -76,6 +76,7 @@ func (r *database) List(ctx context.Context, f *db.Filter) ([]*db.UserResponse, 
 			LastName:        user.LastName,
 			Email:           user.Email,
 			FavouriteColour: user.FavouriteColour.String,
+			UpdatedAt:       user.UpdatedAt.String(),
 		})
 	}
 	return userResponse, nil
@@ -127,7 +128,7 @@ UPDATE "users" SET "first_name"=$1,"middle_name"=$2,"last_name"=$3,"email"=$4,"p
 [John { true} Doe john-changed@example.com  13]
 
 */
-//func (r *database) Update(ctx context.Context, id int64, req sqlx2.UserUpdateRequest) (*models.User, error) {
+//func (r *database) Update(ctx context.Context, id int64, req db.UserUpdateRequest) (*models.User, error) {
 //	boil.DebugMode = true
 //	defer func() {
 //		boil.DebugMode = false
@@ -139,7 +140,7 @@ UPDATE "users" SET "first_name"=$1,"middle_name"=$2,"last_name"=$3,"email"=$4,"p
 //			String: req.MiddleName,
 //			Valid:  true,
 //		},
-//		LastName: req.LastName,
+//		LastNames: req.LastNames,
 //		Email:    req.Email,
 //      FavouriteColour: req.FavouriteColour,
 //	}
@@ -169,7 +170,7 @@ func (r *database) Delete(ctx context.Context, userID int64) error {
 func (r *database) ListFilterWhereIn(ctx context.Context, f *db.Filter) (users []*db.UserResponse, err error) {
 	// Accepts slice of interface, not slice of string. Not generic. So need to
 	// convert each element to interface{}, or 'any' in Go v1.18
-	args := lo.Map(f.LastName, func(t string, _ int) any {
+	args := lo.Map(f.LastNames, func(t string, _ int) any {
 		return t
 	})
 
@@ -191,6 +192,7 @@ func (r *database) ListFilterWhereIn(ctx context.Context, f *db.Filter) (users [
 			LastName:        i.LastName,
 			Email:           i.Email,
 			FavouriteColour: i.FavouriteColour.String,
+			UpdatedAt:       i.UpdatedAt.String(),
 		})
 	}
 

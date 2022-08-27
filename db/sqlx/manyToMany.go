@@ -4,9 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"godb/db"
 
 	"github.com/jmoiron/sqlx"
+
+	"godb/db"
 )
 
 const (
@@ -54,12 +55,14 @@ func (r *repository) ListM2M(ctx context.Context) ([]*db.UserResponseWithAddress
 			return nil, fmt.Errorf("db scanning error")
 		}
 		all = append(all, &db.UserResponseWithAddressesSqlx{
-			ID:         u.ID,
-			FirstName:  u.FirstName,
-			MiddleName: u.MiddleName.String,
-			LastName:   u.LastName,
-			Email:      u.Email,
-			Address:    []*db.AddressForCountry{},
+			ID:              u.ID,
+			FirstName:       u.FirstName,
+			MiddleName:      u.MiddleName.String,
+			LastName:        u.LastName,
+			Email:           u.Email,
+			FavouriteColour: u.FavouriteColour,
+			UpdatedAt:       u.UpdatedAt.String(),
+			Address:         []*db.AddressForCountry{},
 		})
 	}
 

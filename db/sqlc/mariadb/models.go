@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"time"
 )
 
 type UsersFavouriteColour string
@@ -59,6 +60,7 @@ type User struct {
 	Email           string
 	Password        string
 	FavouriteColour UsersFavouriteColour
+	UpdatedAt       time.Time
 }
 
 type UserAddress struct {

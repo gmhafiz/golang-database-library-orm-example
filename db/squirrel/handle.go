@@ -10,7 +10,6 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"godb/db"
-	sqlx2 "godb/db"
 	"godb/param"
 	"godb/respond"
 	"godb/respond/message"
@@ -18,15 +17,6 @@ import (
 
 type handler struct {
 	db *repository
-}
-
-type Err struct {
-	Msg    string
-	Status int
-}
-
-func (e *Err) Error() string {
-	return e.Msg
 }
 
 func Register(r *chi.Mux, db *sqlx.DB) {
@@ -47,11 +37,10 @@ func Register(r *chi.Mux, db *sqlx.DB) {
 	r.Route("/api/squirrel/country", func(router chi.Router) {
 		router.Get("/", h.Countries)
 	})
-
 }
 
 func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
-	request := sqlx2.NewUserRequest()
+	request := db.NewUserRequest()
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
@@ -65,9 +54,9 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, err := h.db.Create(r.Context(), request, hash)
+	u, err := h.db.Create(r.Context(), nil, request, hash)
 	if err != nil {
-		var errStruct *Err
+		var errStruct *db.Err
 		if errors.As(err, &errStruct) {
 			respond.Error(w, http.StatusBadRequest, errStruct)
 			return
@@ -76,22 +65,23 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respond.Json(w, http.StatusOK, &sqlx2.UserResponse{
+	respond.Json(w, http.StatusCreated, &db.UserResponse{
 		ID:              u.ID,
 		FirstName:       u.FirstName,
 		MiddleName:      u.MiddleName.String,
 		LastName:        u.LastName,
 		Email:           u.Email,
 		FavouriteColour: u.FavouriteColour,
+		UpdatedAt:       u.UpdatedAt.String(),
 	})
 }
 
-func (h handler) List(w http.ResponseWriter, r *http.Request) {
+func (h *handler) List(w http.ResponseWriter, r *http.Request) {
 	f := db.Filters(r.URL.Query())
 
 	users, err := h.db.List(r.Context(), f)
 	if err != nil {
-		var errStruct *Err
+		var errStruct *db.Err
 		if errors.As(err, &errStruct) {
 			respond.Error(w, http.StatusInternalServerError, errStruct)
 			return
@@ -112,9 +102,9 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 
 	u, err := h.db.Get(r.Context(), userID)
 	if err != nil {
-		var errStruct *Err
+		var errStruct *db.Err
 		if errors.As(err, &errStruct) {
-			respond.Error(w, http.StatusInternalServerError, errStruct)
+			respond.Error(w, errStruct.Status, errStruct)
 			return
 		}
 		respond.Error(w, http.StatusInternalServerError, err)
@@ -131,7 +121,7 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req sqlx2.UserUpdateRequest
+	var req db.UserUpdateRequest
 	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		respond.Error(w, http.StatusBadRequest, err)
@@ -146,7 +136,7 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 
 	u, err := h.db.Update(r.Context(), userID, &req)
 	if err != nil {
-		var errStruct *Err
+		var errStruct *db.Err
 		if errors.As(err, &errStruct) {
 			respond.Error(w, http.StatusInternalServerError, errStruct)
 			return
@@ -156,13 +146,14 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respond.Json(w, http.StatusOK, &sqlx2.UserResponse{
+	respond.Json(w, http.StatusOK, &db.UserResponse{
 		ID:              uint(userID),
 		FirstName:       u.FirstName,
 		MiddleName:      u.MiddleName,
 		LastName:        u.LastName,
 		Email:           u.Email,
 		FavouriteColour: u.FavouriteColour,
+		UpdatedAt:       u.UpdatedAt,
 	})
 }
 
@@ -175,7 +166,7 @@ func (h *handler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	_, err = h.db.Delete(r.Context(), userID)
 	if err != nil {
-		var errStruct *Err
+		var errStruct *db.Err
 		if errors.As(err, &errStruct) {
 			respond.Error(w, http.StatusInternalServerError, errStruct)
 			return

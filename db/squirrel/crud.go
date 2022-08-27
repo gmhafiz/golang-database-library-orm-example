@@ -5,18 +5,20 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/http"
 
-	//sqlx2 "godb/db"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
+
 	"godb/db"
+	"godb/respond/message"
 )
 
 type repository struct {
 	db sq.StatementBuilderType
 }
 
-func (r repository) Create(ctx context.Context, request *db.UserRequest, hash string) (*db.UserDB, error) {
+func (r repository) Create(ctx context.Context, f *db.Filter, request *db.UserRequest, hash string) (*db.UserDB, error) {
 	var u db.UserDB
 
 	query := r.db.Insert("users").
@@ -35,7 +37,7 @@ func (r repository) Create(ctx context.Context, request *db.UserRequest, hash st
 }
 
 func (r repository) List(ctx context.Context, f *db.Filter) (users []*db.UserResponse, err error) {
-	if len(f.LastName) > 0 {
+	if len(f.LastNames) > 0 {
 		return r.ListFilterWhereIn(ctx, f)
 	}
 
@@ -76,6 +78,7 @@ func (r repository) List(ctx context.Context, f *db.Filter) (users []*db.UserRes
 			&u.Email,
 			&u.Password,
 			&u.FavouriteColour,
+			&u.UpdatedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("db scanning error")
@@ -87,6 +90,7 @@ func (r repository) List(ctx context.Context, f *db.Filter) (users []*db.UserRes
 			LastName:        u.LastName,
 			Email:           u.Email,
 			FavouriteColour: u.FavouriteColour,
+			UpdatedAt:       u.UpdatedAt.String(),
 		})
 	}
 
@@ -104,7 +108,7 @@ func (r repository) Get(ctx context.Context, userID int64) (*db.UserResponse, er
 	err := rows.Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email, &u.Password, &u.FavouriteColour)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New("no record found")
+			return &db.UserResponse{}, &db.Err{Msg: message.ErrRecordNotFound.Error(), Status: http.StatusOK}
 		}
 		return nil, err
 	}
@@ -116,6 +120,7 @@ func (r repository) Get(ctx context.Context, userID int64) (*db.UserResponse, er
 		LastName:        u.LastName,
 		Email:           u.Email,
 		FavouriteColour: u.FavouriteColour,
+		UpdatedAt:       u.UpdatedAt.String(),
 	}, nil
 }
 
@@ -163,7 +168,7 @@ func (r repository) ListFilterWhereIn(ctx context.Context, f *db.Filter) (users 
 	rows, err := r.db.
 		Select("*").
 		From("users").
-		Where(sq.Eq{"last_name": f.LastName}).
+		Where(sq.Eq{"last_name": f.LastNames}).
 		QueryContext(ctx)
 	if err != nil {
 		return nil, err
@@ -200,6 +205,7 @@ func (r repository) ListFilterWhereIn(ctx context.Context, f *db.Filter) (users 
 			LastName:        val.LastName,
 			Email:           val.Email,
 			FavouriteColour: val.FavouriteColour,
+			UpdatedAt:       val.UpdatedAt.String(),
 		})
 	}
 

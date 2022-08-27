@@ -1,33 +1,34 @@
 CREATE TABLE IF NOT EXISTS countries
 (
     id   bigint unsigned not null auto_increment primary key,
-    code text not null,
-    name text not null
+    code text            not null,
+    name text            not null
 );
 
 CREATE TABLE IF NOT EXISTS addresses
 (
     id         bigint unsigned not null auto_increment primary key,
-    line_1     text not null,
+    line_1     text            not null,
     line_2     text,
     postcode   int,
     city       text,
     state      text,
     country_id bigint unsigned,
 
-    constraint addresses_countries_id_fk foreign key(country_id)
-        references countries(id) ON DELETE CASCADE
+    constraint addresses_countries_id_fk foreign key (country_id)
+        references countries (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS users
 (
-    id               bigint unsigned not null auto_increment primary key,
+    id               bigint unsigned               not null auto_increment primary key,
     first_name       text                          not null,
     middle_name      text,
     last_name        text                          not null,
     email            text                          not null unique,
     password         text                          not null,
-    favourite_colour enum ('red', 'green', 'blue') not null
+    favourite_colour enum ('red', 'green', 'blue') not null,
+    updated_at       timestamp default now()       not null on update now()
 );
 
 CREATE TABLE IF NOT EXISTS user_addresses
@@ -36,9 +37,9 @@ CREATE TABLE IF NOT EXISTS user_addresses
     address_id bigint unsigned,
 
     constraint user_addresses_users_id_fk foreign key (user_id)
-        references users(id) ON DELETE CASCADE,
+        references users (id) ON DELETE CASCADE,
     constraint user_addresses_addresses_id_fk foreign key (address_id)
-        references addresses(id) ON DELETE CASCADE,
+        references addresses (id) ON DELETE CASCADE,
     constraint user_addresses_pk
         primary key (user_id, address_id)
 );

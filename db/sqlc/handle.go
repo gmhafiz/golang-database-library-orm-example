@@ -3,14 +3,13 @@ package sqlc
 import (
 	"encoding/json"
 	"errors"
-	"godb/db"
 	"net/http"
 
 	"github.com/alexedwards/argon2id"
 	"github.com/go-chi/chi/v5"
 	"github.com/jmoiron/sqlx"
 
-	sqlx2 "godb/db/sqlx"
+	"godb/db"
 	"godb/param"
 	"godb/respond"
 	"godb/respond/message"
@@ -54,7 +53,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, err := h.db.Create(r.Context(), request, hash)
-	var customErr *sqlx2.Err
+	var customErr *db.Err
 	if err != nil {
 		switch {
 		case errors.As(err, &customErr):
@@ -73,6 +72,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		LastName:        user.LastName,
 		Email:           user.Email,
 		FavouriteColour: string(user.FavouriteColour),
+		UpdatedAt:       user.UpdatedAt.String(),
 	})
 }
 
@@ -97,17 +97,23 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.db.Get(r.Context(), userID)
 	if err != nil {
+		var errStruct *db.Err
+		if errors.As(err, &errStruct) {
+			respond.Error(w, errStruct.Status, errStruct)
+			return
+		}
 		respond.Error(w, http.StatusInternalServerError, message.ErrDBScan)
 		return
 	}
 
 	respond.Json(w, http.StatusOK, &db.UserResponse{
-		ID:              uint(user.ID),
+		ID:              user.ID,
 		FirstName:       user.FirstName,
-		MiddleName:      user.MiddleName.String,
+		MiddleName:      user.MiddleName,
 		LastName:        user.LastName,
 		Email:           user.Email,
-		FavouriteColour: string(user.FavouriteColour),
+		FavouriteColour: user.FavouriteColour,
+		UpdatedAt:       user.UpdatedAt,
 	})
 }
 
@@ -144,6 +150,7 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		LastName:        updated.LastName,
 		Email:           updated.Email,
 		FavouriteColour: string(updated.FavouriteColour),
+		UpdatedAt:       updated.UpdatedAt.String(),
 	})
 }
 

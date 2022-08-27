@@ -51,3 +51,7 @@ func ToStrSlice(v url.Values, s string) []string {
 
 	return ints
 }
+
+func Bool(v url.Values, s string) bool {
+	return v.Get(s) == "true"
+}

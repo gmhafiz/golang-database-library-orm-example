@@ -699,7 +699,7 @@ func (addressL) LoadUsers(ctx context.Context, e boil.ContextExecutor, singular 
 	}
 
 	query := NewQuery(
-		qm.Select("\"users\".id, \"users\".first_name, \"users\".middle_name, \"users\".last_name, \"users\".email, \"users\".password, \"users\".favourite_colour, \"a\".\"address_id\""),
+		qm.Select("\"users\".id, \"users\".first_name, \"users\".middle_name, \"users\".last_name, \"users\".email, \"users\".password, \"users\".favourite_colour, \"users\".updated_at, \"a\".\"address_id\""),
 		qm.From("\"users\""),
 		qm.InnerJoin("\"user_addresses\" as \"a\" on \"users\".\"id\" = \"a\".\"user_id\""),
 		qm.WhereIn("\"a\".\"address_id\" in ?", args...),
@@ -720,7 +720,7 @@ func (addressL) LoadUsers(ctx context.Context, e boil.ContextExecutor, singular 
 		one := new(User)
 		var localJoinCol int64
 
-		err = results.Scan(&one.ID, &one.FirstName, &one.MiddleName, &one.LastName, &one.Email, &one.Password, &one.FavouriteColour, &localJoinCol)
+		err = results.Scan(&one.ID, &one.FirstName, &one.MiddleName, &one.LastName, &one.Email, &one.Password, &one.FavouriteColour, &one.UpdatedAt, &localJoinCol)
 		if err != nil {
 			return errors.Wrap(err, "failed to scan eager loaded results for users")
 		}

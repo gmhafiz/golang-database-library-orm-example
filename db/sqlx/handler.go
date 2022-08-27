@@ -16,24 +16,21 @@ import (
 )
 
 type handler struct {
-	db      *repository
-	generic *genericRepository
+	db *repository
 }
 
-type Err struct {
-	Msg    string
-	Status int
-}
-
-func (e *Err) Error() string {
-	return e.Msg
-}
+//type Err struct {
+//	Msg    string
+//	Status int
+//}
+//
+//func (e *Err) Error() string {
+//	return e.Msg
+//}
 
 func Register(r *chi.Mux, db *sqlx.DB, dbType string) {
-	repo := NewRepo(db)
 	h := &handler{
-		db:      NewRepo(db),
-		generic: NewGenericRepo(repo),
+		db: NewRepo(db),
 	}
 
 	r.Route("/api/sqlx/user", func(router chi.Router) {
@@ -72,7 +69,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 	// 3. Call data access layer.
 	u, err := h.db.Create(r.Context(), request, hash)
 	if err != nil {
-		var errStruct *Err
+		var errStruct *db.Err
 		if errors.As(err, &errStruct) {
 			respond.Error(w, http.StatusBadRequest, errStruct)
 			return
@@ -82,13 +79,14 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 4. Respond with custom struct
-	respond.Json(w, http.StatusOK, &db.UserResponse{
+	respond.Json(w, http.StatusCreated, &db.UserResponse{
 		ID:              u.ID,
 		FirstName:       u.FirstName,
 		MiddleName:      u.MiddleName.String,
 		LastName:        u.LastName,
 		Email:           u.Email,
 		FavouriteColour: u.FavouriteColour,
+		UpdatedAt:       u.UpdatedAt.String(),
 	})
 }
 
@@ -97,7 +95,7 @@ func (h *handler) List(w http.ResponseWriter, r *http.Request) {
 
 	users, err := h.db.List(r.Context(), f)
 	if err != nil {
-		var errStruct *Err
+		var errStruct *db.Err
 		if errors.As(err, &errStruct) {
 			respond.Error(w, http.StatusInternalServerError, errStruct)
 			return
@@ -118,9 +116,9 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 
 	u, err := h.db.Get(r.Context(), userID)
 	if err != nil {
-		var errStruct *Err
+		var errStruct *db.Err
 		if errors.As(err, &errStruct) {
-			respond.Error(w, http.StatusInternalServerError, errStruct)
+			respond.Error(w, errStruct.Status, errStruct)
 			return
 		}
 		respond.Error(w, http.StatusInternalServerError, err)
@@ -131,6 +129,8 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
+	f := db.Filters(r.URL.Query())
+
 	userID, err := param.Int64(r, "userID")
 	if err != nil {
 		respond.Error(w, http.StatusBadRequest, param.ErrParam)
@@ -150,9 +150,9 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, err := h.db.Update(r.Context(), userID, &req)
+	u, err := h.db.Update(r.Context(), f, userID, &req)
 	if err != nil {
-		var errStruct *Err
+		var errStruct *db.Err
 		if errors.As(err, &errStruct) {
 			respond.Error(w, http.StatusInternalServerError, errStruct)
 			return
@@ -169,6 +169,7 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		LastName:        u.LastName,
 		Email:           u.Email,
 		FavouriteColour: u.FavouriteColour,
+		UpdatedAt:       u.UpdatedAt,
 	})
 }
 
@@ -181,7 +182,7 @@ func (h *handler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	_, err = h.db.Delete(r.Context(), userID)
 	if err != nil {
-		var errStruct *Err
+		var errStruct *db.Err
 		if errors.As(err, &errStruct) {
 			respond.Error(w, http.StatusInternalServerError, errStruct)
 			return

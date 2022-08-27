@@ -1,5 +1,5 @@
 -- name: ListDynamicUsers :many
-SELECT id, first_name, middle_name, last_name, email, password, favourite_colour
+SELECT id, first_name, middle_name, last_name, email, password, favourite_colour, updated_at
 FROM users
 WHERE (@first_name::text = '' OR first_name ILIKE '%' || @first_name || '%')
   AND (@email::text = '' OR email = LOWER(@email) )
@@ -32,12 +32,12 @@ VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *;
 
 -- name: GetUser :one
-SELECT id, first_name, middle_name, last_name, email, favourite_colour
+SELECT id, first_name, middle_name, last_name, email, favourite_colour, updated_at
 FROM users
 WHERE id = $1;
 
 -- name: ListUsers :many
-SELECT id, first_name, middle_name, last_name, email, favourite_colour
+SELECT id, first_name, middle_name, last_name, email, favourite_colour, updated_at
 FROM users
 ORDER BY id
 LIMIT 30
@@ -76,7 +76,7 @@ ORDER BY c.id;
 select row_to_json(row) from (select * from country_address) row;
 
 -- name: SelectUsers :many
-SELECT u.id, u.first_name, u.middle_name, u.last_name, u.email, u.favourite_colour
+SELECT u.id, u.first_name, u.middle_name, u.last_name, u.email, u.favourite_colour, updated_at
 FROM "users" u
 LIMIT 30;
 

@@ -31,6 +31,7 @@ type User struct {
 	Email           string      `boil:"email" json:"email" toml:"email" yaml:"email"`
 	Password        string      `boil:"password" json:"password" toml:"password" yaml:"password"`
 	FavouriteColour null.String `boil:"favourite_colour" json:"favourite_colour,omitempty" toml:"favourite_colour" yaml:"favourite_colour,omitempty"`
+	UpdatedAt       time.Time   `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *userR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L userL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -44,6 +45,7 @@ var UserColumns = struct {
 	Email           string
 	Password        string
 	FavouriteColour string
+	UpdatedAt       string
 }{
 	ID:              "id",
 	FirstName:       "first_name",
@@ -52,6 +54,7 @@ var UserColumns = struct {
 	Email:           "email",
 	Password:        "password",
 	FavouriteColour: "favourite_colour",
+	UpdatedAt:       "updated_at",
 }
 
 var UserTableColumns = struct {
@@ -62,6 +65,7 @@ var UserTableColumns = struct {
 	Email           string
 	Password        string
 	FavouriteColour string
+	UpdatedAt       string
 }{
 	ID:              "users.id",
 	FirstName:       "users.first_name",
@@ -70,9 +74,31 @@ var UserTableColumns = struct {
 	Email:           "users.email",
 	Password:        "users.password",
 	FavouriteColour: "users.favourite_colour",
+	UpdatedAt:       "users.updated_at",
 }
 
 // Generated where
+
+type whereHelpertime_Time struct{ field string }
+
+func (w whereHelpertime_Time) EQ(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.EQ, x)
+}
+func (w whereHelpertime_Time) NEQ(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.NEQ, x)
+}
+func (w whereHelpertime_Time) LT(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpertime_Time) LTE(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpertime_Time) GT(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpertime_Time) GTE(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
 
 var UserWhere = struct {
 	ID              whereHelperint64
@@ -82,6 +108,7 @@ var UserWhere = struct {
 	Email           whereHelperstring
 	Password        whereHelperstring
 	FavouriteColour whereHelpernull_String
+	UpdatedAt       whereHelpertime_Time
 }{
 	ID:              whereHelperint64{field: "\"users\".\"id\""},
 	FirstName:       whereHelperstring{field: "\"users\".\"first_name\""},
@@ -90,6 +117,7 @@ var UserWhere = struct {
 	Email:           whereHelperstring{field: "\"users\".\"email\""},
 	Password:        whereHelperstring{field: "\"users\".\"password\""},
 	FavouriteColour: whereHelpernull_String{field: "\"users\".\"favourite_colour\""},
+	UpdatedAt:       whereHelpertime_Time{field: "\"users\".\"updated_at\""},
 }
 
 // UserRels is where relationship names are stored.
@@ -113,9 +141,9 @@ func (*userR) NewStruct() *userR {
 type userL struct{}
 
 var (
-	userAllColumns            = []string{"id", "first_name", "middle_name", "last_name", "email", "password", "favourite_colour"}
+	userAllColumns            = []string{"id", "first_name", "middle_name", "last_name", "email", "password", "favourite_colour", "updated_at"}
 	userColumnsWithoutDefault = []string{"first_name", "middle_name", "last_name", "email", "password"}
-	userColumnsWithDefault    = []string{"id", "favourite_colour"}
+	userColumnsWithDefault    = []string{"id", "favourite_colour", "updated_at"}
 	userPrimaryKeyColumns     = []string{"id"}
 )
 
@@ -719,6 +747,13 @@ func (o *User) Insert(ctx context.Context, exec boil.ContextExecutor, columns bo
 	}
 
 	var err error
+	if !boil.TimestampsAreSkipped(ctx) {
+		currTime := time.Now().In(boil.GetLocation())
+
+		if o.UpdatedAt.IsZero() {
+			o.UpdatedAt = currTime
+		}
+	}
 
 	if err := o.doBeforeInsertHooks(ctx, exec); err != nil {
 		return err
@@ -794,6 +829,12 @@ func (o *User) Insert(ctx context.Context, exec boil.ContextExecutor, columns bo
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
 func (o *User) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
+	if !boil.TimestampsAreSkipped(ctx) {
+		currTime := time.Now().In(boil.GetLocation())
+
+		o.UpdatedAt = currTime
+	}
+
 	var err error
 	if err = o.doBeforeUpdateHooks(ctx, exec); err != nil {
 		return 0, err
@@ -923,6 +964,11 @@ func (o UserSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, col
 func (o *User) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnConflict bool, conflictColumns []string, updateColumns, insertColumns boil.Columns) error {
 	if o == nil {
 		return errors.New("models: no users provided for upsert")
+	}
+	if !boil.TimestampsAreSkipped(ctx) {
+		currTime := time.Now().In(boil.GetLocation())
+
+		o.UpdatedAt = currTime
 	}
 
 	if err := o.doBeforeUpsertHooks(ctx, exec); err != nil {

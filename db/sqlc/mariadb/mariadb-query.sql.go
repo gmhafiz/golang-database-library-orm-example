@@ -184,15 +184,25 @@ ORDER BY (CASE
              END)
 `
 
-func (q *Queries) ListDynamicUsers(ctx context.Context) ([]User, error) {
+type ListDynamicUsersRow struct {
+	ID              int64
+	FirstName       string
+	MiddleName      sql.NullString
+	LastName        string
+	Email           string
+	Password        string
+	FavouriteColour UsersFavouriteColour
+}
+
+func (q *Queries) ListDynamicUsers(ctx context.Context) ([]ListDynamicUsersRow, error) {
 	rows, err := q.db.QueryContext(ctx, listDynamicUsers)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []User
+	var items []ListDynamicUsersRow
 	for rows.Next() {
-		var i User
+		var i ListDynamicUsersRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.FirstName,
@@ -375,7 +385,7 @@ func (q *Queries) SelectUsers(ctx context.Context) ([]SelectUsersRow, error) {
 }
 
 const selectWhereInLastNames = `-- name: SelectWhereInLastNames :many
-SELECT id, first_name, middle_name, last_name, email, password, favourite_colour FROM users WHERE last_name in (?)
+SELECT id, first_name, middle_name, last_name, email, password, favourite_colour, updated_at FROM users WHERE last_name in (?)
 `
 
 func (q *Queries) SelectWhereInLastNames(ctx context.Context, lastName string) ([]User, error) {
@@ -395,6 +405,7 @@ func (q *Queries) SelectWhereInLastNames(ctx context.Context, lastName string) (
 			&i.Email,
 			&i.Password,
 			&i.FavouriteColour,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}

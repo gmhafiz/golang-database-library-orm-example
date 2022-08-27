@@ -11,10 +11,10 @@ CREATE TABLE IF NOT EXISTS countries
 
 CREATE TABLE IF NOT EXISTS addresses
 (
-    id        BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     line_1     text not null,
     line_2     text,
-    postcode   int ,
+    postcode   int,
     city       text,
     state      text,
     country_id bigint
@@ -26,12 +26,13 @@ CREATE TYPE valid_colours AS ENUM ('red', 'green', 'blue');
 CREATE TABLE IF NOT EXISTS users
 (
     id               BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    first_name       text                                         not null,
+    first_name       text        not null,
     middle_name      text,
-    last_name        text                                         not null,
-    email            text                                         not null unique,
-    password         text                                         not null,
-    favourite_colour valid_colours default 'green'::valid_colours not null
+    last_name        text        not null,
+    email            text        not null unique,
+    password         text        not null,
+    favourite_colour valid_colours        default 'green'::valid_colours not null,
+    updated_at       timestamptz not null default NOW()
 );
 
 CREATE TABLE IF NOT EXISTS user_addresses
@@ -45,6 +46,22 @@ CREATE TABLE IF NOT EXISTS user_addresses
     constraint user_addresses_pk
         primary key (user_id, address_id)
 );
+
+CREATE OR REPLACE FUNCTION trigger_set_updated_at()
+    RETURNS TRIGGER AS
+$$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER users_updated_at
+    BEFORE UPDATE
+    on users
+    FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_updated_at();
 
 INSERT INTO countries (code, name)
 VALUES ('AU', 'Australia');
@@ -131,13 +148,10 @@ CREATE VIEW country_address as
 select c.id,
        c.code,
        c.name,
-       (
-           select array_to_json(array_agg(row_to_json(addresslist.*))) as array_to_json
-           from (
-                    select a.*
-                    from addresses a
-                    where c.id = a.country_id
-                ) addresslist) as address
+       (select array_to_json(array_agg(row_to_json(addresslist.*))) as array_to_json
+        from (select a.*
+              from addresses a
+              where c.id = a.country_id) addresslist) as address
 from countries AS c;
 
 CREATE COLLATION case_insensitive (provider = icu, locale = 'und-u-ks-level2', deterministic = false);

@@ -99,6 +99,7 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 		LastName:        u.LastName,
 		Email:           u.Email,
 		FavouriteColour: u.FavouriteColour.String(),
+		UpdatedAt:       u.UpdatedAt.String(),
 	})
 }
 

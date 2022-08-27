@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"time"
 
 	"github.com/lib/pq"
 )
@@ -102,7 +103,7 @@ const createUser = `-- name: CreateUser :one
 
 INSERT INTO users (first_name, middle_name, last_name, email, password, favourite_colour)
 VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, first_name, middle_name, last_name, email, password, favourite_colour
+RETURNING id, first_name, middle_name, last_name, email, password, favourite_colour, updated_at
 `
 
 type CreateUserParams struct {
@@ -116,9 +117,11 @@ type CreateUserParams struct {
 
 // SELECT *
 // FROM users
-// WHERE (@first_name::text = '' OR first_name = @first_name)
-//   AND (@email::text = '' OR email ILIKE '%' || @email || '%')
-// --   AND (@favourite_colour::text = '' OR favourite_colour ILIKE '%' || @favourite_colour || '%')
+// WHERE (@first_name::text = ” OR first_name = @first_name)
+//
+//	AND (@email::text = '' OR email ILIKE '%' || @email || '%')
+//
+// --   AND (@favourite_colour::text = ” OR favourite_colour ILIKE '%' || @favourite_colour || '%')
 // LIMIT 30
 // OFFSET 0;
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -139,6 +142,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Email,
 		&i.Password,
 		&i.FavouriteColour,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -155,7 +159,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, first_name, middle_name, last_name, email, favourite_colour
+SELECT id, first_name, middle_name, last_name, email, favourite_colour, updated_at
 FROM users
 WHERE id = $1
 `
@@ -167,6 +171,7 @@ type GetUserRow struct {
 	LastName        string
 	Email           string
 	FavouriteColour ValidColours
+	UpdatedAt       time.Time
 }
 
 func (q *Queries) GetUser(ctx context.Context, id int64) (GetUserRow, error) {
@@ -179,12 +184,13 @@ func (q *Queries) GetUser(ctx context.Context, id int64) (GetUserRow, error) {
 		&i.LastName,
 		&i.Email,
 		&i.FavouriteColour,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const listDynamicUsers = `-- name: ListDynamicUsers :many
-SELECT id, first_name, middle_name, last_name, email, password, favourite_colour
+SELECT id, first_name, middle_name, last_name, email, password, favourite_colour, updated_at
 FROM users
 WHERE ($1::text = '' OR first_name ILIKE '%' || $1 || '%')
   AND ($2::text = '' OR email = LOWER($2) )
@@ -211,11 +217,12 @@ type ListDynamicUsersParams struct {
 	SqlLimit      int32
 }
 
-//   AND (@favourite_colour IS NOT NULL OR favourite_colour = @favourite_colour )
-//   AND (@favourite_colour_present::text = '' OR favourite_colour = @favourite_colour )
-//   AND (@favourite_colour_present::valid_colours = '' OR favourite_colour = @favourite_colour )
-//               WHEN @favourite_colour_desc::text = 'favourite_colour' THEN favourite_colour
-//               WHEN @favourite_colour_asc::text = 'favourite_colour' THEN favourite_colour
+// AND (@favourite_colour IS NOT NULL OR favourite_colour = @favourite_colour )
+// AND (@favourite_colour_present::text = ” OR favourite_colour = @favourite_colour )
+// AND (@favourite_colour_present::valid_colours = ” OR favourite_colour = @favourite_colour )
+//
+//	WHEN @favourite_colour_desc::text = 'favourite_colour' THEN favourite_colour
+//	WHEN @favourite_colour_asc::text = 'favourite_colour' THEN favourite_colour
 func (q *Queries) ListDynamicUsers(ctx context.Context, arg ListDynamicUsersParams) ([]User, error) {
 	rows, err := q.db.QueryContext(ctx, listDynamicUsers,
 		arg.FirstName,
@@ -242,6 +249,7 @@ func (q *Queries) ListDynamicUsers(ctx context.Context, arg ListDynamicUsersPara
 			&i.Email,
 			&i.Password,
 			&i.FavouriteColour,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -257,7 +265,7 @@ func (q *Queries) ListDynamicUsers(ctx context.Context, arg ListDynamicUsersPara
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, first_name, middle_name, last_name, email, favourite_colour
+SELECT id, first_name, middle_name, last_name, email, favourite_colour, updated_at
 FROM users
 ORDER BY id
 LIMIT 30
@@ -271,6 +279,7 @@ type ListUsersRow struct {
 	LastName        string
 	Email           string
 	FavouriteColour ValidColours
+	UpdatedAt       time.Time
 }
 
 func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
@@ -289,6 +298,7 @@ func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
 			&i.LastName,
 			&i.Email,
 			&i.FavouriteColour,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -376,7 +386,7 @@ func (q *Queries) SelectUserAddresses(ctx context.Context, dollar_1 []int32) ([]
 }
 
 const selectUsers = `-- name: SelectUsers :many
-SELECT u.id, u.first_name, u.middle_name, u.last_name, u.email, u.favourite_colour
+SELECT u.id, u.first_name, u.middle_name, u.last_name, u.email, u.favourite_colour, updated_at
 FROM "users" u
 LIMIT 30
 `
@@ -388,6 +398,7 @@ type SelectUsersRow struct {
 	LastName        string
 	Email           string
 	FavouriteColour ValidColours
+	UpdatedAt       time.Time
 }
 
 func (q *Queries) SelectUsers(ctx context.Context) ([]SelectUsersRow, error) {
@@ -406,6 +417,7 @@ func (q *Queries) SelectUsers(ctx context.Context) ([]SelectUsersRow, error) {
 			&i.LastName,
 			&i.Email,
 			&i.FavouriteColour,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -421,7 +433,7 @@ func (q *Queries) SelectUsers(ctx context.Context) ([]SelectUsersRow, error) {
 }
 
 const selectWhereInLastNames = `-- name: SelectWhereInLastNames :many
-SELECT id, first_name, middle_name, last_name, email, password, favourite_colour FROM users WHERE last_name = ANY($1::text[])
+SELECT id, first_name, middle_name, last_name, email, password, favourite_colour, updated_at FROM users WHERE last_name = ANY($1::text[])
 `
 
 func (q *Queries) SelectWhereInLastNames(ctx context.Context, lastName []string) ([]User, error) {
@@ -441,6 +453,7 @@ func (q *Queries) SelectWhereInLastNames(ctx context.Context, lastName []string)
 			&i.Email,
 			&i.Password,
 			&i.FavouriteColour,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}

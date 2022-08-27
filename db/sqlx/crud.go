@@ -5,15 +5,18 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"godb/db"
 	"log"
+	"net/http"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
+
+	"godb/db"
 	"godb/respond/message"
 )
 
 const (
-	Insert      = "INSERT INTO users (first_name, middle_name, last_name, email, password, favourite_colour) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, first_name, middle_name, last_name, email, favourite_colour"
+	Insert      = "INSERT INTO users (first_name, middle_name, last_name, email, password, favourite_colour) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, first_name, middle_name, last_name, email, favourite_colour, updated_at"
 	List        = "SELECT * FROM users ORDER BY id LIMIT 30 OFFSET 0;"
 	Get         = "SELECT * FROM users WHERE id = $1;"
 	Update      = "UPDATE users set first_name=$1, middle_name=$2, last_name=$3, email=$4, favourite_colour=$5 WHERE id=$6;"
@@ -47,17 +50,21 @@ func (r *repository) Create(ctx context.Context, request *db.UserRequest, hash s
 		&u.LastName,
 		&u.Email,
 		&u.FavouriteColour,
+		&u.UpdatedAt,
 	)
 	if err != nil {
 		log.Printf("sqlx.Create: %v\n", err)
-		return nil, &Err{Msg: fmt.Errorf("error creating user record: %w", err).Error()}
+		pqErr := err.(*pq.Error)
+		return nil, &db.Err{Msg: fmt.Errorf("%s", pqErr.Detail).Error()}
 	}
 
 	return &u, nil
 }
 
+const preparedStatement = false
+
 func (r *repository) List(ctx context.Context, f *db.Filter) (users []*db.UserResponse, err error) {
-	if len(f.LastName) > 0 {
+	if len(f.LastNames) > 0 {
 		return r.ListFilterWhereIn(ctx, f)
 	}
 
@@ -71,6 +78,10 @@ func (r *repository) List(ctx context.Context, f *db.Filter) (users []*db.UserRe
 
 	if f.Base.Page > 1 {
 		return r.ListFilterPagination(ctx, f)
+	}
+
+	if preparedStatement {
+		return withPrepared(ctx, r)
 	}
 
 	rows, err := r.db.QueryxContext(ctx, List)
@@ -91,6 +102,7 @@ func (r *repository) List(ctx context.Context, f *db.Filter) (users []*db.UserRe
 			LastName:        u.LastName,
 			Email:           u.Email,
 			FavouriteColour: u.FavouriteColour,
+			UpdatedAt:       u.UpdatedAt.String(),
 		})
 	}
 	return users, nil
@@ -101,10 +113,10 @@ func (r *repository) Get(ctx context.Context, userID int64) (*db.UserResponse, e
 	err := r.db.GetContext(ctx, &u, Get, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return &db.UserResponse{}, &Err{Msg: message.ErrRecordNotFound.Error()}
+			return &db.UserResponse{}, &db.Err{Msg: message.ErrRecordNotFound.Error(), Status: http.StatusOK}
 		}
 		log.Println(err)
-		return &db.UserResponse{}, &Err{Msg: message.ErrInternalError.Error()}
+		return &db.UserResponse{}, &db.Err{Msg: message.ErrInternalError.Error(), Status: http.StatusInternalServerError}
 	}
 
 	return &db.UserResponse{
@@ -114,10 +126,14 @@ func (r *repository) Get(ctx context.Context, userID int64) (*db.UserResponse, e
 		LastName:        u.LastName,
 		Email:           u.Email,
 		FavouriteColour: u.FavouriteColour,
+		UpdatedAt:       u.UpdatedAt.String(),
 	}, nil
 }
 
-func (r *repository) Update(ctx context.Context, userID int64, req *db.UserUpdateRequest) (*db.UserResponse, error) {
+func (r *repository) Update(ctx context.Context, f *db.Filter, userID int64, req *db.UserUpdateRequest) (*db.UserResponse, error) {
+	if f.Transaction {
+		return r.Transaction(ctx, userID, req)
+	}
 	currUser, err := r.Get(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -149,12 +165,12 @@ func (r *repository) Delete(ctx context.Context, userID int64) (sql.Result, erro
 }
 
 func (r *repository) ListFilterWhereIn(ctx context.Context, f *db.Filter) (users []*db.UserResponse, err error) {
-	query, args, err := sqlx.In("SELECT * FROM users WHERE last_name IN (?)", f.LastName)
+	query, args, err := sqlx.In("SELECT * FROM users WHERE last_name IN (?)", f.LastNames)
 	if err != nil {
 		return nil, fmt.Errorf("error creating query: %w", err)
 	}
 
-	query = sqlx.Rebind(sqlx.DOLLAR, query) // no need this for mysql as it defaults to ?
+	query = sqlx.Rebind(sqlx.DOLLAR, query) // no need this for mysql as it defaults to question mark (?)
 
 	var dbScan []*db.UserDB
 
@@ -171,8 +187,47 @@ func (r *repository) ListFilterWhereIn(ctx context.Context, f *db.Filter) (users
 			LastName:        val.LastName,
 			Email:           val.Email,
 			FavouriteColour: val.FavouriteColour,
+			UpdatedAt:       val.UpdatedAt.String(),
 		})
 	}
 
+	return users, nil
+}
+
+func withPrepared(ctx context.Context, r *repository) (users []*db.UserResponse, err error) {
+	stmt, err := r.db.PrepareContext(ctx, List)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := stmt.QueryContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var u db.UserDB
+		err = rows.Scan(
+			&u.ID,
+			&u.FirstName,
+			&u.MiddleName,
+			&u.LastName,
+			&u.Email,
+			&u.Password,
+			&u.FavouriteColour,
+			&u.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("db scanning error")
+		}
+
+		users = append(users, &db.UserResponse{
+			ID:              u.ID,
+			FirstName:       u.FirstName,
+			MiddleName:      u.MiddleName.String,
+			LastName:        u.LastName,
+			Email:           u.Email,
+			FavouriteColour: u.FavouriteColour,
+			UpdatedAt:       u.UpdatedAt.String(),
+		})
+	}
 	return users, nil
 }

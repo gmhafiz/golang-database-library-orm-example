@@ -66,7 +66,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		LastName:        u.LastName,
 		Email:           u.Email,
 		FavouriteColour: u.FavouriteColour.String,
-
+		UpdatedAt:       u.UpdatedAt.String(),
 		// Password is omitted from client response
 	})
 }
@@ -102,6 +102,7 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 		MiddleName: u.MiddleName.String,
 		LastName:   u.LastName,
 		Email:      u.Email,
+		UpdatedAt:  u.UpdatedAt.String(),
 	})
 }
 
@@ -136,11 +137,13 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respond.Json(w, http.StatusOK, &db.UserResponse{
-		ID:         uint(userID),
-		FirstName:  updated.FirstName,
-		MiddleName: updated.MiddleName.String,
-		LastName:   updated.LastName,
-		Email:      updated.Email,
+		ID:              uint(userID),
+		FirstName:       updated.FirstName,
+		MiddleName:      updated.MiddleName.String,
+		LastName:        updated.LastName,
+		Email:           updated.Email,
+		FavouriteColour: updated.FavouriteColour.String,
+		UpdatedAt:       updated.UpdatedAt.String(),
 	})
 }
 
