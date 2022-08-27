@@ -29,6 +29,7 @@ func Register(r *chi.Mux, db *gorm.DB) {
 		router.Get("/m2m", h.ListM2M)
 		router.Get("/{userID}", h.Get)
 		router.Put("/{userID}", h.Update)
+		router.Patch("/{userID}", h.Patch)
 		router.Delete("/{userID}", h.Delete)
 	})
 
@@ -109,6 +110,28 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	updated, err := h.db.Update(r.Context(), userID, &req)
+	if err != nil {
+		respond.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	respond.Json(w, http.StatusOK, updated)
+}
+
+func (h *handler) Patch(w http.ResponseWriter, r *http.Request) {
+	userID, err := param.Int64(r, "userID")
+	if err != nil {
+		respond.Error(w, http.StatusBadRequest, param.ErrParam)
+		return
+	}
+	var req db.UserPatchRequest
+	err = json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		respond.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	updated, err := h.db.Patch(r.Context(), userID, &req)
 	if err != nil {
 		respond.Error(w, http.StatusInternalServerError, err)
 		return

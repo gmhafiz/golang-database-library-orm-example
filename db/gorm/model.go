@@ -1,6 +1,7 @@
 package gorm
 
 import (
+	"godb/db"
 	"log"
 
 	"gorm.io/driver/mysql"
@@ -8,7 +9,6 @@ import (
 	"gorm.io/gorm"
 
 	"godb/config"
-	"godb/db/sqlx"
 )
 
 type User struct {
@@ -53,13 +53,13 @@ func New(c config.Database) *gorm.DB {
 
 	switch c.Type {
 	case "postgres", "postgresql", "psql", "pgsql", "pgx":
-		db, err := gorm.Open(postgres.Open(sqlx.Dsn(c)), &gorm.Config{})
+		db, err := gorm.Open(postgres.Open(db.Dsn(c)), &gorm.Config{})
 		if err != nil {
 			log.Panic(err)
 		}
 		driver = db
 	case "mysql", "mariadb":
-		db, err := gorm.Open(mysql.Open(sqlx.Dsn(c)), &gorm.Config{})
+		db, err := gorm.Open(mysql.Open(db.Dsn(c)), &gorm.Config{})
 		if err != nil {
 			log.Panic(err)
 		}

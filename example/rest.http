@@ -7,9 +7,9 @@ POST http://localhost:3080/api/sqlx/user
 Content-Type: application/json
 
 {
-  "first_name": "Jake34",
+  "first_name": "Jake43",
   "last_name": "Doe",
-  "email": "jake35@example.com",
+  "email": "jake43@example.com",
   "password": "password"
 }
 
@@ -27,7 +27,7 @@ Accept: application/json
 
 
 ### Update PUT request with json body
-PUT  http://localhost:3080/api/sqlx/user/13
+PUT  http://localhost:3080/api/sqlx/user/1
 Content-Type: application/json
 
 {
@@ -75,6 +75,17 @@ Accept: application/json
 GET http://localhost:3080/api/sqlx/user/m2m
 Accept: application/json
 
+
+### Create Transaction
+PUT http://localhost:3080/api/sqlx/user/1?transaction=true
+Content-Type: application/json
+
+{
+  "first_name": "Jake36",
+  "last_name": "Doe",
+  "email": "jake36@example.com",
+  "password": "password"
+}
 ################################################################################
 # sqlc
 ################################################################################
@@ -265,6 +276,15 @@ Content-Type: application/json
   "last_name": "Doe",
   "email": "john@example.com",
   "favourite_colour": "blue"
+}
+
+### Update PATCH request with json body
+PATCH  http://localhost:3080/api/gorm/user/1
+Content-Type: application/json
+
+{
+  "first_name": "John PATCHED",
+  "favourite_colour": "green"
 }
 
 ### Delete DELETE request with json body

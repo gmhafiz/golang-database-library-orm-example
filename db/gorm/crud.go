@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
 
 	"godb/db"
@@ -29,7 +30,7 @@ func (r *repo) Create(ctx context.Context, u *db.UserRequest, hash string) (*Use
 		FavouriteColour: u.FavouriteColour,
 	}
 
-	err := r.db.Debug().WithContext(ctx).Create(user).Error
+	err := r.db.WithContext(ctx).Create(user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +48,7 @@ func (r *repo) List(ctx context.Context, f *db.Filter) ([]*User, error) {
 	if f.Base.Page > 1 {
 		return r.ListFilterPagination(ctx, f)
 	}
-	if len(f.LastName) > 0 {
+	if len(f.LastNames) > 0 {
 		return r.ListFilterWhereIn(ctx, f)
 	}
 
@@ -98,13 +99,32 @@ func (r *repo) Update(ctx context.Context, userID int64, req *db.UserUpdateReque
 	return r.Get(ctx, userID)
 }
 
+func (r *repo) Patch(ctx context.Context, userID int64, req *db.UserPatchRequest) (*User, error) {
+	var u User
+	if err := copier.Copy(&u, req); err != nil {
+		return nil, err
+	}
+
+	err := r.db.Debug().
+		WithContext(ctx).
+		Model(&u).
+		Where("id", userID). // order is important. Cannot be after Updates()
+		Updates(&u).
+		Error
+	if err != nil {
+		return nil, err
+	}
+
+	return r.Get(ctx, userID)
+}
+
 func (r *repo) Delete(ctx context.Context, userID int64) error {
 	return r.db.WithContext(ctx).Delete(&User{}, userID).Error
 }
 
 func (r *repo) ListFilterWhereIn(ctx context.Context, f *db.Filter) (users []*User, err error) {
 	err = r.db.WithContext(ctx).
-		Where("last_name IN ?", f.LastName).
+		Where("last_name IN ?", f.LastNames).
 		Find(&users).
 		Error
 	if err != nil {
