@@ -1,6 +1,11 @@
 package db
 
-import "database/sql"
+import (
+	"database/sql"
+	"database/sql/driver"
+	"encoding/json"
+	"time"
+)
 
 type AddressForCountry struct {
 	ID       uint   `json:"id,omitempty"`
@@ -34,14 +39,27 @@ type UserDB struct {
 	MiddleName      sql.NullString `db:"middle_name"`
 	LastName        string         `db:"last_name"`
 	Email           string         `db:"email"`
-	Password        string         `db:"password"`
+	Password        SecretString   `db:"password"`
 	FavouriteColour string         `db:"favourite_colour"`
+	UpdatedAt       time.Time      `db:"updated_at"`
 }
 
-//type ValidColours string
-//
-//const (
-//	ValidColoursRed   ValidColours = "red"
-//	ValidColoursGreen ValidColours = "green"
-//	ValidColoursBlue  ValidColours = "blue"
-//)
+type SecretString struct {
+	value string
+}
+
+func (s SecretString) String() string {
+	return "***"
+}
+
+func (s SecretString) Scan(src interface{}) error {
+	return nil
+}
+
+func (s SecretString) Value() (driver.Value, error) {
+	return s.value, nil
+}
+
+func (s SecretString) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.String())
+}

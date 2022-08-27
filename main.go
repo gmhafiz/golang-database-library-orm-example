@@ -14,6 +14,7 @@ import (
 	"gorm.io/gorm"
 
 	"godb/config"
+	"godb/db"
 	"godb/db/ent"
 	"godb/db/ent/ent/gen"
 	gormDB "godb/db/gorm"
@@ -88,7 +89,7 @@ func (a *App) SetupRouter() {
 }
 
 func (a *App) SetupDB() {
-	a.sqlx = sqlx.New(a.config.DB)
+	a.sqlx = db.New(a.config.DB)
 	a.gorm = gormDB.New(a.config.DB)
 	a.ent = ent.New(a.config.DB)
 }

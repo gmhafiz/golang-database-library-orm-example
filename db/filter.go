@@ -14,13 +14,16 @@ type Filter struct {
 	FirstName       string
 	FavouriteColour string
 
-	LastName []string
+	LastNames []string
+
+	Transaction bool
 }
 
 func Filters(v url.Values) *Filter {
 	f := filter.New(v)
 
 	lastNames := param.ToStrSlice(v, "last_name")
+	transaction := param.Bool(v, "transaction")
 
 	return &Filter{
 		Base: *f,
@@ -28,6 +31,7 @@ func Filters(v url.Values) *Filter {
 		Email:           v.Get("email"),
 		FirstName:       v.Get("first_name"),
 		FavouriteColour: v.Get("favourite_colour"),
-		LastName:        lastNames,
+		LastNames:       lastNames,
+		Transaction:     transaction,
 	}
 }

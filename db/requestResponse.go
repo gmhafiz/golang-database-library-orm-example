@@ -33,6 +33,14 @@ type UserUpdateRequest struct {
 	FavouriteColour string `json:"favourite_colour"`
 }
 
+type UserPatchRequest struct {
+	FirstName       string `json:"first_name"`
+	MiddleName      string `json:"middle_name"`
+	LastName        string `json:"last_name"`
+	Email           string `json:"email"`
+	FavouriteColour string `json:"favourite_colour"`
+}
+
 type UserResponse struct {
 	ID              uint   `json:"id,omitempty"`
 	FirstName       string `json:"first_name,omitempty"`
@@ -40,6 +48,7 @@ type UserResponse struct {
 	LastName        string `json:"last_name,omitempty"`
 	Email           string `json:"email,omitempty"`
 	FavouriteColour string `json:"favourite_color,omitempty"`
+	UpdatedAt       string `json:"updated_at,omitempty"`
 }
 
 type UserResponseEnt struct {
@@ -49,6 +58,7 @@ type UserResponseEnt struct {
 	LastName        string  `json:"last_name"`
 	Email           string  `json:"email"`
 	FavouriteColour string  `json:"favourite_colour"`
+	UpdatedAt       string  `json:"updated_at"`
 }
 
 type UserResponseWithAddress struct {
@@ -68,6 +78,7 @@ type UserResponseWithAddressesSqlx struct {
 	LastName        string `json:"last_name,omitempty"`
 	Email           string `json:"email,omitempty"`
 	FavouriteColour string `json:"favourite_colour,omitempty"`
+	UpdatedAt       string `json:"updated_at,omitempty"`
 
 	Address []*AddressForCountry `json:"address"`
 }
