@@ -23,7 +23,7 @@ func (r *database) ListFilterByColumn(ctx context.Context, f *filter) ([]*gen.Us
 		predicateUser = append(predicateUser, user.FavouriteColourEQ(user.FavouriteColour(f.FavouriteColour)))
 	}
 
-	return r.db.Debug().User.Query().
+	return r.db.User.Query().
 		Where(predicateUser...).
 		Order(gen.Asc(user.FieldID)).
 		Limit(f.Base.Limit).

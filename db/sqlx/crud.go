@@ -16,12 +16,12 @@ import (
 )
 
 const (
-	Insert      = "INSERT INTO users (first_name, middle_name, last_name, email, password, favourite_colour) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, first_name, middle_name, last_name, email, favourite_colour, updated_at"
-	List        = "SELECT * FROM users ORDER BY id LIMIT 30 OFFSET 0;"
-	Get         = "SELECT * FROM users WHERE id = $1;"
-	Update      = "UPDATE users set first_name=$1, middle_name=$2, last_name=$3, email=$4, favourite_colour=$5 WHERE id=$6;"
-	UpdateNamed = "UPDATE users set first_name=:first_name, middle_name=:middle_name, last_name=:last_name, email=:email, favourite_colour=:favourite_colour WHERE id=:id;"
-	Delete      = "DELETE FROM users where id=$1"
+	insert      = "INSERT INTO users (first_name, middle_name, last_name, email, password, favourite_colour) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, first_name, middle_name, last_name, email, favourite_colour, updated_at"
+	list        = "SELECT * FROM users ORDER BY id LIMIT 30 OFFSET 0;"
+	get         = "SELECT * FROM users WHERE id = $1;"
+	update      = "UPDATE users set first_name=$1, middle_name=$2, last_name=$3, email=$4, favourite_colour=$5 WHERE id=$6;"
+	updateNamed = "UPDATE users set first_name=:first_name, middle_name=:middle_name, last_name=:last_name, email=:email, favourite_colour=:favourite_colour WHERE id=:id;"
+	delete      = "DELETE FROM users where id=$1"
 )
 
 type repository struct {
@@ -34,9 +34,9 @@ func NewRepo(db *sqlx.DB) *repository {
 	}
 }
 
-func (r *repository) Create(ctx context.Context, request *db.UserRequest, hash string) (*db.UserDB, error) {
+func (r *repository) Create(ctx context.Context, request *db.CreateUserRequest, hash string) (*db.UserDB, error) {
 	var u db.UserDB
-	err := r.db.QueryRowContext(ctx, Insert,
+	err := r.db.QueryRowContext(ctx, insert,
 		request.FirstName,
 		request.MiddleName,
 		request.LastName,
@@ -84,7 +84,7 @@ func (r *repository) List(ctx context.Context, f *db.Filter) (users []*db.UserRe
 		return withPrepared(ctx, r)
 	}
 
-	rows, err := r.db.QueryxContext(ctx, List)
+	rows, err := r.db.QueryxContext(ctx, list)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving user records")
 	}
@@ -93,7 +93,7 @@ func (r *repository) List(ctx context.Context, f *db.Filter) (users []*db.UserRe
 		var u db.UserDB
 		err = rows.StructScan(&u)
 		if err != nil {
-			return nil, fmt.Errorf("db scanning error")
+			return nil, errors.New("db scanning error")
 		}
 		users = append(users, &db.UserResponse{
 			ID:              u.ID,
@@ -110,10 +110,10 @@ func (r *repository) List(ctx context.Context, f *db.Filter) (users []*db.UserRe
 
 func (r *repository) Get(ctx context.Context, userID int64) (*db.UserResponse, error) {
 	var u db.UserDB
-	err := r.db.GetContext(ctx, &u, Get, userID)
+	err := r.db.GetContext(ctx, &u, get, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return &db.UserResponse{}, &db.Err{Msg: message.ErrRecordNotFound.Error(), Status: http.StatusOK}
+			return &db.UserResponse{}, &db.Err{Msg: message.ErrRecordNotFound.Error(), Status: http.StatusNotFound}
 		}
 		log.Println(err)
 		return &db.UserResponse{}, &db.Err{Msg: message.ErrInternalError.Error(), Status: http.StatusInternalServerError}
@@ -145,7 +145,7 @@ func (r *repository) Update(ctx context.Context, f *db.Filter, userID int64, req
 	currUser.Email = req.Email
 	currUser.FavouriteColour = req.FavouriteColour
 
-	_, err = r.db.ExecContext(ctx, Update,
+	_, err = r.db.ExecContext(ctx, update,
 		currUser.FirstName,
 		currUser.MiddleName,
 		currUser.LastName,
@@ -161,7 +161,7 @@ func (r *repository) Update(ctx context.Context, f *db.Filter, userID int64, req
 }
 
 func (r *repository) Delete(ctx context.Context, userID int64) (sql.Result, error) {
-	return r.db.ExecContext(ctx, Delete, userID)
+	return r.db.ExecContext(ctx, delete, userID)
 }
 
 func (r *repository) ListFilterWhereIn(ctx context.Context, f *db.Filter) (users []*db.UserResponse, err error) {
@@ -195,7 +195,7 @@ func (r *repository) ListFilterWhereIn(ctx context.Context, f *db.Filter) (users
 }
 
 func withPrepared(ctx context.Context, r *repository) (users []*db.UserResponse, err error) {
-	stmt, err := r.db.PrepareContext(ctx, List)
+	stmt, err := r.db.PrepareContext(ctx, list)
 	if err != nil {
 		return nil, err
 	}

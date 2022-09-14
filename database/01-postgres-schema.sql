@@ -58,7 +58,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER users_updated_at
-    BEFORE UPDATE
+    AFTER UPDATE
     on users
     FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_updated_at();

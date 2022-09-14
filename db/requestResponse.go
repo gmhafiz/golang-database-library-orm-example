@@ -5,10 +5,7 @@ import (
 	"encoding/json"
 )
 
-const DefaultUserColor = "red"
-
-// UserRequest is unexported. To use, call NewUserRequest() instead.
-type UserRequest struct {
+type CreateUserRequest struct {
 	ID              uint   `json:"id"`
 	FirstName       string `json:"first_name"`
 	MiddleName      string `json:"middle_name"`
@@ -16,13 +13,6 @@ type UserRequest struct {
 	Email           string `json:"email"`
 	Password        string `json:"password"`
 	FavouriteColour string `json:"favourite_colour"`
-}
-
-// NewUserRequest is a constructor that return some default value(s).
-func NewUserRequest() *UserRequest {
-	return &UserRequest{
-		FavouriteColour: DefaultUserColor,
-	}
 }
 
 type UserUpdateRequest struct {

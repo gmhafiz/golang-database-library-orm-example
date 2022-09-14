@@ -3,8 +3,9 @@ package sqlx
 import (
 	"context"
 	"fmt"
-	"godb/db"
 	"strings"
+
+	"godb/db"
 )
 
 func (r *repository) ListFilterByColumn(ctx context.Context, filters *db.Filter) (users []*db.UserResponse, err error) {
@@ -49,6 +50,12 @@ func (r *repository) ListFilterByColumn(ctx context.Context, filters *db.Filter)
 
 	fullQuery = r.db.Rebind(fullQuery)
 
+	stmt, err := r.db.PrepareContext(ctx, fullQuery)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(stmt)
+
 	rows, err := r.db.QueryxContext(ctx, fullQuery, arguments...)
 	if err != nil {
 		return nil, fmt.Errorf("error listing users: %w", err)
@@ -76,7 +83,7 @@ func (r *repository) ListFilterByColumn(ctx context.Context, filters *db.Filter)
 
 func (r *repository) ListFilterSort(ctx context.Context, filters *db.Filter) (users []*db.UserResponse, err error) {
 	selectClause := "SELECT * FROM users "
-	paginateClause := " LIMIT 30 OFFSET 0;"
+	paginateClause := " LIMIT 1 OFFSET 0;"
 	sortClauses := ""
 
 	fullQuery := selectClause
@@ -96,10 +103,10 @@ func (r *repository) ListFilterSort(ctx context.Context, filters *db.Filter) (us
 	fullQuery = r.db.Rebind(fullQuery)
 
 	// try to protect against sql injection
-	_, err = r.db.Prepare(fullQuery)
-	if err != nil {
-		return nil, err
-	}
+	//_, err = r.db.Prepare(fullQuery)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	rows, err := r.db.QueryxContext(ctx, fullQuery)
 	if err != nil {

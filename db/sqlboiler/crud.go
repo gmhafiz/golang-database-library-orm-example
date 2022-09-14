@@ -26,19 +26,19 @@ func NewRepo(db *sqlx.DB) *database {
 	}
 }
 
-func (r *database) Create(ctx context.Context, request *db.UserRequest, hash string) (*models.User, error) {
+func (r *database) Create(ctx context.Context, request *db.CreateUserRequest, hash string) (*models.User, error) {
 	user := &models.User{
 		FirstName: request.FirstName,
 		MiddleName: null.String{
 			String: request.MiddleName,
-			Valid:  len(request.MiddleName) > 0,
+			Valid:  request.MiddleName != "",
 		},
 		LastName: request.LastName,
 		Email:    request.Email,
 		Password: hash,
 		FavouriteColour: null.String{
 			String: request.FavouriteColour,
-			Valid:  len(request.FavouriteColour) > 0,
+			Valid:  request.FavouriteColour != "",
 		},
 	}
 
@@ -60,6 +60,8 @@ func (r *database) List(ctx context.Context, f *db.Filter) ([]*db.UserResponse, 
 	}
 
 	users, err := models.Users(
+		qm.Offset(f.Base.Offset),
+		qm.Limit(f.Base.Limit),
 		qm.OrderBy(models.UserColumns.ID),
 	).
 		All(ctx, r.db)
@@ -94,7 +96,11 @@ func (r *database) Get(ctx context.Context, userID int64) (*models.User, error) 
 	return user, nil
 }
 
-func (r *database) Update(ctx context.Context, id int64, req db.UserUpdateRequest) (*models.User, error) {
+func (r *database) Update(ctx context.Context, id int64, f *db.Filter, req db.UserUpdateRequest) (*models.User, error) {
+	if f.Transaction {
+		return r.Transaction(ctx, id, req)
+	}
+
 	user, err := r.Get(ctx, id)
 	if err != nil {
 		return nil, err
@@ -103,13 +109,13 @@ func (r *database) Update(ctx context.Context, id int64, req db.UserUpdateReques
 	user.FirstName = req.FirstName
 	user.MiddleName = null.String{
 		String: req.MiddleName,
-		Valid:  len(req.MiddleName) > 0,
+		Valid:  req.MiddleName != "",
 	}
 	user.LastName = req.LastName
 	user.Email = req.Email
 	user.FavouriteColour = null.String{
 		String: req.FavouriteColour,
-		Valid:  len(req.FavouriteColour) > 0,
+		Valid:  req.FavouriteColour != "",
 	}
 
 	// Ignore number of affected rows with underscore

@@ -44,6 +44,9 @@ type UserDB struct {
 	UpdatedAt       time.Time      `db:"updated_at"`
 }
 
+// SecretString is a custom struct that wraps string type. It has methods that
+// implements various interface to help sensitive values like a password from
+// being exposed to end user.
 type SecretString struct {
 	value string
 }
@@ -62,4 +65,22 @@ func (s SecretString) Value() (driver.Value, error) {
 
 func (s SecretString) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.String())
+}
+
+type UserResponseWithAddressesSqlxSingleQuery struct {
+	ID              uint            `json:"id,omitempty" db:"id"`
+	FirstName       string          `json:"first_name,omitempty" db:"first_name"`
+	MiddleName      string          `json:"middle_name,omitempty" db:"middle_name"`
+	LastName        string          `json:"last_name,omitempty" db:"last_name"`
+	Email           string          `json:"email,omitempty" db:"email"`
+	FavouriteColour string          `json:"favourite_colour,omitempty" db:"favourite_colour"`
+	UpdatedAt       string          `json:"updated_at,omitempty" db:"updated_at"`
+	Address         json.RawMessage `json:"addresses" db:"addresses"`
+}
+
+// Scan When scanning the result, we are actually getting an array of uint8.
+// These json payload is then unmarshalled into our custom struct.
+func (m *UserResponseWithAddressesSqlxSingleQuery) Scan(src interface{}) error {
+	val := src.([]uint8)
+	return json.Unmarshal(val, &m)
 }

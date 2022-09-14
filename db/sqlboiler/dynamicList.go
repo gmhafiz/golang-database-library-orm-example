@@ -33,6 +33,8 @@ func (r *database) ListFilterByColumn(ctx context.Context, f *db.Filter) (users 
 
 	mods = append(mods, qm.OrderBy(models.UserColumns.ID))
 
+	boil.DebugMode = true
+
 	all, err := models.Users(mods...).All(ctx, r.db)
 	if err != nil {
 		return nil, err

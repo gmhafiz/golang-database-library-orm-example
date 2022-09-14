@@ -40,7 +40,7 @@ func Register(r *chi.Mux, db *sqlx.DB) {
 }
 
 func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
-	request := db.NewUserRequest()
+	var request db.CreateUserRequest
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
@@ -54,7 +54,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, err := h.db.Create(r.Context(), nil, request, hash)
+	u, err := h.db.Create(r.Context(), nil, &request, hash)
 	if err != nil {
 		var errStruct *db.Err
 		if errors.As(err, &errStruct) {
@@ -115,6 +115,8 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
+	f := db.Filters(r.URL.Query())
+
 	userID, err := param.Int64(r, "userID")
 	if err != nil {
 		respond.Error(w, http.StatusBadRequest, param.ErrParam)
@@ -128,13 +130,13 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.FirstName == "" || req.MiddleName == "" || req.LastName == "" ||
+	if req.FirstName == "" || req.LastName == "" ||
 		req.Email == "" || req.FavouriteColour == "" {
 		respond.Error(w, http.StatusBadRequest, errors.New("required field(s) is/are empty"))
 		return
 	}
 
-	u, err := h.db.Update(r.Context(), userID, &req)
+	u, err := h.db.Update(r.Context(), userID, f, &req)
 	if err != nil {
 		var errStruct *db.Err
 		if errors.As(err, &errStruct) {

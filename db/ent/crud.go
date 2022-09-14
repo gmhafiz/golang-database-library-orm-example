@@ -11,7 +11,7 @@ import (
 	"godb/db/ent/ent/gen/user"
 )
 
-func (r *database) Create(ctx context.Context, request *db.UserRequest, hash string) (*gen.User, error) {
+func (r *database) Create(ctx context.Context, request *db.CreateUserRequest, hash string) (*gen.User, error) {
 	saved, err := r.db.Debug().User.Create().
 		SetFirstName(request.FirstName).
 		SetNillableMiddleName(nil). // Does not insert anything to this column
@@ -52,13 +52,16 @@ func (r *database) List(ctx context.Context, f *filter) ([]*gen.User, error) {
 
 	return r.db.User.Query().
 		Order(gen.Asc(user.FieldID)).
-		Limit(30).
-		Offset(0).
+		Limit(f.Base.Limit).
+		Offset(f.Base.Offset).
 		All(ctx)
 }
 
 func (r *database) Get(ctx context.Context, userID uint64) (*gen.User, error) {
-	u, err := r.db.User.Query().Where(user.ID(uint(userID))).First(ctx)
+	u, err := r.db.User.Query().
+		Where(user.ID(uint(userID))).
+		First(ctx)
+
 	if err != nil {
 		if gen.IsNotFound(err) {
 			return nil, errors.New("no record found")
@@ -69,7 +72,11 @@ func (r *database) Get(ctx context.Context, userID uint64) (*gen.User, error) {
 	return u, nil
 }
 
-func (r *database) Update(ctx context.Context, userID int64, req *db.UserUpdateRequest) (*gen.User, error) {
+func (r *database) Update(ctx context.Context, userID int64, f *db.Filter, req *db.UserUpdateRequest) (*gen.User, error) {
+	if f.Transaction {
+		return r.Transaction(ctx, userID, req)
+	}
+
 	return r.db.User.UpdateOneID(uint(userID)).
 		SetFirstName(req.FirstName).
 		SetNillableMiddleName(&req.MiddleName).

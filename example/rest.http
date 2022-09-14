@@ -54,12 +54,8 @@ Accept: application/json
 GET http://localhost:3080/api/sqlx/user?sort=first_name,asc&sort=favourite_colour,desc
 Accept: application/json
 
-### List Sort users inject
-GET http://localhost:3080/api/sqlx/user?sort=id;select%20*%20FROM%20users;,--;
-Accept: application/json
-
-### List filter users by favourite_colour SQL injection
-GET http://localhost:3080/api/sqlx/user?favourite_colour=blue;select%20*%20FROM%20users;,--;
+### List Sort users normal
+GET http://localhost:3080/api/sqlx/user?sort=id
 Accept: application/json
 
 ### List Paginate User records
@@ -75,6 +71,10 @@ Accept: application/json
 GET http://localhost:3080/api/sqlx/user/m2m
 Accept: application/json
 
+### GET users with their addresses using one query
+GET http://localhost:3080/api/sqlx/user/m2mOneQuery
+Accept: application/json
+
 
 ### Create Transaction
 PUT http://localhost:3080/api/sqlx/user/1?transaction=true
@@ -86,6 +86,20 @@ Content-Type: application/json
   "email": "jake36@example.com",
   "password": "password"
 }
+
+### List users inject
+GET http://localhost:3080/api/sqlx/user?favourite_colour=blue'inject; AND 1=1 OR (<'">iKO)),&i=1350'inject; AND 1=1 OR (<'">iKO)),
+Accept: application/json
+
+
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/sqlx/user?favourite_colour=blue;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/sqlx/user?favourite_colour=blue';DROP DATABASE userdb--
+Accept: application/json
+
 ################################################################################
 # sqlc
 ################################################################################
@@ -139,14 +153,6 @@ Accept: application/json
 GET http://localhost:3080/api/sqlc/user?sort=first_name,asc&sort=favourite_colour,desc
 Accept: application/json
 
-### List Sort users inject
-GET http://localhost:3080/api/sqlc/user?sort=id;select%20*%20FROM%20users;,--;
-Accept: application/json
-
-### List filter users by favourite_colour SQL injection
-GET http://localhost:3080/api/sqlc/user?first_name=Bruce;select%20*%20FROM%20users;,--;
-Accept: application/json
-
 ### List Paginate User records
 GET http://localhost:3080/api/sqlc/user?page=2
 Accept: application/json
@@ -158,6 +164,45 @@ Accept: application/json
 
 ### GET users with their addresses
 GET http://localhost:3080/api/sqlc/user/m2m
+Accept: application/json
+
+### GET users with their addresses using one query
+GET http://localhost:3080/api/sqlc/user/m2mOneQuery
+Accept: application/json
+
+
+### Create Transaction
+PUT http://localhost:3080/api/sqlc/user/1?transaction=true
+Content-Type: application/json
+
+{
+  "first_name": "Jake37",
+  "middle_name": "",
+  "last_name": "Doe",
+  "email": "jake36@example.com",
+  "password": "password",
+  "favourite_colour": "red"
+}
+
+### List Sort users inject
+GET http://localhost:3080/api/sqlc/user?sort=id;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/sqlc/user?first_name=Bruce';select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List users inject
+GET http://localhost:3080/api/sqlc/user?favourite_colour=blue'inject; AND 1=1 OR (<'">iKO)),&i=1350'inject; AND 1=1 OR (<'">iKO)),
+Accept: application/json
+
+
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/sqlc/user?favourite_colour=blue;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/sqlc/user?favourite_colour=blue';DROP DATABASE userdb--
 Accept: application/json
 
 ################################################################################
@@ -216,13 +261,7 @@ Accept: application/json
 GET http://localhost:3080/api/squirrel/user?sort=first_name,asc&sort=favourite_colour,desc
 Accept: application/json
 
-### List Sort users inject
-GET http://localhost:3080/api/squirrel/user?sort=id;select%20*%20FROM%20users;,--;
-Accept: application/json
 
-### List filter users by favourite_colour SQL injection
-GET http://localhost:3080/api/squirrel/user?first_name=Bruce;select%20*%20FROM%20users;,--;
-Accept: application/json
 
 ### List Paginate User records
 GET http://localhost:3080/api/squirrel/user?page=2
@@ -235,6 +274,41 @@ Accept: application/json
 
 ### GET users with their addresses
 GET http://localhost:3080/api/squirrel/user/m2m
+Accept: application/json
+
+### Create Transaction
+PUT http://localhost:3080/api/squirrel/user/1?transaction=true
+Content-Type: application/json
+
+{
+  "first_name": "Jake38",
+  "middle_name": "",
+  "last_name": "Doe",
+  "email": "jake36@example.com",
+  "password": "password",
+  "favourite_colour": "red"
+}
+
+
+### List Sort users inject
+GET http://localhost:3080/api/squirrel/user?sort=id;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/squirrel/user?first_name=Bruce;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List users inject
+GET http://localhost:3080/api/squirrel/user?favourite_colour=blue'inject; AND 1=1 OR (<'">iKO)),&i=1350'inject; AND 1=1 OR (<'">iKO)),
+Accept: application/json
+
+
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/squirrel/user?favourite_colour=blue;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/squirrel/user?favourite_colour=blue';DROP DATABASE userdb--
 Accept: application/json
 
 ################################################################################
@@ -303,12 +377,6 @@ Accept: application/json
 GET http://localhost:3080/api/gorm/user?sort=first_name,asc
 Accept: application/json
 
-### List Sort users inject
-GET http://localhost:3080/api/gorm/user?sort=id;select%20*%20FROM%20users;,--;
-Accept: application/json
-
-### List filter users by favourite_colour SQL injection
-GET http://localhost:3080/api/gorm/user?first_name=Bruce;select%20*%20FROM%20users;,--;
 Accept: application/json
 
 ### List Paginate User records
@@ -321,6 +389,40 @@ Accept: application/json
 
 ### GET users with their addresses
 GET http://localhost:3080/api/gorm/user/m2m
+Accept: application/json
+
+
+### Create Transaction
+PUT http://localhost:3080/api/gorm/user/1?transaction=true
+Content-Type: application/json
+
+{
+  "first_name": "Jake39",
+  "last_name": "Doe",
+  "email": "jake36@example.com",
+  "password": "password",
+  "favourite_colour": "red"
+}
+
+### List Sort users inject
+GET http://localhost:3080/api/gorm/user?sort=id;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/gorm/user?first_name=Bruce;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List users inject
+GET http://localhost:3080/api/gorm/user?favourite_colour=blue'inject; AND 1=1 OR (<'">iKO)),&i=1350'inject; AND 1=1 OR (<'">iKO)),
+Accept: application/json
+
+
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/gorm/user?favourite_colour=blue;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/gorm/user?favourite_colour=blue';DROP DATABASE userdb--
 Accept: application/json
 
 ################################################################################
@@ -384,14 +486,6 @@ Accept: application/json
 GET http://localhost:3080/api/sqlboiler/user?sort=first_name,desc
 Accept: application/json
 
-### List Sort users inject
-GET http://localhost:3080/api/sqlboiler/user?sort=id;select%20*%20FROM%20users;,--;
-Accept: application/json
-
-### List filter users by favourite_colour SQL injection
-GET http://localhost:3080/api/sqlboiler/user?first_name=Bruce;select%20*%20FROM%20users;,--;
-Accept: application/json
-
 ### List Paginate User records
 GET http://localhost:3080/api/sqlboiler/user?page=2
 Accept: application/json
@@ -402,6 +496,39 @@ Accept: application/json
 
 ### GET users with their addresses
 GET http://localhost:3080/api/sqlboiler/user/m2m
+Accept: application/json
+
+### Create Transaction
+PUT http://localhost:3080/api/sqlboiler/user/1?transaction=true
+Content-Type: application/json
+
+{
+  "first_name": "Jake51",
+  "last_name": "Doe",
+  "email": "jake36@example.com",
+  "password": "password",
+  "favourite_colour": "red"
+}
+
+### List Sort users inject
+GET http://localhost:3080/api/sqlboiler/user?sort=id;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/sqlboiler/user?first_name=Bruce;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List users inject
+GET http://localhost:3080/api/sqlboiler/user?favourite_colour=blue'inject; AND 1=1 OR (<'">iKO)),&i=1350'inject; AND 1=1 OR (<'">iKO)),
+Accept: application/json
+
+
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/sqlboiler/user?favourite_colour=blue;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/sqlboiler/user?favourite_colour=blue';DROP DATABASE userdb--
 Accept: application/json
 
 ################################################################################
@@ -434,13 +561,13 @@ GET http://localhost:3080/api/ent/user/1856856856684
 Accept: application/json
 
 ### Update PUT request with json body
-PUT  http://localhost:3080/api/ent/user/13
+PUT  http://localhost:3080/api/ent/user/1
 Content-Type: application/json
 
 {
   "first_name": "John",
   "last_name": "Doe",
-  "email": "john-changed@example.com"
+  "email": "jake36@example.com"
 }
 
 ### Delete DELETE request with json body
@@ -466,10 +593,6 @@ Accept: application/json
 GET http://localhost:3080/api/ent/user?sort=id;select%20*%20FROM%20users;,--;
 Accept: application/json
 
-### List filter users by favourite_colour SQL injection
-GET http://localhost:3080/api/ent/user?first_name=Bruce;select%20*%20FROM%20users;,--;
-Accept: application/json
-
 ### List Paginate User records
 GET http://localhost:3080/api/ent/user?page=2
 Accept: application/json
@@ -487,5 +610,42 @@ Accept: application/json
 GET http://localhost:3080/api/ent/user/m2m
 Accept: application/json
 
+
+### Create Transaction
+PUT http://localhost:3080/api/ent/user/1?transaction=true
+Content-Type: application/json
+
+{
+  "first_name": "Jake54",
+  "last_name": "Doe",
+  "email": "jake36@example.com",
+  "password": "password",
+  "favourite_colour": "red"
+}
+
+### List Sort users inject
+GET http://localhost:3080/api/ent/user?sort=id;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/ent/user?first_name=Bruce;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List users inject
+GET http://localhost:3080/api/ent/user?favourite_colour=blue'inject; AND 1=1 OR (<'">iKO)),&i=1350'inject; AND 1=1 OR (<'">iKO)),
+Accept: application/json
+
+
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/ent/user?favourite_colour=blue;select%20*%20FROM%20users;,--;
+Accept: application/json
+
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/ent/user?favourite_colour=blue'or 1=1; --;
+Accept: application/json
+
+### List filter users by favourite_colour SQL injection
+GET http://localhost:3080/api/ent/user?favourite_colour=blue';DROP DATABASE userdb--
+Accept: application/json
 
 ################################################################################

@@ -25,8 +25,8 @@ func filters(v url.Values) *filter {
 		uint(paginateLastId),
 	}
 
-	// Automatically parse at handler layer.
-	f.UserFilter()
+	// Optionally, automatically parse at handler layer.
+	//f.UserFilter()
 
 	return f
 }

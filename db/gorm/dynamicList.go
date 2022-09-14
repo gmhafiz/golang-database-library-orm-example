@@ -13,6 +13,7 @@ func (r *repo) ListFilterByColumn(ctx context.Context, f *db.Filter) ([]*User, e
 		Select([]string{"id", "first_name", "middle_name", "last_name", "email", "favourite_colour"}).
 		Offset(f.Base.Offset).
 		Limit(f.Base.Limit).
+		Order("id").
 
 		// Cannot use struct field when we want to use ILIKE clause.
 		// Instead, we use Where() and Or() methods.

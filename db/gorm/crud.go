@@ -20,7 +20,7 @@ func NewRepo(db *gorm.DB) *repo {
 	}
 }
 
-func (r *repo) Create(ctx context.Context, u *db.UserRequest, hash string) (*User, error) {
+func (r *repo) Create(ctx context.Context, u *db.CreateUserRequest, hash string) (*User, error) {
 	user := &User{
 		FirstName:       u.FirstName,
 		MiddleName:      u.MiddleName,
@@ -39,7 +39,7 @@ func (r *repo) Create(ctx context.Context, u *db.UserRequest, hash string) (*Use
 }
 
 func (r *repo) List(ctx context.Context, f *db.Filter) ([]*User, error) {
-	if f.Email != "" || f.FirstName != "" {
+	if f.Email != "" || f.FirstName != "" || f.FavouriteColour != "" {
 		return r.ListFilterByColumn(ctx, f)
 	}
 	if len(f.Base.Sort) > 0 {
@@ -55,6 +55,8 @@ func (r *repo) List(ctx context.Context, f *db.Filter) ([]*User, error) {
 	var users []*User
 	err := r.db.WithContext(ctx).
 		Select([]string{"id", "first_name", "middle_name", "last_name", "email", "favourite_colour"}).
+		Limit(f.Base.Limit).
+		Offset(f.Base.Offset).
 		Order("id").
 		Find(&users).
 		Error
@@ -81,10 +83,16 @@ func (r *repo) Get(ctx context.Context, userID int64) (*User, error) {
 	return &user, nil
 }
 
-func (r *repo) Update(ctx context.Context, userID int64, req *db.UserUpdateRequest) (*User, error) {
+func (r *repo) Update(ctx context.Context, userID int64, f *db.Filter, req *db.UserUpdateRequest) (*User, error) {
+	if f.Transaction {
+		return r.Transaction(ctx, userID, req)
+	}
+
 	var u User
 	u.ID = int(userID)
-	r.db.First(&u)
+	if err := r.db.WithContext(ctx).First(&u).Error; err != nil {
+		return nil, err
+	}
 
 	u.FirstName = req.FirstName
 	u.MiddleName = req.MiddleName

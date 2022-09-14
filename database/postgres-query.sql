@@ -93,3 +93,17 @@ WHERE a.id = ANY($1::int[]);
 
 -- name: SelectWhereInLastNames :many
 SELECT * FROM users WHERE last_name = ANY(@last_name::text[]);
+
+
+-- name: ListM2MOneQuery :many
+SELECT u.id,
+       u.first_name,
+       u.middle_name,
+       u.last_name,
+       u.email,
+       u.favourite_colour,
+       array_to_json(array_agg(row_to_json(a.*))) AS addresses
+FROM addresses a
+         INNER JOIN user_addresses ua ON ua.address_id = a.id
+         INNER JOIN users u on u.id = ua.user_id
+GROUP BY u.id;

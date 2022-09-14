@@ -23,6 +23,7 @@ type database struct {
 	db      *pg.Queries
 	mariaDB *mariadb.Queries
 
+	tx   pg.DBTX
 	sqlx *sqlx.DB
 
 	dbType string
@@ -37,12 +38,12 @@ func NewRepo(db *sqlx.DB, dbType string) *database {
 	}
 }
 
-func (r *database) Create(ctx context.Context, request *db.UserRequest, hash string) (*pg.User, error) {
+func (r *database) Create(ctx context.Context, request *db.CreateUserRequest, hash string) (*pg.User, error) {
 	u, err := r.db.CreateUser(ctx, pg.CreateUserParams{
 		FirstName: request.FirstName,
 		MiddleName: sql.NullString{
 			String: request.MiddleName,
-			Valid:  len(request.MiddleName) > 0,
+			Valid:  request.MiddleName != "",
 		},
 		LastName:        request.LastName,
 		Email:           request.Email,
@@ -112,7 +113,7 @@ func (r *database) Get(ctx context.Context, userID int64) (*db.UserResponse, err
 	res, err := r.db.GetUser(ctx, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return &db.UserResponse{}, &db.Err{Msg: message.ErrRecordNotFound.Error(), Status: http.StatusOK}
+			return &db.UserResponse{}, &db.Err{Msg: message.ErrRecordNotFound.Error(), Status: http.StatusNotFound}
 		}
 		return nil, err
 	}
@@ -128,7 +129,11 @@ func (r *database) Get(ctx context.Context, userID int64) (*db.UserResponse, err
 	}, nil
 }
 
-func (r *database) Update(ctx context.Context, userID int64, req *db.UserUpdateRequest) (*pg.GetUserRow, error) {
+func (r *database) Update(ctx context.Context, userID int64, f *db.Filter, req *db.UserUpdateRequest) (*pg.GetUserRow, error) {
+	if f.Transaction {
+		return r.Transaction(ctx, userID, req)
+	}
+
 	currUser, err := r.Get(ctx, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

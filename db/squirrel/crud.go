@@ -15,10 +15,11 @@ import (
 )
 
 type repository struct {
-	db sq.StatementBuilderType
+	db    sq.StatementBuilderType
+	forTx *sqlx.DB
 }
 
-func (r repository) Create(ctx context.Context, f *db.Filter, request *db.UserRequest, hash string) (*db.UserDB, error) {
+func (r repository) Create(ctx context.Context, f *db.Filter, request *db.CreateUserRequest, hash string) (*db.UserDB, error) {
 	var u db.UserDB
 
 	query := r.db.Insert("users").
@@ -55,6 +56,8 @@ func (r repository) List(ctx context.Context, f *db.Filter) (users []*db.UserRes
 	rows, err := r.db.
 		Select("*").
 		From("users").
+		Limit(uint64(f.Base.Limit)).
+		Offset(uint64(f.Base.Offset)).
 		OrderBy("id").
 		QueryContext(ctx)
 	if err != nil {
@@ -105,10 +108,10 @@ func (r repository) Get(ctx context.Context, userID int64) (*db.UserResponse, er
 		QueryRowContext(ctx)
 
 	var u db.UserDB
-	err := rows.Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email, &u.Password, &u.FavouriteColour)
+	err := rows.Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email, &u.Password, &u.FavouriteColour, &u.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return &db.UserResponse{}, &db.Err{Msg: message.ErrRecordNotFound.Error(), Status: http.StatusOK}
+			return &db.UserResponse{}, &db.Err{Msg: message.ErrRecordNotFound.Error(), Status: http.StatusNotFound}
 		}
 		return nil, err
 	}
@@ -124,7 +127,11 @@ func (r repository) Get(ctx context.Context, userID int64) (*db.UserResponse, er
 	}, nil
 }
 
-func (r repository) Update(ctx context.Context, id int64, req *db.UserUpdateRequest) (*db.UserResponse, error) {
+func (r repository) Update(ctx context.Context, id int64, f *db.Filter, req *db.UserUpdateRequest) (*db.UserResponse, error) {
+	if f.Transaction {
+		return r.Transaction(ctx, id, req)
+	}
+
 	currUser, err := r.Get(ctx, id)
 	if err != nil {
 		return nil, err
@@ -217,5 +224,7 @@ func NewRepo(db *sqlx.DB) *repository {
 		db: sq.StatementBuilder.
 			PlaceholderFormat(sq.Dollar).
 			RunWith(db.DB),
+
+		forTx: db,
 	}
 }

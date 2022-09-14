@@ -117,11 +117,9 @@ type CreateUserParams struct {
 
 // SELECT *
 // FROM users
-// WHERE (@first_name::text = ” OR first_name = @first_name)
-//
-//	AND (@email::text = '' OR email ILIKE '%' || @email || '%')
-//
-// --   AND (@favourite_colour::text = ” OR favourite_colour ILIKE '%' || @favourite_colour || '%')
+// WHERE (@first_name::text = '' OR first_name = @first_name)
+//   AND (@email::text = '' OR email ILIKE '%' || @email || '%')
+// --   AND (@favourite_colour::text = '' OR favourite_colour ILIKE '%' || @favourite_colour || '%')
 // LIMIT 30
 // OFFSET 0;
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -217,12 +215,11 @@ type ListDynamicUsersParams struct {
 	SqlLimit      int32
 }
 
-// AND (@favourite_colour IS NOT NULL OR favourite_colour = @favourite_colour )
-// AND (@favourite_colour_present::text = ” OR favourite_colour = @favourite_colour )
-// AND (@favourite_colour_present::valid_colours = ” OR favourite_colour = @favourite_colour )
-//
-//	WHEN @favourite_colour_desc::text = 'favourite_colour' THEN favourite_colour
-//	WHEN @favourite_colour_asc::text = 'favourite_colour' THEN favourite_colour
+//   AND (@favourite_colour IS NOT NULL OR favourite_colour = @favourite_colour )
+//   AND (@favourite_colour_present::text = '' OR favourite_colour = @favourite_colour )
+//   AND (@favourite_colour_present::valid_colours = '' OR favourite_colour = @favourite_colour )
+//               WHEN @favourite_colour_desc::text = 'favourite_colour' THEN favourite_colour
+//               WHEN @favourite_colour_asc::text = 'favourite_colour' THEN favourite_colour
 func (q *Queries) ListDynamicUsers(ctx context.Context, arg ListDynamicUsersParams) ([]User, error) {
 	rows, err := q.db.QueryContext(ctx, listDynamicUsers,
 		arg.FirstName,
@@ -250,6 +247,61 @@ func (q *Queries) ListDynamicUsers(ctx context.Context, arg ListDynamicUsersPara
 			&i.Password,
 			&i.FavouriteColour,
 			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listM2MOneQuery = `-- name: ListM2MOneQuery :many
+SELECT u.id,
+       u.first_name,
+       u.middle_name,
+       u.last_name,
+       u.email,
+       u.favourite_colour,
+       array_to_json(array_agg(row_to_json(a.*))) AS addresses
+FROM addresses a
+         INNER JOIN user_addresses ua ON ua.address_id = a.id
+         INNER JOIN users u on u.id = ua.user_id
+GROUP BY u.id
+`
+
+type ListM2MOneQueryRow struct {
+	ID              int64
+	FirstName       string
+	MiddleName      sql.NullString
+	LastName        string
+	Email           string
+	FavouriteColour ValidColours
+	Addresses       json.RawMessage
+}
+
+func (q *Queries) ListM2MOneQuery(ctx context.Context) ([]ListM2MOneQueryRow, error) {
+	rows, err := q.db.QueryContext(ctx, listM2MOneQuery)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListM2MOneQueryRow
+	for rows.Next() {
+		var i ListM2MOneQueryRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.FirstName,
+			&i.MiddleName,
+			&i.LastName,
+			&i.Email,
+			&i.FavouriteColour,
+			&i.Addresses,
 		); err != nil {
 			return nil, err
 		}
