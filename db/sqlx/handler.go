@@ -37,6 +37,7 @@ func Register(r *chi.Mux, db *sqlx.DB, dbType string) {
 		router.Post("/", h.Create)
 		router.Get("/", h.List)
 		router.Get("/m2m", h.ListM2M)
+		router.Get("/m2mOneQuery", h.ListM2MOneQuery)
 		router.Get("/{userID}", h.Get)
 		router.Get("/{userID}/address", h.Countries)
 		router.Put("/{userID}", h.Update)
@@ -52,22 +53,22 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 	// 1. real-world application must perform request validation
 
 	// 2. Transform into request struct
-	request := db.NewUserRequest()
+	var request db.CreateUserRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		respond.Error(w, http.StatusBadRequest, message.ErrBadRequest)
 		return
 	}
 
-	// Some business logic
+	// Some business logic, preferably in its own layer.
 	hash, err := argon2id.CreateHash(request.Password, argon2id.DefaultParams)
 	if err != nil {
 		respond.Error(w, http.StatusInternalServerError, message.ErrInternalError)
 		return
 	}
 
-	// 3. Call data access layer.
-	u, err := h.db.Create(r.Context(), request, hash)
+	// 3. Call data access layer. Preferably called from business logic layer.
+	u, err := h.db.Create(r.Context(), &request, hash)
 	if err != nil {
 		var errStruct *db.Err
 		if errors.As(err, &errStruct) {
@@ -144,7 +145,7 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.FirstName == "" || req.MiddleName == "" || req.LastName == "" ||
+	if req.FirstName == "" || req.LastName == "" ||
 		req.Email == "" || req.FavouriteColour == "" {
 		respond.Error(w, http.StatusBadRequest, errors.New("required field(s) is/are empty"))
 		return
@@ -204,6 +205,16 @@ func (h *handler) Countries(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) ListM2M(w http.ResponseWriter, r *http.Request) {
 	users, err := h.db.ListM2M(r.Context())
+	if err != nil {
+		respond.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	respond.Json(w, http.StatusOK, users)
+}
+
+func (h *handler) ListM2MOneQuery(w http.ResponseWriter, r *http.Request) {
+	users, err := h.db.ListM2MOneQuery(r.Context())
 	if err != nil {
 		respond.Error(w, http.StatusBadRequest, err)
 		return

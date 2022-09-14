@@ -2,10 +2,15 @@ package sqlc
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
+	"log"
+	"net/http"
 
 	"godb/db"
 	"godb/db/sqlc/pg"
+	"godb/respond/message"
 )
 
 func (r *database) ListM2M(ctx context.Context) ([]*db.UserResponseWithAddressesSqlx, error) {
@@ -62,6 +67,34 @@ func (r *database) ListM2M(ctx context.Context) ([]*db.UserResponseWithAddresses
 	}
 
 	return all, nil
+}
+
+func (r *database) ListM2MOneQuery(ctx context.Context) ([]*db.UserResponseWithAddressesSqlxSingleQuery, error) {
+	dbResponse, err := r.db.ListM2MOneQuery(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, &db.Err{Msg: message.ErrRecordNotFound.Error(), Status: http.StatusNotFound}
+		}
+		log.Println(err)
+		return nil, &db.Err{Msg: message.ErrInternalError.Error(), Status: http.StatusInternalServerError}
+	}
+
+	resp := make([]*db.UserResponseWithAddressesSqlxSingleQuery, 0)
+
+	for _, dbRow := range dbResponse {
+		row := &db.UserResponseWithAddressesSqlxSingleQuery{
+			ID:              uint(dbRow.ID),
+			FirstName:       dbRow.FirstName,
+			MiddleName:      dbRow.MiddleName.String,
+			LastName:        dbRow.LastName,
+			Email:           dbRow.Email,
+			FavouriteColour: string(dbRow.FavouriteColour),
+			Address:         dbRow.Addresses,
+		}
+		resp = append(resp, row)
+	}
+
+	return resp, nil
 }
 
 func getUserIDs(users []pg.SelectUsersRow) (ids []int32) {

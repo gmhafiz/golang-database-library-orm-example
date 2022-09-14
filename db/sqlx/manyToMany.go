@@ -3,11 +3,15 @@ package sqlx
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"log"
+	"net/http"
 
 	"github.com/jmoiron/sqlx"
 
 	"godb/db"
+	"godb/respond/message"
 )
 
 const (
@@ -19,7 +23,7 @@ const (
 		WHERE u.id = $1`
 
 	QueryUsers = `
-		SELECT u.id, u.first_name, u.middle_name, u.last_name, u.email 
+		SELECT u.id, u.first_name, u.middle_name, u.last_name, u.email, u.updated_at
 		FROM "users" u 
 		LIMIT 30;
 `
@@ -51,7 +55,7 @@ func (r *repository) ListM2M(ctx context.Context) ([]*db.UserResponseWithAddress
 	var all []*db.UserResponseWithAddressesSqlx
 	for users.Next() {
 		var u db.UserDB
-		if err := users.Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email); err != nil {
+		if err := users.Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email, &u.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("db scanning error")
 		}
 		all = append(all, &db.UserResponseWithAddressesSqlx{
@@ -131,6 +135,39 @@ func (r *repository) ListM2M(ctx context.Context) ([]*db.UserResponseWithAddress
 	}
 
 	return all, nil
+}
+
+func (r *repository) ListM2MOneQuery(ctx context.Context) ([]*db.UserResponseWithAddressesSqlxSingleQuery, error) {
+	m2mQuery := `SELECT u.id,
+       u.first_name,
+       u.middle_name,
+       u.last_name,
+       u.email,
+       u.favourite_colour,
+       array_to_json(array_agg(row_to_json(a.*))) AS addresses
+FROM addresses a
+         INNER JOIN user_addresses ua ON ua.address_id = a.id
+         INNER JOIN users u on u.id = ua.user_id
+GROUP BY u.id;
+`
+	var res []*db.UserResponseWithAddressesSqlxSingleQuery
+
+	rows, err := r.db.QueryContext(ctx, m2mQuery)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	err = r.db.SelectContext(ctx, &res, m2mQuery)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, &db.Err{Msg: message.ErrRecordNotFound.Error(), Status: http.StatusNotFound}
+		}
+		log.Println(err)
+		return nil, &db.Err{Msg: message.ErrInternalError.Error(), Status: http.StatusInternalServerError}
+	}
+
+	return res, nil
 }
 
 func getAddressIDs(uas []*userAddress) (ids []int) {
