@@ -11,14 +11,18 @@ import (
 )
 
 func (r *database) Transaction(ctx context.Context, id int64, req *db.UserUpdateRequest) (*pg.GetUserRow, error) {
-	tx, err := r.sqlx.DB.Begin()
+	//tx, err := r.sqlx.DB.Begin() // or
+	tx, err := r.sqlx.DB.BeginTx(ctx, &sql.TxOptions{
+		Isolation: sql.LevelReadCommitted,
+		ReadOnly:  false,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("fails to start transaction error: %w", err)
 	}
 
 	defer tx.Rollback()
 
-	qtx := pg.New(tx).WithTx(tx)
+	qtx := pg.New(tx)
 
 	currUser, err := qtx.GetUser(ctx, id)
 	if err != nil {

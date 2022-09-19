@@ -75,6 +75,7 @@ func (r *database) Get(ctx context.Context, userID uint64) (*gen.User, error) {
 func (r *database) Update(ctx context.Context, userID int64, f *db.Filter, req *db.UserUpdateRequest) (*gen.User, error) {
 	if f.Transaction {
 		return r.Transaction(ctx, userID, req)
+		//return AnotherTransactionPattern(ctx, r.db, userID, req)
 	}
 
 	return r.db.User.UpdateOneID(uint(userID)).

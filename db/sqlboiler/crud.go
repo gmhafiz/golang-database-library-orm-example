@@ -17,7 +17,8 @@ import (
 )
 
 type database struct {
-	db *sqlx.DB
+	db   *sqlx.DB
+	exec boil.ContextExecutor
 }
 
 func NewRepo(db *sqlx.DB) *database {
@@ -99,6 +100,7 @@ func (r *database) Get(ctx context.Context, userID int64) (*models.User, error) 
 func (r *database) Update(ctx context.Context, id int64, f *db.Filter, req db.UserUpdateRequest) (*models.User, error) {
 	if f.Transaction {
 		return r.Transaction(ctx, id, req)
+		//return r.TransactionUsingHelper(ctx, id, req) // (Optional) Another transaction pattern.
 	}
 
 	user, err := r.Get(ctx, id)
