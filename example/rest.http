@@ -93,7 +93,7 @@ Accept: application/json
 
 
 ### List filter users by favourite_colour SQL injection
-GET http://localhost:3080/api/sqlx/user?favourite_colour=blue;select%20*%20FROM%20users;,--;
+GET http://localhost:3080/api/sqlx/user?favourite_colour=blue';select%20*%20FROM%20users;,--;
 Accept: application/json
 
 ### List filter users by favourite_colour SQL injection
@@ -198,7 +198,7 @@ Accept: application/json
 
 
 ### List filter users by favourite_colour SQL injection
-GET http://localhost:3080/api/sqlc/user?favourite_colour=blue;select%20*%20FROM%20users;,--;
+GET http://localhost:3080/api/sqlc/user?favourite_colour=blue';select%20*%20FROM%20users;,--;
 Accept: application/json
 
 ### List filter users by favourite_colour SQL injection
@@ -304,7 +304,7 @@ Accept: application/json
 
 
 ### List filter users by favourite_colour SQL injection
-GET http://localhost:3080/api/squirrel/user?favourite_colour=blue;select%20*%20FROM%20users;,--;
+GET http://localhost:3080/api/squirrel/user?favourite_colour=blue';select%20*%20FROM%20users;,--;
 Accept: application/json
 
 ### List filter users by favourite_colour SQL injection
@@ -418,7 +418,7 @@ Accept: application/json
 
 
 ### List filter users by favourite_colour SQL injection
-GET http://localhost:3080/api/gorm/user?favourite_colour=blue;select%20*%20FROM%20users;,--;
+GET http://localhost:3080/api/gorm/user?favourite_colour=blue';select%20*%20FROM%20users;,--;
 Accept: application/json
 
 ### List filter users by favourite_colour SQL injection
@@ -524,7 +524,7 @@ Accept: application/json
 
 
 ### List filter users by favourite_colour SQL injection
-GET http://localhost:3080/api/sqlboiler/user?favourite_colour=blue;select%20*%20FROM%20users;,--;
+GET http://localhost:3080/api/sqlboiler/user?favourite_colour=blue';select%20*%20FROM%20users;,--;
 Accept: application/json
 
 ### List filter users by favourite_colour SQL injection
@@ -637,7 +637,7 @@ Accept: application/json
 
 
 ### List filter users by favourite_colour SQL injection
-GET http://localhost:3080/api/ent/user?favourite_colour=blue;select%20*%20FROM%20users;,--;
+GET http://localhost:3080/api/ent/user?favourite_colour=blue';select%20*%20FROM%20users;,--;
 Accept: application/json
 
 ### List filter users by favourite_colour SQL injection
