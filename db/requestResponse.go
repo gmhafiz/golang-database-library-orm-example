@@ -104,7 +104,7 @@ type AddressResponse struct {
 }
 
 type CountryResponseWithAddress struct {
-	Id   int    `json:"id,omitempty"`
+	ID   int    `json:"id,omitempty"`
 	Code string `json:"code,omitempty"`
 	Name string `json:"name,omitempty"`
 

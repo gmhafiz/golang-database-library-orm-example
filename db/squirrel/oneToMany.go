@@ -61,7 +61,7 @@ func (r repository) Countries(ctx context.Context) (resp []*db.CountryResponseWi
 
 	for _, c := range countries {
 		country := &db.CountryResponseWithAddress{
-			Id:        c.ID,
+			ID:        c.ID,
 			Code:      c.Code,
 			Name:      c.Name,
 			Addresses: make([]*db.AddressForCountry, 0),

@@ -22,7 +22,7 @@ func (r *database) Countries(ctx context.Context) ([]*db.CountryResponseWithAddr
 	var all []*db.CountryResponseWithAddress
 	for _, country := range countries {
 		resp := &db.CountryResponseWithAddress{
-			Id:        int(country.ID),
+			ID:        int(country.ID),
 			Code:      country.Code,
 			Name:      country.Name,
 			Addresses: getAddress(country.R.Addresses),
