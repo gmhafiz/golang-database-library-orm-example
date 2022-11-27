@@ -2,13 +2,14 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"godb/db"
 	"log"
+	"net/http"
 
+	"godb/db"
 	"godb/db/ent/ent/gen"
 	"godb/db/ent/ent/gen/user"
+	"godb/respond/message"
 )
 
 func (r *database) Create(ctx context.Context, request *db.CreateUserRequest, hash string) (*gen.User, error) {
@@ -61,12 +62,12 @@ func (r *database) Get(ctx context.Context, userID uint64) (*gen.User, error) {
 	u, err := r.db.User.Query().
 		Where(user.ID(uint(userID))).
 		First(ctx)
-
 	if err != nil {
 		if gen.IsNotFound(err) {
-			return nil, errors.New("no record found")
+			return &gen.User{}, &db.Err{Msg: message.ErrRecordNotFound.Error(), Status: http.StatusNotFound}
 		}
-		return nil, err
+		log.Println(err)
+		return &gen.User{}, &db.Err{Msg: message.ErrInternalError.Error(), Status: http.StatusInternalServerError}
 	}
 
 	return u, nil

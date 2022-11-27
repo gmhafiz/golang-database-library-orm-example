@@ -77,7 +77,8 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
-	f := db.Filters(r.URL.Query())
+	f :=
+		db.Filters(r)
 
 	users, err := h.db.List(r.Context(), f)
 	if err != nil {
@@ -115,7 +116,8 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
-	f := db.Filters(r.URL.Query())
+	f :=
+		db.Filters(r)
 
 	userID, err := param.Int64(r, "userID")
 	if err != nil {
@@ -189,7 +191,8 @@ func (h *handler) Countries(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) ListM2M(w http.ResponseWriter, r *http.Request) {
-	users, err := h.db.ListM2M(r.Context())
+	//users, err := h.db.ListM2M(r.Context()) // long way
+	users, err := h.db.ListM2MRawJSON(r.Context())
 	if err != nil {
 		respond.Error(w, http.StatusBadRequest, err)
 		return

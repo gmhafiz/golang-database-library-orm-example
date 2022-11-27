@@ -3,6 +3,7 @@ package squirrel
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
@@ -45,7 +46,47 @@ type AddressForCountry struct {
 	State    string         `db:"state" json:"state"`
 }
 
-func (r repository) ListM2M(ctx context.Context) (interface{}, error) {
+func (r repository) ListM2MRawJSON(ctx context.Context) ([]*CustomM2mStruct, error) {
+	rows, err := r.db.
+		Select(
+			"users.id",
+			"users.first_name",
+			"users.middle_name",
+			"users.last_name",
+			"users.email",
+			"users.favourite_colour",
+			"array_to_json(array_agg(row_to_json(a.*))) AS addresses",
+		).
+		From("addresses AS a").
+		InnerJoin("user_addresses ON user_addresses.address_id = a.id").
+		InnerJoin("users ON users.id = user_addresses.user_id").
+		GroupBy("users.id").
+		QueryContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var items []*CustomM2mStruct
+	for rows.Next() {
+		var rowToJson CustomM2mStruct
+		if err := rows.Scan(
+			&rowToJson.Id,
+			&rowToJson.FirstName,
+			&rowToJson.MiddleName,
+			&rowToJson.LastName,
+			&rowToJson.Email,
+			&rowToJson.FavouriteColour,
+			&rowToJson.Addresses,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &rowToJson)
+	}
+
+	return items, nil
+}
+
+func (r repository) ListM2M(ctx context.Context) ([]*UserWithAddresses, error) {
 	rows, err := r.db.
 		Select("u.id, u.first_name, u.middle_name, u.last_name, u.email, u.favourite_colour, u.updated_at").
 		From("users u").
@@ -160,4 +201,19 @@ func (r repository) ListM2M(ctx context.Context) (interface{}, error) {
 	}
 
 	return all, nil
+}
+
+type CustomM2mStruct struct {
+	Id              int             `json:"id" db:"id"`
+	FirstName       string          `json:"first_name" db:"first_name"`
+	MiddleName      any             `json:"middle_name" db:"middle_name"`
+	LastName        string          `json:"last_name" db:"last_name"`
+	Email           string          `json:"email" db:"email"`
+	FavouriteColour string          `json:"favourite_colour" db:"favourite_colour"`
+	Addresses       json.RawMessage `json:"addresses" db:"addresses"`
+}
+
+func (m *CustomM2mStruct) Scan(src interface{}) error {
+	val := src.([]uint8)
+	return json.Unmarshal(val, &m)
 }

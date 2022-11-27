@@ -194,6 +194,19 @@ func (r *repository) ListFilterWhereIn(ctx context.Context, f *db.Filter) (users
 	return users, nil
 }
 
+func (r *repository) Array(ctx context.Context, userID int64) ([]string, error) {
+	selectQuery := "SELECT tags FROM users WHERE users.id = $1"
+
+	var values []string
+
+	err := r.db.QueryRowContext(ctx, selectQuery, userID).Scan(pq.Array(&values))
+	if err != nil {
+		return nil, err
+	}
+
+	return values, nil
+}
+
 func withPrepared(ctx context.Context, r *repository) (users []*db.UserResponse, err error) {
 	stmt, err := r.db.PrepareContext(ctx, list)
 	if err != nil {

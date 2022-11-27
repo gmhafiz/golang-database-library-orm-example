@@ -117,9 +117,11 @@ type CreateUserParams struct {
 
 // SELECT *
 // FROM users
-// WHERE (@first_name::text = '' OR first_name = @first_name)
-//   AND (@email::text = '' OR email ILIKE '%' || @email || '%')
-// --   AND (@favourite_colour::text = '' OR favourite_colour ILIKE '%' || @favourite_colour || '%')
+// WHERE (@first_name::text = ” OR first_name = @first_name)
+//
+//	AND (@email::text = '' OR email ILIKE '%' || @email || '%')
+//
+// --   AND (@favourite_colour::text = ” OR favourite_colour ILIKE '%' || @favourite_colour || '%')
 // LIMIT 30
 // OFFSET 0;
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -215,11 +217,12 @@ type ListDynamicUsersParams struct {
 	SqlLimit      int32
 }
 
-//   AND (@favourite_colour IS NOT NULL OR favourite_colour = @favourite_colour )
-//   AND (@favourite_colour_present::text = '' OR favourite_colour = @favourite_colour )
-//   AND (@favourite_colour_present::valid_colours = '' OR favourite_colour = @favourite_colour )
-//               WHEN @favourite_colour_desc::text = 'favourite_colour' THEN favourite_colour
-//               WHEN @favourite_colour_asc::text = 'favourite_colour' THEN favourite_colour
+// AND (@favourite_colour IS NOT NULL OR favourite_colour = @favourite_colour )
+// AND (@favourite_colour_present::text = ” OR favourite_colour = @favourite_colour )
+// AND (@favourite_colour_present::valid_colours = ” OR favourite_colour = @favourite_colour )
+//
+//	WHEN @favourite_colour_desc::text = 'favourite_colour' THEN favourite_colour
+//	WHEN @favourite_colour_asc::text = 'favourite_colour' THEN favourite_colour
 func (q *Queries) ListDynamicUsers(ctx context.Context, arg ListDynamicUsersParams) ([]User, error) {
 	rows, err := q.db.QueryContext(ctx, listDynamicUsers,
 		arg.FirstName,

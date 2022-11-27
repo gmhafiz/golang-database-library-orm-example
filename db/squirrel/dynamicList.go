@@ -17,15 +17,18 @@ func (r repository) ListFilterByColumn(ctx context.Context, f *db.Filter) (users
 		OrderBy("id")
 
 	if f.Email != "" {
-		builder = builder.Where(sq.Eq{"email": f.Email})
+		//builder = builder.Where(sq.Eq{"email": f.Email})
+		builder = builder.Where(sq.Like{"email": "%" + f.Email + "%"})
 	}
 
 	if f.FirstName != "" {
-		builder = builder.Where(sq.Eq{"first_name": f.FirstName})
+		//builder = builder.Where(sq.Eq{"first_name": f.FirstName})
+		builder = builder.Where(sq.Like{"first_name": "%" + f.FirstName + "%"})
 	}
 
 	if f.FavouriteColour != "" {
-		builder = builder.Where(sq.Eq{"favourite_colour": f.FavouriteColour})
+		//builder = builder.Where(sq.Eq{"favourite_colour": f.FavouriteColour})
+		builder = builder.Where(sq.Like{"favourite_colour": "%" + f.FavouriteColour + "%"})
 	}
 
 	rows, err := builder.QueryContext(ctx)
@@ -73,7 +76,8 @@ func (r repository) ListFilterSort(ctx context.Context, f *db.Filter) (users []*
 		From("users")
 
 	for col, order := range f.Base.Sort {
-		// vulnerable to sql injection
+		// the following commented line is vulnerable to sql injection if
+		// user input is not sanitised
 		//builder = builder.OrderBy(col + " " + order)
 
 		switch col {

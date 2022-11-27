@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
+	"net/http"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/samber/lo"
@@ -14,6 +16,7 @@ import (
 
 	"godb/db"
 	"godb/db/sqlboiler/models"
+	"godb/respond/message"
 )
 
 type database struct {
@@ -91,7 +94,8 @@ func (r *database) Get(ctx context.Context, userID int64) (*models.User, error) 
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New("no record found")
 		}
-		return nil, err
+		log.Println(err)
+		return &models.User{}, &db.Err{Msg: message.ErrInternalError.Error(), Status: http.StatusInternalServerError}
 	}
 
 	return user, nil
@@ -185,7 +189,7 @@ func (r *database) ListFilterWhereIn(ctx context.Context, f *db.Filter) (users [
 	all, err := models.Users(
 		//qm.WhereIn("last_name", args...), // Does not work. Needs IN operator
 		//qm.WhereIn("last_name IN ($1, $2)", "Donovan", "Campbell"), // Is what we want
-		qm.WhereIn("last_name IN ?", args...),
+		qm.WhereIn("last_name IN ?", args...), // instead, just give it a `?`.
 	).
 		All(ctx, r.db)
 	if err != nil {

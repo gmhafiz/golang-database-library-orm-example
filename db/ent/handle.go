@@ -68,7 +68,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
-	f := filters(r.URL.Query())
+	f := filters(r)
 
 	all, err := h.db.List(r.Context(), f)
 	if err != nil {
@@ -104,7 +104,8 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
-	f := db.Filters(r.URL.Query())
+	f :=
+		db.Filters(r)
 
 	userID, err := param.Int64(r, "userID")
 	if err != nil {

@@ -1,7 +1,7 @@
 package ent
 
 import (
-	"net/url"
+	"net/http"
 	"strconv"
 
 	"godb/db"
@@ -16,11 +16,11 @@ type filter struct {
 	PaginateLastID uint
 }
 
-func filters(v url.Values) *filter {
-	paginateLastId, _ := strconv.ParseInt(v.Get("last_token"), 10, 64)
+func filters(r *http.Request) *filter {
+	paginateLastId, _ := strconv.ParseInt(r.URL.Query().Get("last_token"), 10, 64)
 
 	f := &filter{
-		db.Filters(v),
+		db.Filters(r),
 		nil,
 		uint(paginateLastId),
 	}

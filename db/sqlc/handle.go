@@ -78,7 +78,8 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
-	f := db.Filters(r.URL.Query())
+	f :=
+		db.Filters(r)
 
 	users, err := h.db.List(r.Context(), f)
 	if err != nil {
@@ -103,7 +104,7 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 			respond.Error(w, errStruct.Status, errStruct)
 			return
 		}
-		respond.Error(w, http.StatusInternalServerError, message.ErrDBScan)
+		respond.Error(w, errStruct.Status, message.ErrDBScan)
 		return
 	}
 
@@ -119,7 +120,8 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
-	f := db.Filters(r.URL.Query())
+	f :=
+		db.Filters(r)
 
 	userID, err := param.Int64(r, "userID")
 	if err != nil {
@@ -142,8 +144,11 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 
 	updated, err := h.db.Update(r.Context(), userID, f, &req)
 	if err != nil {
-		respond.Error(w, http.StatusInternalServerError, err)
-		return
+		var errStruct *db.Err
+		if errors.As(err, &errStruct) {
+			respond.Error(w, errStruct.Status, errStruct)
+			return
+		}
 	}
 
 	respond.Json(w, http.StatusOK, &db.UserResponse{

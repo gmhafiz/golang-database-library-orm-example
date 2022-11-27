@@ -10,9 +10,9 @@ func (r *repo) ListM2M(ctx context.Context) ([]*User, error) {
 
 	err := r.db.WithContext(ctx).
 		Preload("Addresses").
-		Find(&users).
 		Select("*").
 		Limit(30).
+		Find(&users).
 		Error
 	if err != nil {
 		return nil, fmt.Errorf("error loading user with addresses: %w", err)

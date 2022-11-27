@@ -16,7 +16,8 @@ const (
 	queryParamDisablePaging = "disable_paging"
 	queryParamSort          = "sort"
 
-	SqlAsc = "ASC"
+	SqlAsc  = "ASC"
+	SqlDesc = "DESC"
 )
 
 type Filter struct {
@@ -51,11 +52,11 @@ func New(queries url.Values) *Filter {
 	if queries.Has(queryParamSort) {
 		s := queries[queryParamSort]
 		for _, val := range s {
-			key, order, found := strings.Cut(val, ",")
+			key, _, found := strings.Cut(val, ",")
 			if found {
-				sortKey[key] = strings.ToUpper(order)
+				sortKey[key] = SqlDesc
 			} else {
-				sortKey[key] = "asc"
+				sortKey[key] = SqlAsc
 			}
 		}
 	}

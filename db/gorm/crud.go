@@ -2,12 +2,16 @@ package gorm
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
+	"net/http"
 
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
 
 	"godb/db"
+	"godb/respond/message"
 )
 
 type repo struct {
@@ -53,8 +57,9 @@ func (r *repo) List(ctx context.Context, f *db.Filter) ([]*User, error) {
 	}
 
 	var users []*User
-	err := r.db.WithContext(ctx).
-		Select([]string{"id", "first_name", "middle_name", "last_name", "email", "favourite_colour"}).
+	err := r.db.Debug().WithContext(ctx).
+		//Select([]string{"id", "first_name", "middle_name", "last_name", "email", "favourite_colour"}).
+		Select("id", "first_name", "middle_name", "last_name", "email", "favourite_colour").
 		Limit(f.Base.Limit).
 		Offset(f.Base.Offset).
 		Order("id").
@@ -77,7 +82,12 @@ func (r *repo) Get(ctx context.Context, userID int64) (*User, error) {
 		First(&user, userID).
 		Error
 	if err != nil {
-		return nil, err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			er := &db.Err{Msg: message.ErrRecordNotFound.Error(), Status: http.StatusNotFound}
+			return &User{}, er
+		}
+		log.Println(err)
+		return &User{}, &db.Err{Msg: message.ErrInternalError.Error(), Status: http.StatusInternalServerError}
 	}
 
 	return &user, nil

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -115,7 +116,8 @@ func (r *database) Get(ctx context.Context, userID int64) (*db.UserResponse, err
 		if errors.Is(err, sql.ErrNoRows) {
 			return &db.UserResponse{}, &db.Err{Msg: message.ErrRecordNotFound.Error(), Status: http.StatusNotFound}
 		}
-		return nil, err
+		log.Println(err)
+		return &db.UserResponse{}, &db.Err{Msg: message.ErrInternalError.Error(), Status: http.StatusInternalServerError}
 	}
 
 	return &db.UserResponse{
@@ -136,9 +138,6 @@ func (r *database) Update(ctx context.Context, userID int64, f *db.Filter, req *
 
 	currUser, err := r.Get(ctx, userID)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New("no record found")
-		}
 		return nil, err
 	}
 

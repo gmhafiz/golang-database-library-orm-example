@@ -11,8 +11,8 @@ func (r *repo) Countries(ctx context.Context) ([]*Country, error) {
 	err := r.db.WithContext(ctx).
 		Preload("Address").
 		Limit(30).
-		Find(&countries).
 		Select("*").
+		Find(&countries).
 		Error
 	if err != nil {
 		return nil, fmt.Errorf("error loading countries: %w", err)

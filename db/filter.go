@@ -1,10 +1,9 @@
 package db
 
 import (
-	"net/url"
-
 	"godb/filter"
 	"godb/param"
+	"net/http"
 )
 
 type Filter struct {
@@ -17,21 +16,24 @@ type Filter struct {
 	LastNames []string
 
 	Transaction bool
+
+	Select string
 }
 
-func Filters(v url.Values) *Filter {
-	f := filter.New(v)
+func Filters(r *http.Request) *Filter {
+	f := filter.New(r.URL.Query())
 
-	lastNames := param.ToStrSlice(v, "last_name")
-	transaction := param.Bool(v, "transaction")
+	lastNames := param.ToStrSlice(r.URL.Query(), "last_name")
+	transaction := param.Bool(r.URL.Query(), "transaction")
 
 	return &Filter{
 		Base: *f,
 
-		Email:           v.Get("email"),
-		FirstName:       v.Get("first_name"),
-		FavouriteColour: v.Get("favourite_colour"),
+		Email:           r.URL.Query().Get("email"),
+		FirstName:       r.URL.Query().Get("first_name"),
+		FavouriteColour: r.URL.Query().Get("favourite_colour"),
 		LastNames:       lastNames,
 		Transaction:     transaction,
+		Select:          r.URL.Query().Get("select"),
 	}
 }

@@ -3,12 +3,46 @@ package squirrel
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/samber/lo"
 
 	"godb/db"
 )
+
+func (r repository) CountriesRawJSON(ctx context.Context) (resp []json.RawMessage, err error) {
+	s := r.db.Select("* from country_address")
+	rows, err := r.db.
+		Select("row_to_json(row)").
+		FromSelect(s, "row").
+		QueryContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var items []json.RawMessage
+	for rows.Next() {
+		var rowToJson json.RawMessage
+		if err := rows.Scan(&rowToJson); err != nil {
+			return nil, err
+		}
+		items = append(items, rowToJson)
+	}
+
+	// or
+
+	var scanned []*Custom1ToManyStruct
+	for rows.Next() {
+		var rowToJson Custom1ToManyStruct
+		if err := rows.Scan(&rowToJson); err != nil {
+			return nil, err
+		}
+		scanned = append(scanned, &rowToJson)
+	}
+
+	return items, nil
+}
 
 func (r repository) Countries(ctx context.Context) (resp []*db.CountryResponseWithAddress, err error) {
 	rows, err := r.db.
@@ -82,4 +116,24 @@ func (r repository) Countries(ctx context.Context) (resp []*db.CountryResponseWi
 	}
 
 	return resp, nil
+}
+
+type Custom1ToManyStruct struct {
+	Id      int    `json:"id"`
+	Code    string `json:"code"`
+	Name    string `json:"name"`
+	Address []struct {
+		Id        int    `json:"id"`
+		Line1     string `json:"line_1"`
+		Line2     string `json:"line_2"`
+		Postcode  int    `json:"postcode"`
+		City      string `json:"city"`
+		State     string `json:"state"`
+		CountryId int    `json:"country_id"`
+	} `json:"address"`
+}
+
+func (m *Custom1ToManyStruct) Scan(src interface{}) error {
+	val := src.([]uint8)
+	return json.Unmarshal(val, &m)
 }

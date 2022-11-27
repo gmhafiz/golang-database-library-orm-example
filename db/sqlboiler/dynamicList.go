@@ -71,8 +71,8 @@ func (r *database) ListFilterSort(ctx context.Context, f *db.Filter) (users []*d
 
 	mods = append(mods, qm.OrderBy(models.UserColumns.ID))
 
-	boil.DebugMode = true
-	all, err := models.Users(mods...).All(ctx, r.db)
+	all, err := models.Users(mods...).
+		All(ctx, r.db)
 	if err != nil {
 		return nil, err
 	}

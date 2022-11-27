@@ -14,10 +14,11 @@ func (r *database) ListFilterByColumn(ctx context.Context, f *filter) ([]*gen.Us
 	var predicateUser []predicate.User
 	if f.Email != "" {
 		predicateUser = append(predicateUser, user.EmailEQ(f.Email))
+		//predicateUser = append(predicateUser, user.EmailContainsFold(f.Email))
 	}
 	if f.FirstName != "" {
-		//predicateUser = append(predicateUser, user.FirstNameContainsFold(f.FirstName))
-		predicateUser = append(predicateUser, user.FirstNameEQ(f.FirstName))
+		//predicateUser = append(predicateUser, user.FirstNameEQ(f.FirstName))
+		predicateUser = append(predicateUser, user.FirstNameContainsFold(f.FirstName))
 	}
 	if f.FavouriteColour != "" {
 		predicateUser = append(predicateUser, user.FavouriteColourEQ(user.FavouriteColour(f.FavouriteColour)))
@@ -62,9 +63,6 @@ func (r *database) ListFilterPagination(ctx context.Context, f *filter) ([]*gen.
 		query = query.Offset(f.Base.Offset)
 	}
 	resp, err := query.
-		// When using LIMIT, it is important to use an ORDER BY clause that
-		// constrains the result rows into a unique order
-		// https://www.postgresql.org/docs/14/queries-limit.html
 		Order(gen.Asc(user.FieldID)).
 		All(ctx)
 	if err != nil {

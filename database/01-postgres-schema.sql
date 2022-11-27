@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS users
     email            text        not null unique,
     password         text        not null,
     favourite_colour valid_colours        default 'green'::valid_colours not null,
+    tags             text[] NOT NULL DEFAULT '{}'::text[],
     updated_at       timestamptz not null default NOW()
 );
 
@@ -123,18 +124,18 @@ INSERT INTO users (first_name, last_name, email, password, favourite_colour)
 VALUES ('Ivy', 'Doe', 'ivy@example.com',
         '$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg',
         'blue');
-INSERT INTO users (first_name, last_name, email, password, favourite_colour)
+INSERT INTO users (first_name, last_name, email, password, favourite_colour, tags)
 VALUES ('Jeff', 'Donovan', 'jeff@example.com',
         '$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg',
-        'blue');
-INSERT INTO users (first_name, last_name, email, password, favourite_colour)
+        'blue', '{the,best,burned,spy}');
+INSERT INTO users (first_name, last_name, email, password, favourite_colour, tags)
 VALUES ('Bruce', 'Campbell', 'bruce@example.com',
         '$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg',
-        'blue');
-INSERT INTO users (first_name, last_name, email, password, favourite_colour)
-VALUES ('Gabrielle', 'Anwar', 'gabrielle@example.com',
+        'blue', '{the,best,righthand,man,ever}');
+INSERT INTO users (first_name, last_name, email, password, favourite_colour, tags)
+VALUES ('Gabrielle', 'Anwar', 'gabrielle2@example.com',
         '$argon2id$v=19$m=16,t=2,p=1$UDB3RXNPd3ZEWHQ4ZTRNVg$LhHurQuz9Q9dDEG1VNzbFg',
-        'red');
+        'red', '{the,best,sidekick,ever}');
 
 
 INSERT INTO user_addresses (user_id, address_id)
