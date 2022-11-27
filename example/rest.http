@@ -21,13 +21,17 @@ Accept: application/json
 GET http://localhost:3080/api/sqlx/user?last_name=Donovan,Campbell
 Accept: application/json
 
+### Only retrieve names
+GET http://localhost:3080/api/sqlx/user/array/15
+Accept: application/json
+
 ### GET request by ID
-GET http://localhost:3080/api/sqlx/user/14747
+GET http://localhost:3080/api/sqlx/user/1
 Accept: application/json
 
 
 ### Update PUT request with json body
-PUT  http://localhost:3080/api/sqlx/user/1
+PUT  http://localhost:3080/api/sqlx/user/164566634
 Content-Type: application/json
 
 {
@@ -234,14 +238,14 @@ Accept: application/json
 
 
 ### Update PUT request with json body
-PUT  http://localhost:3080/api/squirrel/user/1
+PUT  http://localhost:3080/api/squirrel/user/10
 Content-Type: application/json
 
 {
   "first_name": "John",
   "middle_name": "Middle",
   "last_name": "Doe",
-  "email": "john-changed25yitty@example.com",
+  "email": "garry-changed001@example.com",
   "favourite_colour": "green"
 }
 
@@ -336,7 +340,7 @@ GET http://localhost:3080/api/gorm/user?last_name=Donovan,Campbell
 Accept: application/json
 
 ### GET request by ID
-GET http://localhost:3080/api/gorm/user/1
+GET http://localhost:3080/api/gorm/user/1634634636
 Accept: application/json
 
 

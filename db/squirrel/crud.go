@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 
 	sq "github.com/Masterminds/squirrel"
@@ -113,7 +114,8 @@ func (r repository) Get(ctx context.Context, userID int64) (*db.UserResponse, er
 		if errors.Is(err, sql.ErrNoRows) {
 			return &db.UserResponse{}, &db.Err{Msg: message.ErrRecordNotFound.Error(), Status: http.StatusNotFound}
 		}
-		return nil, err
+		log.Println(err)
+		return &db.UserResponse{}, &db.Err{Msg: message.ErrInternalError.Error(), Status: http.StatusInternalServerError}
 	}
 
 	return &db.UserResponse{
@@ -152,7 +154,7 @@ func (r repository) Update(ctx context.Context, id int64, f *db.Filter, req *db.
 		Where(sq.Eq{"id": id}).
 		ExecContext(ctx)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	return r.Get(ctx, id)

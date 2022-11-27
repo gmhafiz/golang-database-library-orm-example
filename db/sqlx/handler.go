@@ -19,15 +19,6 @@ type handler struct {
 	db *repository
 }
 
-//type Err struct {
-//	Msg    string
-//	Status int
-//}
-//
-//func (e *Err) Error() string {
-//	return e.Msg
-//}
-
 func Register(r *chi.Mux, db *sqlx.DB, dbType string) {
 	h := &handler{
 		db: NewRepo(db),
@@ -36,6 +27,7 @@ func Register(r *chi.Mux, db *sqlx.DB, dbType string) {
 	r.Route("/api/sqlx/user", func(router chi.Router) {
 		router.Post("/", h.Create)
 		router.Get("/", h.List)
+		router.Get("/array/{userID}", h.Array)
 		router.Get("/m2m", h.ListM2M)
 		router.Get("/m2mOneQuery", h.ListM2MOneQuery)
 		router.Get("/{userID}", h.Get)
@@ -92,7 +84,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
-	f := db.Filters(r.URL.Query())
+	f := db.Filters(r)
 
 	users, err := h.db.List(r.Context(), f)
 	if err != nil {
@@ -130,7 +122,7 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
-	f := db.Filters(r.URL.Query())
+	f := db.Filters(r)
 
 	userID, err := param.Int64(r, "userID")
 	if err != nil {
@@ -155,7 +147,7 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		var errStruct *db.Err
 		if errors.As(err, &errStruct) {
-			respond.Error(w, http.StatusInternalServerError, errStruct)
+			respond.Error(w, errStruct.Status, errStruct)
 			return
 		}
 
@@ -221,4 +213,20 @@ func (h *handler) ListM2MOneQuery(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respond.Json(w, http.StatusOK, users)
+}
+
+func (h *handler) Array(w http.ResponseWriter, r *http.Request) {
+	userID, err := param.Int64(r, "userID")
+	if err != nil {
+		respond.Error(w, http.StatusBadRequest, param.ErrParam)
+		return
+	}
+
+	values, err := h.db.Array(r.Context(), userID)
+	if err != nil {
+		respond.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	respond.Json(w, http.StatusOK, values)
 }
