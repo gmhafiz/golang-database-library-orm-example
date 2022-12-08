@@ -3,9 +3,9 @@ version: '3.7'
 services:
 
   postgres:
-    image: "postgres:14"
+    image: "postgres:15"
     restart: unless-stopped
-    container_name: "postgres14"
+    container_name: "postgres15"
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
@@ -17,8 +17,8 @@ services:
     healthcheck:
       test: pg_isready -U postgres
     volumes:
-      - postgres14db:/var/lib/postgresql/data
+      - postgres15db:/var/lib/postgresql/data
       - ./database/01-postgres-schema.sql:/docker-entrypoint-initdb.d/init.sql
 
 volumes:
-  postgres14db:
+  postgres15db:
