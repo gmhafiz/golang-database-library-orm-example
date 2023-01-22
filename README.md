@@ -15,7 +15,8 @@ The aim is to demonstrate and compare usage for several operations
  2. 1-to-Many queries
  3. Many-to-many queries
  4. Dynamic list filter from query parameter 
- 5. (Coming) Transaction
+ 5. Transaction
+ 6. SQL Injection 
 
 # Schema
 
@@ -49,7 +50,7 @@ Run with
     go run main.go
 
 
-Run examples from `examples` folder.
+Run examples from `example` folder.
 
 # Blog Posts
 
