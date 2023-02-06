@@ -12,6 +12,7 @@ func (r *repo) ListM2M(ctx context.Context) ([]*User, error) {
 		Preload("Addresses").
 		Select("*").
 		Limit(30).
+		Order("users.id").
 		Find(&users).
 		Error
 	if err != nil {
