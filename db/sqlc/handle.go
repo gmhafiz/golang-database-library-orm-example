@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/alexedwards/argon2id"
 	"github.com/go-chi/chi/v5"
@@ -72,8 +73,9 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		MiddleName:      user.MiddleName.String,
 		LastName:        user.LastName,
 		Email:           user.Email,
+		Tags:            user.Tags,
 		FavouriteColour: string(user.FavouriteColour),
-		UpdatedAt:       user.UpdatedAt.String(),
+		UpdatedAt:       user.UpdatedAt.Format(time.RFC3339),
 	})
 }
 
@@ -115,13 +117,13 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 		LastName:        user.LastName,
 		Email:           user.Email,
 		FavouriteColour: user.FavouriteColour,
+		Tags:            user.Tags,
 		UpdatedAt:       user.UpdatedAt,
 	})
 }
 
 func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
-	f :=
-		db.Filters(r)
+	f := db.Filters(r)
 
 	userID, err := param.Int64(r, "userID")
 	if err != nil {
@@ -158,7 +160,8 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		LastName:        updated.LastName,
 		Email:           updated.Email,
 		FavouriteColour: string(updated.FavouriteColour),
-		UpdatedAt:       updated.UpdatedAt.String(),
+		Tags:            updated.Tags,
+		UpdatedAt:       updated.UpdatedAt.Format(time.RFC3339),
 	})
 }
 

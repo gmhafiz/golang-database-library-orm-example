@@ -10,7 +10,7 @@ import (
 func (r *repo) ListFilterByColumn(ctx context.Context, f *db.Filter) ([]*User, error) {
 	var users []*User
 	builder := r.db.WithContext(ctx).
-		Select([]string{"id", "first_name", "middle_name", "last_name", "email", "favourite_colour"}).
+		Select([]string{"id", "first_name", "middle_name", "last_name", "email", "favourite_colour", "tags"}).
 		Offset(f.Base.Offset).
 		Limit(f.Base.Limit).
 		Order("id").

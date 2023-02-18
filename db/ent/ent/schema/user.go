@@ -4,8 +4,10 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"github.com/lib/pq"
 )
 
 // User holds the schema definition for the User entity.
@@ -25,7 +27,15 @@ func (User) Fields() []ent.Field {
 		field.Enum("favourite_colour").
 			Values("red", "green", "blue").
 			Default("green"),
-		field.Time("updated_at").Default(time.Now()),
+
+		field.Other("tags", &pq.StringArray{}).
+			SchemaType(map[string]string{
+				dialect.Postgres: "text[]",
+			}).
+			Default(&pq.StringArray{}).
+			Optional(),
+
+		field.Time("updated_at").Default(time.Now()).Optional(),
 	}
 }
 

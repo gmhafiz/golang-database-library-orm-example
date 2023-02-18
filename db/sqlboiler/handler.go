@@ -6,6 +6,7 @@ import (
 	"errors"
 	"godb/db"
 	"net/http"
+	"time"
 
 	"github.com/alexedwards/argon2id"
 	"github.com/go-chi/chi/v5"
@@ -65,15 +66,15 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		MiddleName:      u.MiddleName.String,
 		LastName:        u.LastName,
 		Email:           u.Email,
-		FavouriteColour: u.FavouriteColour.String,
-		UpdatedAt:       u.UpdatedAt.String(),
+		FavouriteColour: u.FavouriteColour,
+		Tags:            u.Tags,
+		UpdatedAt:       u.UpdatedAt.Format(time.RFC3339),
 		// Password is omitted from client response
 	})
 }
 
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
-	f :=
-		db.Filters(r)
+	f := db.Filters(r)
 
 	userResponse, err := h.db.List(r.Context(), f)
 	if err != nil {
@@ -98,18 +99,19 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respond.Json(w, http.StatusOK, &db.UserResponse{
-		ID:         uint(u.ID),
-		FirstName:  u.FirstName,
-		MiddleName: u.MiddleName.String,
-		LastName:   u.LastName,
-		Email:      u.Email,
-		UpdatedAt:  u.UpdatedAt.String(),
+		ID:              uint(u.ID),
+		FirstName:       u.FirstName,
+		MiddleName:      u.MiddleName.String,
+		LastName:        u.LastName,
+		Email:           u.Email,
+		FavouriteColour: u.FavouriteColour,
+		Tags:            u.Tags,
+		UpdatedAt:       u.UpdatedAt.Format(time.RFC3339),
 	})
 }
 
 func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
-	f :=
-		db.Filters(r)
+	f := db.Filters(r)
 
 	userID, err := param.Int64(r, "userID")
 	if err != nil {
@@ -146,8 +148,9 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		MiddleName:      updated.MiddleName.String,
 		LastName:        updated.LastName,
 		Email:           updated.Email,
-		FavouriteColour: updated.FavouriteColour.String,
-		UpdatedAt:       updated.UpdatedAt.String(),
+		FavouriteColour: updated.FavouriteColour,
+		Tags:            updated.Tags,
+		UpdatedAt:       updated.UpdatedAt.Format(time.RFC3339),
 	})
 }
 

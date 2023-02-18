@@ -1,6 +1,7 @@
 package gorm
 
 import (
+	"github.com/lib/pq"
 	"godb/db"
 	"log"
 
@@ -14,12 +15,16 @@ import (
 type User struct {
 	//gorm.Model
 
-	ID              int    `json:"id"`
-	FirstName       string `json:"first_name"`
-	MiddleName      string `json:"middle_name"`
-	LastName        string `json:"last_name"`
-	Email           string `json:"email"`
-	Password        string `json:"-"`
+	ID         int    `json:"id"`
+	FirstName  string `json:"first_name"`
+	MiddleName string `json:"middle_name"`
+	LastName   string `json:"last_name"`
+	Email      string `json:"email"`
+	Password   string `json:"-"`
+	//Tags       []string `json:"tags" gorm:"type:[]array"`
+	//Tags []string `json:"tags" gorm:"type:text[]"`
+	Tags pq.StringArray `json:"tags" gorm:"type:text[]"`
+	//Tags            []string `json:"tags" gorm:"type:[]text"`
 	FavouriteColour string `json:"favourite_colour"`
 
 	Addresses []Address `json:"address" gorm:"many2many:user_addresses;"`

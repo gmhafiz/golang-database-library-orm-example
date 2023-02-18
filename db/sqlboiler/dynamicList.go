@@ -3,13 +3,13 @@ package sqlboiler
 import (
 	"context"
 	"fmt"
-	"godb/db"
 	"strings"
+	"time"
 
-	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 
+	"godb/db"
 	"godb/db/sqlboiler/models"
 )
 
@@ -28,7 +28,7 @@ func (r *database) ListFilterByColumn(ctx context.Context, f *db.Filter) (users 
 		mods = append(mods, qm.Where("first_name ILIKE ?", strings.ToLower(f.FirstName)))
 	}
 	if f.FavouriteColour != "" {
-		mods = append(mods, models.UserWhere.FavouriteColour.EQ(null.String{String: strings.ToLower(f.FavouriteColour), Valid: true}))
+		mods = append(mods, models.UserWhere.FavouriteColour.EQ(strings.ToLower(f.FavouriteColour)))
 	}
 
 	mods = append(mods, qm.OrderBy(models.UserColumns.ID))
@@ -47,8 +47,9 @@ func (r *database) ListFilterByColumn(ctx context.Context, f *db.Filter) (users 
 			MiddleName:      i.MiddleName.String,
 			LastName:        i.LastName,
 			Email:           i.Email,
-			FavouriteColour: i.FavouriteColour.String,
-			UpdatedAt:       i.UpdatedAt.String(),
+			FavouriteColour: i.FavouriteColour,
+			Tags:            i.Tags,
+			UpdatedAt:       i.UpdatedAt.Format(time.RFC3339),
 		})
 	}
 
@@ -84,8 +85,9 @@ func (r *database) ListFilterSort(ctx context.Context, f *db.Filter) (users []*d
 			MiddleName:      i.MiddleName.String,
 			LastName:        i.LastName,
 			Email:           i.Email,
-			FavouriteColour: i.FavouriteColour.String,
-			UpdatedAt:       i.UpdatedAt.String(),
+			FavouriteColour: i.FavouriteColour,
+			Tags:            i.Tags,
+			UpdatedAt:       i.UpdatedAt.Format(time.RFC3339),
 		})
 	}
 
@@ -116,8 +118,9 @@ func (r *database) ListFilterPagination(ctx context.Context, f *db.Filter) (user
 			MiddleName:      i.MiddleName.String,
 			LastName:        i.LastName,
 			Email:           i.Email,
-			FavouriteColour: i.FavouriteColour.String,
-			UpdatedAt:       i.UpdatedAt.String(),
+			FavouriteColour: i.FavouriteColour,
+			Tags:            i.Tags,
+			UpdatedAt:       i.UpdatedAt.Format(time.RFC3339),
 		})
 	}
 

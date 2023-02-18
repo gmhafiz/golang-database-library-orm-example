@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 
@@ -18,17 +19,17 @@ func (r repository) ListFilterByColumn(ctx context.Context, f *db.Filter) (users
 
 	if f.Email != "" {
 		//builder = builder.Where(sq.Eq{"email": f.Email})
-		builder = builder.Where(sq.Like{"email": "%" + f.Email + "%"})
+		builder = builder.Where(sq.ILike{"email": "%" + f.Email + "%"})
 	}
 
 	if f.FirstName != "" {
 		//builder = builder.Where(sq.Eq{"first_name": f.FirstName})
-		builder = builder.Where(sq.Like{"first_name": "%" + f.FirstName + "%"})
+		builder = builder.Where(sq.ILike{"first_name": "%" + f.FirstName + "%"})
 	}
 
 	if f.FavouriteColour != "" {
-		//builder = builder.Where(sq.Eq{"favourite_colour": f.FavouriteColour})
-		builder = builder.Where(sq.Like{"favourite_colour": "%" + f.FavouriteColour + "%"})
+		//builder = builder.Where(sq.Eq{"favourite_colour::text": f.FavouriteColour})
+		builder = builder.Where(sq.ILike{"favourite_colour::text": "%" + f.FavouriteColour + "%"})
 	}
 
 	rows, err := builder.QueryContext(ctx)
@@ -53,6 +54,8 @@ func (r repository) ListFilterByColumn(ctx context.Context, f *db.Filter) (users
 			&u.Email,
 			&u.Password,
 			&u.FavouriteColour,
+			&u.Tags,
+			&u.UpdatedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("db scanning error")
@@ -64,7 +67,8 @@ func (r repository) ListFilterByColumn(ctx context.Context, f *db.Filter) (users
 			LastName:        u.LastName,
 			Email:           u.Email,
 			FavouriteColour: u.FavouriteColour,
-			UpdatedAt:       u.UpdatedAt.String(),
+			Tags:            u.Tags,
+			UpdatedAt:       u.UpdatedAt.Format(time.RFC3339),
 		})
 	}
 
@@ -116,6 +120,8 @@ func (r repository) ListFilterSort(ctx context.Context, f *db.Filter) (users []*
 			&u.Email,
 			&u.Password,
 			&u.FavouriteColour,
+			&u.Tags,
+			&u.UpdatedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("db scanning error")
@@ -127,7 +133,8 @@ func (r repository) ListFilterSort(ctx context.Context, f *db.Filter) (users []*
 			LastName:        u.LastName,
 			Email:           u.Email,
 			FavouriteColour: u.FavouriteColour,
-			UpdatedAt:       u.UpdatedAt.String(),
+			Tags:            u.Tags,
+			UpdatedAt:       u.UpdatedAt.Format(time.RFC3339),
 		})
 	}
 
@@ -163,6 +170,8 @@ func (r repository) ListFilterPagination(ctx context.Context, f *db.Filter) (use
 			&u.Email,
 			&u.Password,
 			&u.FavouriteColour,
+			&u.Tags,
+			&u.UpdatedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("db scanning error")
@@ -174,7 +183,8 @@ func (r repository) ListFilterPagination(ctx context.Context, f *db.Filter) (use
 			LastName:        u.LastName,
 			Email:           u.Email,
 			FavouriteColour: u.FavouriteColour,
-			UpdatedAt:       u.UpdatedAt.String(),
+			Tags:            u.Tags,
+			UpdatedAt:       u.UpdatedAt.Format(time.RFC3339),
 		})
 	}
 

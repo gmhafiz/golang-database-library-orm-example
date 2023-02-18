@@ -1,6 +1,7 @@
 package ent
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -58,14 +59,14 @@ func New(cfg config.Database) *gen.Client {
 	}
 	defer f.Close()
 
-	//ctx := context.Background()
+	ctx := context.Background()
 	//if err := client.Schema.WriteTo(ctx, f); err != nil {
 	//	log.Fatalf("failed printing schema changes: %v", err)
 	//}
 	//
-	//if err := client.Schema.Create(ctx); err != nil {
-	//	log.Fatalf("failed creating schema resources: %v", err)
-	//}
+	if err := client.Schema.Create(ctx); err != nil {
+		log.Fatalf("failed creating schema resources: %v", err)
+	}
 
 	return client
 }

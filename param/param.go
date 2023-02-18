@@ -45,9 +45,7 @@ func ToStrSlice(v url.Values, s string) []string {
 
 	ints := make([]string, 0)
 
-	for _, val := range str {
-		ints = append(ints, val)
-	}
+	ints = append(ints, str...)
 
 	return ints
 }

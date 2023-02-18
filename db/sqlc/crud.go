@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
@@ -103,7 +104,8 @@ func (r *database) List(ctx context.Context, f *db.Filter) (l []db.UserResponse,
 			LastName:        row.LastName,
 			Email:           row.Email,
 			FavouriteColour: string(row.FavouriteColour),
-			UpdatedAt:       row.UpdatedAt.String(),
+			Tags:            row.Tags,
+			UpdatedAt:       row.UpdatedAt.Format(time.RFC3339),
 		})
 	}
 
@@ -127,7 +129,8 @@ func (r *database) Get(ctx context.Context, userID int64) (*db.UserResponse, err
 		LastName:        res.LastName,
 		Email:           res.Email,
 		FavouriteColour: string(res.FavouriteColour),
-		UpdatedAt:       res.UpdatedAt.String(),
+		Tags:            res.Tags,
+		UpdatedAt:       res.UpdatedAt.Format(time.RFC3339),
 	}, nil
 }
 
@@ -190,7 +193,8 @@ func (r *database) ListFilterWhereIn(ctx context.Context, f *db.Filter) (result 
 				LastName:        val.LastName,
 				Email:           val.Email,
 				FavouriteColour: string(val.FavouriteColour),
-				UpdatedAt:       val.UpdatedAt.String(),
+				Tags:            val.Tags,
+				UpdatedAt:       val.UpdatedAt.Format(time.RFC3339),
 			})
 		}
 	case "mysql", "mariadb":
@@ -227,6 +231,7 @@ func (r *database) ListFilterWhereIn(ctx context.Context, f *db.Filter) (result 
 				&item.Email,
 				&item.Password,
 				&item.FavouriteColour,
+				&item.Tags,
 			)
 			if err != nil {
 				return nil, err
@@ -238,7 +243,8 @@ func (r *database) ListFilterWhereIn(ctx context.Context, f *db.Filter) (result 
 				LastName:        item.LastName,
 				Email:           item.Email,
 				FavouriteColour: item.FavouriteColour,
-				UpdatedAt:       item.UpdatedAt.String(),
+				Tags:            item.Tags,
+				UpdatedAt:       item.UpdatedAt.Format(time.RFC3339),
 			})
 		}
 	}

@@ -5,6 +5,7 @@ import (
 	"godb/db"
 	"godb/db/sqlc/pg"
 	"log"
+	"time"
 )
 
 func (r *database) ListFilterByColumn(ctx context.Context, f *db.Filter) (l []db.UserResponse, err error) {
@@ -29,7 +30,8 @@ func (r *database) ListFilterByColumn(ctx context.Context, f *db.Filter) (l []db
 			LastName:        user.LastName,
 			Email:           user.Email,
 			FavouriteColour: string(user.FavouriteColour),
-			UpdatedAt:       user.UpdatedAt.String(),
+			Tags:            user.Tags,
+			UpdatedAt:       user.UpdatedAt.Format(time.RFC3339),
 		})
 	}
 
@@ -69,7 +71,8 @@ func (r *database) ListFilterSort(ctx context.Context, f *db.Filter) (l []db.Use
 			LastName:        user.LastName,
 			Email:           user.Email,
 			FavouriteColour: string(user.FavouriteColour),
-			UpdatedAt:       user.UpdatedAt.String(),
+			Tags:            user.Tags,
+			UpdatedAt:       user.UpdatedAt.Format(time.RFC3339),
 		})
 	}
 
@@ -96,7 +99,8 @@ func (r *database) ListFilterPagination(ctx context.Context, f *db.Filter) (l []
 			LastName:        user.LastName,
 			Email:           user.Email,
 			FavouriteColour: string(user.FavouriteColour),
-			UpdatedAt:       user.UpdatedAt.String(),
+			Tags:            user.Tags,
+			UpdatedAt:       user.UpdatedAt.Format(time.RFC3339),
 		})
 	}
 	return l, nil

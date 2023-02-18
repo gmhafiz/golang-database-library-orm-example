@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"godb/db"
 	"godb/db/sqlc/pg"
@@ -27,8 +28,9 @@ func (r *database) ListM2M(ctx context.Context) ([]*db.UserResponseWithAddresses
 			MiddleName: u.MiddleName.String,
 			LastName:   u.LastName,
 			Email:      u.Email,
+			Tags:       u.Tags,
 			Address:    []*db.AddressForCountry{},
-			UpdatedAt:  u.UpdatedAt.String(),
+			UpdatedAt:  u.UpdatedAt.Format(time.RFC3339),
 		})
 	}
 
@@ -89,6 +91,7 @@ func (r *database) ListM2MOneQuery(ctx context.Context) ([]*db.UserResponseWithA
 			LastName:        dbRow.LastName,
 			Email:           dbRow.Email,
 			FavouriteColour: string(dbRow.FavouriteColour),
+			Tags:            dbRow.Tags,
 			Address:         dbRow.Addresses,
 		}
 		resp = append(resp, row)

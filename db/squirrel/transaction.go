@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 
@@ -29,7 +30,7 @@ func (r repository) Transaction(ctx context.Context, id int64, req *db.UserUpdat
 		QueryRowContext(ctx)
 
 	var u db.UserDB
-	err = rows.Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email, &u.Password, &u.FavouriteColour, &u.UpdatedAt)
+	err = rows.Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email, &u.Password, &u.FavouriteColour, &u.Tags, &u.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return &db.UserResponse{}, &db.Err{Msg: message.ErrRecordNotFound.Error(), Status: http.StatusNotFound}
@@ -66,7 +67,7 @@ func (r repository) Transaction(ctx context.Context, id int64, req *db.UserUpdat
 		RunWith(tx).
 		QueryRowContext(ctx)
 
-	err = rows.Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email, &u.Password, &u.FavouriteColour, &u.UpdatedAt)
+	err = rows.Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email, &u.Password, &u.FavouriteColour, &u.Tags, &u.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return &db.UserResponse{}, &db.Err{Msg: message.ErrRecordNotFound.Error(), Status: http.StatusNotFound}
@@ -83,6 +84,7 @@ func (r repository) Transaction(ctx context.Context, id int64, req *db.UserUpdat
 		LastName:        u.LastName,
 		Email:           u.Email,
 		FavouriteColour: u.FavouriteColour,
-		UpdatedAt:       u.UpdatedAt.String(),
+		Tags:            u.Tags,
+		UpdatedAt:       u.UpdatedAt.Format(time.RFC3339),
 	}, nil
 }

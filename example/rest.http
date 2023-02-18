@@ -9,8 +9,9 @@ Content-Type: application/json
 {
   "first_name": "Jake43",
   "last_name": "Doe",
-  "email": "jake43@example.com",
-  "password": "password"
+  "email": "jake46@example.com",
+  "password": "password",
+  "favourite_colour": "blue"
 }
 
 ### List
@@ -21,7 +22,7 @@ Accept: application/json
 GET http://localhost:3080/api/sqlx/user?last_name=Donovan,Campbell
 Accept: application/json
 
-### Only retrieve names
+### Only retrieve tags from a user
 GET http://localhost:3080/api/sqlx/user/array/15
 Accept: application/json
 
@@ -31,7 +32,7 @@ Accept: application/json
 
 
 ### Update PUT request with json body
-PUT  http://localhost:3080/api/sqlx/user/164566634
+PUT  http://localhost:3080/api/sqlx/user/1
 Content-Type: application/json
 
 {
@@ -43,11 +44,11 @@ Content-Type: application/json
 }
 
 ### Delete DELETE request with json body
-DELETE  http://localhost:3080/api/sqlx/user/13
+DELETE  http://localhost:3080/api/sqlx/user/2
 Content-Type: application/json
 
 ### List filter users by favourite_colour
-GET http://localhost:3080/api/sqlx/user?favourite_colour=blue
+GET http://localhost:3080/api/sqlx/user?favourite_colour=red
 Accept: application/json
 
 ### List filter users by name and favourite colour
@@ -88,7 +89,7 @@ Content-Type: application/json
   "first_name": "Jake36",
   "last_name": "Doe",
   "email": "jake36@example.com",
-  "password": "password"
+  "password": "password",
 }
 
 ### List users inject
@@ -117,7 +118,8 @@ Content-Type: application/json
   "first_name": "Jake",
   "last_name": "Doe",
   "email": "jake2@example.com",
-  "password": "password"
+  "password": "password",
+  "favourite_colour": "blue"
 }
 
 ### List
@@ -134,7 +136,7 @@ Accept: application/json
 
 
 ### Update PUT request with json body
-PUT  http://localhost:3080/api/sqlc/user/13
+PUT  http://localhost:3080/api/sqlc/user/1
 Content-Type: application/json
 
 {
@@ -218,10 +220,11 @@ POST http://localhost:3080/api/squirrel/user
 Content-Type: application/json
 
 {
-  "first_name": "Jake98",
+  "first_name": "Jake100",
   "last_name": "Doe",
-  "email": "jake98@example.com",
-  "password": "password"
+  "email": "jake100@example.com",
+  "password": "password",
+  "favourite_colour": "blue"
 }
 
 ### List
@@ -321,14 +324,15 @@ Accept: application/json
 
 
 ### POST Create request with json body
-POST  http://localhost:3080/api/gorm/user
+POST http://localhost:3080/api/gorm/user
 Content-Type: application/json
 
 {
-  "first_name": "Jake",
+  "first_name": "Jake102",
   "last_name": "Doe",
-  "email": "jake24@example.com",
-  "password": "password"
+  "email": "jake102@example.com",
+  "password": "password",
+  "favourite_colour": "blue"
 }
 
 ### GET List request
@@ -340,7 +344,7 @@ GET http://localhost:3080/api/gorm/user?last_name=Donovan,Campbell
 Accept: application/json
 
 ### GET request by ID
-GET http://localhost:3080/api/gorm/user/1634634636
+GET http://localhost:3080/api/gorm/user/1
 Accept: application/json
 
 
@@ -561,7 +565,7 @@ Accept: application/json
 
 
 ### GET request by ID
-GET http://localhost:3080/api/ent/user/1856856856684
+GET http://localhost:3080/api/ent/user/1
 Accept: application/json
 
 ### Update PUT request with json body

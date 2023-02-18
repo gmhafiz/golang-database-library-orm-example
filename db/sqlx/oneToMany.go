@@ -42,6 +42,9 @@ func (r *repository) Countries(ctx context.Context) ([]*db.CountryResponseWithAd
 		if err != nil {
 			return nil, err
 		}
+		if i.Addresses == nil {
+			i.Addresses = make([]*db.AddressForCountry, 0)
+		}
 		resp = append(resp, &i)
 	}
 

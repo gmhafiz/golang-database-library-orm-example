@@ -10,4 +10,4 @@ user   = "user"
 pass   = "password"
 sslmode = "disable"
 schema = "public"
-blacklist = ["migrations", "schema_migrations"]
+blacklist = ["migrations", "schema_migrations", "goose_db_version"]

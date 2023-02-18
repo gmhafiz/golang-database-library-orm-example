@@ -2,17 +2,15 @@ package ent
 
 import (
 	"encoding/json"
-	"godb/db"
-	"net/http"
-
 	"github.com/alexedwards/argon2id"
 	"github.com/go-chi/chi/v5"
-	_ "github.com/jackc/pgx/v4/stdlib"
-
+	_ "github.com/jackc/pgx/v5/stdlib"
+	"godb/db"
 	"godb/db/ent/ent/gen"
 	"godb/param"
 	"godb/respond"
 	"godb/respond/message"
+	"net/http"
 )
 
 //go:generate ent generate --feature privacy --target ./ent/gen ./ent/schema
@@ -92,15 +90,17 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respond.Json(w, http.StatusOK, &db.UserResponse{
-		ID:              u.ID,
-		FirstName:       u.FirstName,
-		MiddleName:      *u.MiddleName,
-		LastName:        u.LastName,
-		Email:           u.Email,
-		FavouriteColour: u.FavouriteColour.String(),
-		UpdatedAt:       u.UpdatedAt.String(),
-	})
+	respond.Json(w, http.StatusOK, u)
+	//respond.Json(w, http.StatusOK, &db.UserResponse{
+	//	ID:        u.ID,
+	//	FirstName: u.FirstName,
+	//	//MiddleName: *u.MiddleName,
+	//	LastName:        u.LastName,
+	//	Email:           u.Email,
+	//	FavouriteColour: u.FavouriteColour.String(),
+	//	//Tags:            u.Tags.([]string),
+	//	UpdatedAt: u.UpdatedAt.Format(time.RFC3339),
+	//})
 }
 
 func (h *handler) Update(w http.ResponseWriter, r *http.Request) {

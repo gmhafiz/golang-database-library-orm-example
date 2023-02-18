@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"godb/db"
 	"godb/respond/message"
@@ -57,6 +58,7 @@ func (r *repository) Transaction(ctx context.Context, userID int64, req *db.User
 		u.LastName,
 		u.Email,
 		u.FavouriteColour,
+		u.Tags,
 		userID,
 	)
 	if err != nil {
@@ -74,7 +76,8 @@ func (r *repository) Transaction(ctx context.Context, userID int64, req *db.User
 		LastName:        u.LastName,
 		Email:           u.Email,
 		FavouriteColour: u.FavouriteColour,
-		UpdatedAt:       u.UpdatedAt.String(),
+		Tags:            u.Tags,
+		UpdatedAt:       u.UpdatedAt.Format(time.RFC3339),
 	}, nil
 }
 
@@ -136,6 +139,7 @@ func (r *repository) TransactionIsolation(ctx context.Context, userID int64, req
 		LastName:        u.LastName,
 		Email:           u.Email,
 		FavouriteColour: u.FavouriteColour,
-		UpdatedAt:       u.UpdatedAt.String(),
+		Tags:            u.Tags,
+		UpdatedAt:       u.UpdatedAt.Format(time.RFC3339),
 	}, nil
 }

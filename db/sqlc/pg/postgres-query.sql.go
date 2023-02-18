@@ -103,7 +103,7 @@ const createUser = `-- name: CreateUser :one
 
 INSERT INTO users (first_name, middle_name, last_name, email, password, favourite_colour)
 VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, first_name, middle_name, last_name, email, password, favourite_colour, updated_at
+RETURNING id, first_name, middle_name, last_name, email, password, favourite_colour, tags, updated_at
 `
 
 type CreateUserParams struct {
@@ -117,11 +117,9 @@ type CreateUserParams struct {
 
 // SELECT *
 // FROM users
-// WHERE (@first_name::text = ” OR first_name = @first_name)
-//
-//	AND (@email::text = '' OR email ILIKE '%' || @email || '%')
-//
-// --   AND (@favourite_colour::text = ” OR favourite_colour ILIKE '%' || @favourite_colour || '%')
+// WHERE (@first_name::text = '' OR first_name = @first_name)
+//   AND (@email::text = '' OR email ILIKE '%' || @email || '%')
+// --   AND (@favourite_colour::text = '' OR favourite_colour ILIKE '%' || @favourite_colour || '%')
 // LIMIT 30
 // OFFSET 0;
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -142,6 +140,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Email,
 		&i.Password,
 		&i.FavouriteColour,
+		pq.Array(&i.Tags),
 		&i.UpdatedAt,
 	)
 	return i, err
@@ -159,7 +158,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, first_name, middle_name, last_name, email, favourite_colour, updated_at
+SELECT id, first_name, middle_name, last_name, email, favourite_colour, tags, updated_at
 FROM users
 WHERE id = $1
 `
@@ -171,6 +170,7 @@ type GetUserRow struct {
 	LastName        string
 	Email           string
 	FavouriteColour ValidColours
+	Tags            []string
 	UpdatedAt       time.Time
 }
 
@@ -184,17 +184,19 @@ func (q *Queries) GetUser(ctx context.Context, id int64) (GetUserRow, error) {
 		&i.LastName,
 		&i.Email,
 		&i.FavouriteColour,
+		pq.Array(&i.Tags),
 		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const listDynamicUsers = `-- name: ListDynamicUsers :many
-SELECT id, first_name, middle_name, last_name, email, password, favourite_colour, updated_at
+SELECT id, first_name, middle_name, last_name, email, password, favourite_colour, tags, updated_at
 FROM users
 WHERE ($1::text = '' OR first_name ILIKE '%' || $1 || '%')
   AND ($2::text = '' OR email = LOWER($2) )
-ORDER BY (CASE
+ORDER BY users.id,
+         (CASE
               WHEN $3::text = 'first_name' THEN first_name
               WHEN $4::text = 'email' THEN email
     END) DESC,
@@ -217,12 +219,11 @@ type ListDynamicUsersParams struct {
 	SqlLimit      int32
 }
 
-// AND (@favourite_colour IS NOT NULL OR favourite_colour = @favourite_colour )
-// AND (@favourite_colour_present::text = ” OR favourite_colour = @favourite_colour )
-// AND (@favourite_colour_present::valid_colours = ” OR favourite_colour = @favourite_colour )
-//
-//	WHEN @favourite_colour_desc::text = 'favourite_colour' THEN favourite_colour
-//	WHEN @favourite_colour_asc::text = 'favourite_colour' THEN favourite_colour
+//   AND (@favourite_colour IS NOT NULL OR favourite_colour = @favourite_colour )
+//   AND (@favourite_colour_present::text = '' OR favourite_colour = @favourite_colour )
+//   AND (@favourite_colour_present::valid_colours = '' OR favourite_colour = @favourite_colour )
+//               WHEN @favourite_colour_desc::text = 'favourite_colour' THEN favourite_colour
+//               WHEN @favourite_colour_asc::text = 'favourite_colour' THEN favourite_colour
 func (q *Queries) ListDynamicUsers(ctx context.Context, arg ListDynamicUsersParams) ([]User, error) {
 	rows, err := q.db.QueryContext(ctx, listDynamicUsers,
 		arg.FirstName,
@@ -249,6 +250,7 @@ func (q *Queries) ListDynamicUsers(ctx context.Context, arg ListDynamicUsersPara
 			&i.Email,
 			&i.Password,
 			&i.FavouriteColour,
+			pq.Array(&i.Tags),
 			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
@@ -270,6 +272,7 @@ SELECT u.id,
        u.middle_name,
        u.last_name,
        u.email,
+       u.tags,
        u.favourite_colour,
        array_to_json(array_agg(row_to_json(a.*))) AS addresses
 FROM addresses a
@@ -284,6 +287,7 @@ type ListM2MOneQueryRow struct {
 	MiddleName      sql.NullString
 	LastName        string
 	Email           string
+	Tags            []string
 	FavouriteColour ValidColours
 	Addresses       json.RawMessage
 }
@@ -303,6 +307,7 @@ func (q *Queries) ListM2MOneQuery(ctx context.Context) ([]ListM2MOneQueryRow, er
 			&i.MiddleName,
 			&i.LastName,
 			&i.Email,
+			pq.Array(&i.Tags),
 			&i.FavouriteColour,
 			&i.Addresses,
 		); err != nil {
@@ -320,7 +325,7 @@ func (q *Queries) ListM2MOneQuery(ctx context.Context) ([]ListM2MOneQueryRow, er
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, first_name, middle_name, last_name, email, favourite_colour, updated_at
+SELECT id, first_name, middle_name, last_name, email, favourite_colour, tags, updated_at
 FROM users
 ORDER BY id
 LIMIT 30
@@ -334,6 +339,7 @@ type ListUsersRow struct {
 	LastName        string
 	Email           string
 	FavouriteColour ValidColours
+	Tags            []string
 	UpdatedAt       time.Time
 }
 
@@ -353,6 +359,7 @@ func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
 			&i.LastName,
 			&i.Email,
 			&i.FavouriteColour,
+			pq.Array(&i.Tags),
 			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
@@ -410,6 +417,7 @@ SELECT DISTINCT ua.user_id, ua.address_id
 FROM "addresses" a
          LEFT JOIN "user_addresses" ua ON a.id = ua.address_id
 WHERE ua.user_id = ANY($1::int[])
+ORDER BY ua.user_id, ua.address_id
 `
 
 type SelectUserAddressesRow struct {
@@ -441,8 +449,9 @@ func (q *Queries) SelectUserAddresses(ctx context.Context, dollar_1 []int32) ([]
 }
 
 const selectUsers = `-- name: SelectUsers :many
-SELECT u.id, u.first_name, u.middle_name, u.last_name, u.email, u.favourite_colour, updated_at
+SELECT u.id, u.first_name, u.middle_name, u.last_name, u.email, u.favourite_colour, u.tags, updated_at
 FROM "users" u
+ORDER BY u.id
 LIMIT 30
 `
 
@@ -453,6 +462,7 @@ type SelectUsersRow struct {
 	LastName        string
 	Email           string
 	FavouriteColour ValidColours
+	Tags            []string
 	UpdatedAt       time.Time
 }
 
@@ -472,6 +482,7 @@ func (q *Queries) SelectUsers(ctx context.Context) ([]SelectUsersRow, error) {
 			&i.LastName,
 			&i.Email,
 			&i.FavouriteColour,
+			pq.Array(&i.Tags),
 			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
@@ -488,7 +499,7 @@ func (q *Queries) SelectUsers(ctx context.Context) ([]SelectUsersRow, error) {
 }
 
 const selectWhereInLastNames = `-- name: SelectWhereInLastNames :many
-SELECT id, first_name, middle_name, last_name, email, password, favourite_colour, updated_at FROM users WHERE last_name = ANY($1::text[])
+SELECT id, first_name, middle_name, last_name, email, password, favourite_colour, tags, updated_at FROM users WHERE last_name = ANY($1::text[]) ORDER BY users.id
 `
 
 func (q *Queries) SelectWhereInLastNames(ctx context.Context, lastName []string) ([]User, error) {
@@ -508,6 +519,7 @@ func (q *Queries) SelectWhereInLastNames(ctx context.Context, lastName []string)
 			&i.Email,
 			&i.Password,
 			&i.FavouriteColour,
+			pq.Array(&i.Tags),
 			&i.UpdatedAt,
 		); err != nil {
 			return nil, err

@@ -1,12 +1,13 @@
 -- name: ListDynamicUsers :many
-SELECT id, first_name, middle_name, last_name, email, password, favourite_colour, updated_at
+SELECT id, first_name, middle_name, last_name, email, password, favourite_colour, tags, updated_at
 FROM users
 WHERE (@first_name::text = '' OR first_name ILIKE '%' || @first_name || '%')
   AND (@email::text = '' OR email = LOWER(@email) )
 --   AND (@favourite_colour IS NOT NULL OR favourite_colour = @favourite_colour )
 --   AND (@favourite_colour_present::text = '' OR favourite_colour = @favourite_colour )
 --   AND (@favourite_colour_present::valid_colours = '' OR favourite_colour = @favourite_colour )
-ORDER BY (CASE
+ORDER BY users.id,
+         (CASE
               WHEN @first_name_desc::text = 'first_name' THEN first_name
               WHEN @email_desc::text = 'email' THEN email
 --               WHEN @favourite_colour_desc::text = 'favourite_colour' THEN favourite_colour
@@ -32,12 +33,12 @@ VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *;
 
 -- name: GetUser :one
-SELECT id, first_name, middle_name, last_name, email, favourite_colour, updated_at
+SELECT id, first_name, middle_name, last_name, email, favourite_colour, tags, updated_at
 FROM users
 WHERE id = $1;
 
 -- name: ListUsers :many
-SELECT id, first_name, middle_name, last_name, email, favourite_colour, updated_at
+SELECT id, first_name, middle_name, last_name, email, favourite_colour, tags, updated_at
 FROM users
 ORDER BY id
 LIMIT 30
@@ -76,15 +77,17 @@ ORDER BY c.id;
 select row_to_json(row) from (select * from country_address) row;
 
 -- name: SelectUsers :many
-SELECT u.id, u.first_name, u.middle_name, u.last_name, u.email, u.favourite_colour, updated_at
+SELECT u.id, u.first_name, u.middle_name, u.last_name, u.email, u.favourite_colour, u.tags, updated_at
 FROM "users" u
+ORDER BY u.id
 LIMIT 30;
 
 -- name: SelectUserAddresses :many
 SELECT DISTINCT ua.user_id, ua.address_id
 FROM "addresses" a
          LEFT JOIN "user_addresses" ua ON a.id = ua.address_id
-WHERE ua.user_id = ANY($1::int[]);
+WHERE ua.user_id = ANY($1::int[])
+ORDER BY ua.user_id, ua.address_id;
 
 -- name: SelectAddress :many
 SELECT a.*
@@ -92,7 +95,7 @@ FROM addresses a
 WHERE a.id = ANY($1::int[]);
 
 -- name: SelectWhereInLastNames :many
-SELECT * FROM users WHERE last_name = ANY(@last_name::text[]);
+SELECT * FROM users WHERE last_name = ANY(@last_name::text[]) ORDER BY users.id;
 
 
 -- name: ListM2MOneQuery :many
@@ -101,6 +104,7 @@ SELECT u.id,
        u.middle_name,
        u.last_name,
        u.email,
+       u.tags,
        u.favourite_colour,
        array_to_json(array_agg(row_to_json(a.*))) AS addresses
 FROM addresses a

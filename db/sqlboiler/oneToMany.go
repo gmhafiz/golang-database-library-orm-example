@@ -2,10 +2,10 @@ package sqlboiler
 
 import (
 	"context"
-	"godb/db"
 
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 
+	"godb/db"
 	"godb/db/sqlboiler/models"
 )
 
@@ -13,6 +13,7 @@ func (r *database) Countries(ctx context.Context) ([]*db.CountryResponseWithAddr
 	countries, err := models.Countries(
 		qm.Load(models.CountryRels.Addresses),
 		qm.Limit(30),
+		qm.OrderBy(models.CountryTableColumns.ID),
 	).
 		All(ctx, r.db)
 	if err != nil {

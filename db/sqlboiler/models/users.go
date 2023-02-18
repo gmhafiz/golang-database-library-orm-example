@@ -19,19 +19,21 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"github.com/volatiletech/sqlboiler/v4/queries/qmhelper"
+	"github.com/volatiletech/sqlboiler/v4/types"
 	"github.com/volatiletech/strmangle"
 )
 
 // User is an object representing the database table.
 type User struct {
-	ID              int64       `boil:"id" json:"id" toml:"id" yaml:"id"`
-	FirstName       string      `boil:"first_name" json:"first_name" toml:"first_name" yaml:"first_name"`
-	MiddleName      null.String `boil:"middle_name" json:"middle_name,omitempty" toml:"middle_name" yaml:"middle_name,omitempty"`
-	LastName        string      `boil:"last_name" json:"last_name" toml:"last_name" yaml:"last_name"`
-	Email           string      `boil:"email" json:"email" toml:"email" yaml:"email"`
-	Password        string      `boil:"password" json:"password" toml:"password" yaml:"password"`
-	FavouriteColour null.String `boil:"favourite_colour" json:"favourite_colour,omitempty" toml:"favourite_colour" yaml:"favourite_colour,omitempty"`
-	UpdatedAt       time.Time   `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	ID              int64             `boil:"id" json:"id" toml:"id" yaml:"id"`
+	FirstName       string            `boil:"first_name" json:"first_name" toml:"first_name" yaml:"first_name"`
+	MiddleName      null.String       `boil:"middle_name" json:"middle_name,omitempty" toml:"middle_name" yaml:"middle_name,omitempty"`
+	LastName        string            `boil:"last_name" json:"last_name" toml:"last_name" yaml:"last_name"`
+	Email           string            `boil:"email" json:"email" toml:"email" yaml:"email"`
+	Password        string            `boil:"password" json:"password" toml:"password" yaml:"password"`
+	FavouriteColour string            `boil:"favourite_colour" json:"favourite_colour" toml:"favourite_colour" yaml:"favourite_colour"`
+	Tags            types.StringArray `boil:"tags" json:"tags" toml:"tags" yaml:"tags"`
+	UpdatedAt       time.Time         `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *userR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L userL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -45,6 +47,7 @@ var UserColumns = struct {
 	Email           string
 	Password        string
 	FavouriteColour string
+	Tags            string
 	UpdatedAt       string
 }{
 	ID:              "id",
@@ -54,6 +57,7 @@ var UserColumns = struct {
 	Email:           "email",
 	Password:        "password",
 	FavouriteColour: "favourite_colour",
+	Tags:            "tags",
 	UpdatedAt:       "updated_at",
 }
 
@@ -65,6 +69,7 @@ var UserTableColumns = struct {
 	Email           string
 	Password        string
 	FavouriteColour string
+	Tags            string
 	UpdatedAt       string
 }{
 	ID:              "users.id",
@@ -74,10 +79,32 @@ var UserTableColumns = struct {
 	Email:           "users.email",
 	Password:        "users.password",
 	FavouriteColour: "users.favourite_colour",
+	Tags:            "users.tags",
 	UpdatedAt:       "users.updated_at",
 }
 
 // Generated where
+
+type whereHelpertypes_StringArray struct{ field string }
+
+func (w whereHelpertypes_StringArray) EQ(x types.StringArray) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.EQ, x)
+}
+func (w whereHelpertypes_StringArray) NEQ(x types.StringArray) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.NEQ, x)
+}
+func (w whereHelpertypes_StringArray) LT(x types.StringArray) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpertypes_StringArray) LTE(x types.StringArray) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpertypes_StringArray) GT(x types.StringArray) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpertypes_StringArray) GTE(x types.StringArray) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
 
 type whereHelpertime_Time struct{ field string }
 
@@ -107,7 +134,8 @@ var UserWhere = struct {
 	LastName        whereHelperstring
 	Email           whereHelperstring
 	Password        whereHelperstring
-	FavouriteColour whereHelpernull_String
+	FavouriteColour whereHelperstring
+	Tags            whereHelpertypes_StringArray
 	UpdatedAt       whereHelpertime_Time
 }{
 	ID:              whereHelperint64{field: "\"users\".\"id\""},
@@ -116,7 +144,8 @@ var UserWhere = struct {
 	LastName:        whereHelperstring{field: "\"users\".\"last_name\""},
 	Email:           whereHelperstring{field: "\"users\".\"email\""},
 	Password:        whereHelperstring{field: "\"users\".\"password\""},
-	FavouriteColour: whereHelpernull_String{field: "\"users\".\"favourite_colour\""},
+	FavouriteColour: whereHelperstring{field: "\"users\".\"favourite_colour\""},
+	Tags:            whereHelpertypes_StringArray{field: "\"users\".\"tags\""},
 	UpdatedAt:       whereHelpertime_Time{field: "\"users\".\"updated_at\""},
 }
 
@@ -141,9 +170,9 @@ func (*userR) NewStruct() *userR {
 type userL struct{}
 
 var (
-	userAllColumns            = []string{"id", "first_name", "middle_name", "last_name", "email", "password", "favourite_colour", "updated_at"}
+	userAllColumns            = []string{"id", "first_name", "middle_name", "last_name", "email", "password", "favourite_colour", "tags", "updated_at"}
 	userColumnsWithoutDefault = []string{"first_name", "middle_name", "last_name", "email", "password"}
-	userColumnsWithDefault    = []string{"id", "favourite_colour", "updated_at"}
+	userColumnsWithDefault    = []string{"id", "favourite_colour", "tags", "updated_at"}
 	userPrimaryKeyColumns     = []string{"id"}
 )
 

@@ -47,10 +47,7 @@ func (r *database) Transaction(ctx context.Context, id int64, req db.UserUpdateR
 	}
 	user.LastName = req.LastName
 	user.Email = req.Email
-	user.FavouriteColour = null.String{
-		String: req.FavouriteColour,
-		Valid:  req.FavouriteColour != "",
-	}
+	user.FavouriteColour = req.FavouriteColour
 
 	// Ignore number of affected rows with underscore
 	_, err = user.Update(ctx, tx, boil.Infer())
@@ -93,10 +90,7 @@ func (r *database) TransactionUsingHelper(ctx context.Context, id int64, req db.
 		}
 		user.LastName = req.LastName
 		user.Email = req.Email
-		user.FavouriteColour = null.String{
-			String: req.FavouriteColour,
-			Valid:  req.FavouriteColour != "",
-		}
+		user.FavouriteColour = req.FavouriteColour
 
 		// Ignore number of affected rows with underscore
 		_, err = user.Update(ctx, tx, boil.Infer())

@@ -18,6 +18,7 @@ func (Address) Fields() []ent.Field {
 		field.String("line_1"),
 		field.String("line_2").Nillable().Optional(),
 		field.Int("postcode"),
+		field.String("city"),
 		field.String("state"),
 	}
 }

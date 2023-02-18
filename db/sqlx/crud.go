@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -16,7 +17,7 @@ import (
 )
 
 const (
-	insert      = "INSERT INTO users (first_name, middle_name, last_name, email, password, favourite_colour) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, first_name, middle_name, last_name, email, favourite_colour, updated_at"
+	insert      = "INSERT INTO users (first_name, middle_name, last_name, email, password, favourite_colour) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, first_name, middle_name, last_name, email, favourite_colour, tags, updated_at"
 	list        = "SELECT * FROM users ORDER BY id LIMIT 30 OFFSET 0;"
 	get         = "SELECT * FROM users WHERE id = $1;"
 	update      = "UPDATE users set first_name=$1, middle_name=$2, last_name=$3, email=$4, favourite_colour=$5 WHERE id=$6;"
@@ -50,6 +51,7 @@ func (r *repository) Create(ctx context.Context, request *db.CreateUserRequest, 
 		&u.LastName,
 		&u.Email,
 		&u.FavouriteColour,
+		&u.Tags,
 		&u.UpdatedAt,
 	)
 	if err != nil {
@@ -102,7 +104,8 @@ func (r *repository) List(ctx context.Context, f *db.Filter) (users []*db.UserRe
 			LastName:        u.LastName,
 			Email:           u.Email,
 			FavouriteColour: u.FavouriteColour,
-			UpdatedAt:       u.UpdatedAt.String(),
+			Tags:            u.Tags,
+			UpdatedAt:       u.UpdatedAt.Format(time.RFC3339),
 		})
 	}
 	return users, nil
@@ -126,7 +129,8 @@ func (r *repository) Get(ctx context.Context, userID int64) (*db.UserResponse, e
 		LastName:        u.LastName,
 		Email:           u.Email,
 		FavouriteColour: u.FavouriteColour,
-		UpdatedAt:       u.UpdatedAt.String(),
+		Tags:            u.Tags,
+		UpdatedAt:       u.UpdatedAt.Format(time.RFC3339),
 	}, nil
 }
 
@@ -187,7 +191,8 @@ func (r *repository) ListFilterWhereIn(ctx context.Context, f *db.Filter) (users
 			LastName:        val.LastName,
 			Email:           val.Email,
 			FavouriteColour: val.FavouriteColour,
-			UpdatedAt:       val.UpdatedAt.String(),
+			Tags:            val.Tags,
+			UpdatedAt:       val.UpdatedAt.Format(time.RFC3339),
 		})
 	}
 
@@ -239,7 +244,8 @@ func withPrepared(ctx context.Context, r *repository) (users []*db.UserResponse,
 			LastName:        u.LastName,
 			Email:           u.Email,
 			FavouriteColour: u.FavouriteColour,
-			UpdatedAt:       u.UpdatedAt.String(),
+			Tags:            u.Tags,
+			UpdatedAt:       u.UpdatedAt.Format(time.RFC3339),
 		})
 	}
 	return users, nil

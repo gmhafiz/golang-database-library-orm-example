@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 
 	"godb/db"
 	"godb/respond/message"
@@ -26,11 +28,11 @@ func (r repository) Create(ctx context.Context, f *db.Filter, request *db.Create
 	query := r.db.Insert("users").
 		Columns("first_name", "middle_name", "last_name", "email", "password", "favourite_colour").
 		Values(request.FirstName, request.MiddleName, request.LastName, request.Email, hash, request.FavouriteColour).
-		Suffix(`RETURNING "id", "first_name", "middle_name", "last_name", "email", "favourite_colour"`)
+		Suffix(`RETURNING "id", "first_name", "middle_name", "last_name", "email", "favourite_colour", "tags", "updated_at"`)
 
 	err := query.
 		QueryRowContext(ctx).
-		Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email, &u.FavouriteColour)
+		Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email, &u.FavouriteColour, &u.Tags, &u.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -82,11 +84,13 @@ func (r repository) List(ctx context.Context, f *db.Filter) (users []*db.UserRes
 			&u.Email,
 			&u.Password,
 			&u.FavouriteColour,
+			pq.Array(&u.Tags),
 			&u.UpdatedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("db scanning error")
 		}
+
 		users = append(users, &db.UserResponse{
 			ID:              u.ID,
 			FirstName:       u.FirstName,
@@ -94,7 +98,8 @@ func (r repository) List(ctx context.Context, f *db.Filter) (users []*db.UserRes
 			LastName:        u.LastName,
 			Email:           u.Email,
 			FavouriteColour: u.FavouriteColour,
-			UpdatedAt:       u.UpdatedAt.String(),
+			Tags:            u.Tags,
+			UpdatedAt:       u.UpdatedAt.Format(time.RFC3339),
 		})
 	}
 
@@ -109,7 +114,7 @@ func (r repository) Get(ctx context.Context, userID int64) (*db.UserResponse, er
 		QueryRowContext(ctx)
 
 	var u db.UserDB
-	err := rows.Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email, &u.Password, &u.FavouriteColour, &u.UpdatedAt)
+	err := rows.Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email, &u.Password, &u.FavouriteColour, &u.Tags, &u.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return &db.UserResponse{}, &db.Err{Msg: message.ErrRecordNotFound.Error(), Status: http.StatusNotFound}
@@ -125,7 +130,8 @@ func (r repository) Get(ctx context.Context, userID int64) (*db.UserResponse, er
 		LastName:        u.LastName,
 		Email:           u.Email,
 		FavouriteColour: u.FavouriteColour,
-		UpdatedAt:       u.UpdatedAt.String(),
+		Tags:            u.Tags,
+		UpdatedAt:       u.UpdatedAt.Format(time.RFC3339),
 	}, nil
 }
 
@@ -199,6 +205,8 @@ func (r repository) ListFilterWhereIn(ctx context.Context, f *db.Filter) (users 
 			&u.Email,
 			&u.Password,
 			&u.FavouriteColour,
+			&u.Tags,
+			&u.UpdatedAt,
 		)
 		if err != nil {
 			return nil, err
@@ -214,7 +222,8 @@ func (r repository) ListFilterWhereIn(ctx context.Context, f *db.Filter) (users 
 			LastName:        val.LastName,
 			Email:           val.Email,
 			FavouriteColour: val.FavouriteColour,
-			UpdatedAt:       val.UpdatedAt.String(),
+			Tags:            val.Tags,
+			UpdatedAt:       val.UpdatedAt.Format(time.RFC3339),
 		})
 	}
 

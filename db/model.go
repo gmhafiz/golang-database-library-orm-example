@@ -4,16 +4,17 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
+	"github.com/lib/pq"
 	"time"
 )
 
 type AddressForCountry struct {
-	ID       uint   `json:"id,omitempty"`
-	Line1    string `json:"line_1,omitempty"`
-	Line2    string `json:"line_2,omitempty"`
-	Postcode int32  `json:"postcode,omitempty"`
-	City     string `json:"city,omitempty"`
-	State    string `json:"state,omitempty"`
+	ID       uint   `json:"id"`
+	Line1    string `json:"line_1"`
+	Line2    string `json:"line_2"`
+	Postcode int32  `json:"postcode"`
+	City     string `json:"city"`
+	State    string `json:"state"`
 }
 
 type AddressDB struct {
@@ -41,6 +42,7 @@ type UserDB struct {
 	Email           string         `db:"email"`
 	Password        SecretString   `db:"password"`
 	FavouriteColour string         `db:"favourite_colour"`
+	Tags            pq.StringArray `db:"tags"`
 	UpdatedAt       time.Time      `db:"updated_at"`
 }
 
@@ -68,13 +70,14 @@ func (s SecretString) MarshalJSON() ([]byte, error) {
 }
 
 type UserResponseWithAddressesSqlxSingleQuery struct {
-	ID              uint            `json:"id,omitempty" db:"id"`
-	FirstName       string          `json:"first_name,omitempty" db:"first_name"`
-	MiddleName      string          `json:"middle_name,omitempty" db:"middle_name"`
-	LastName        string          `json:"last_name,omitempty" db:"last_name"`
-	Email           string          `json:"email,omitempty" db:"email"`
-	FavouriteColour string          `json:"favourite_colour,omitempty" db:"favourite_colour"`
-	UpdatedAt       string          `json:"updated_at,omitempty" db:"updated_at"`
+	ID              uint            `json:"id" db:"id"`
+	FirstName       string          `json:"first_name" db:"first_name"`
+	MiddleName      string          `json:"middle_name" db:"middle_name"`
+	LastName        string          `json:"last_name" db:"last_name"`
+	Email           string          `json:"email" db:"email"`
+	FavouriteColour string          `json:"favourite_colour" db:"favourite_colour"`
+	Tags            []string        `json:"tags" db:"tags"`
+	UpdatedAt       string          `json:"updated_at" db:"updated_at"`
 	Address         json.RawMessage `json:"addresses" db:"addresses"`
 }
 

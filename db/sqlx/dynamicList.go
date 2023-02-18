@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"godb/db"
 )
@@ -74,7 +75,8 @@ func (r *repository) ListFilterByColumn(ctx context.Context, filters *db.Filter)
 			LastName:        u.LastName,
 			Email:           u.Email,
 			FavouriteColour: u.FavouriteColour,
-			UpdatedAt:       u.UpdatedAt.String(),
+			Tags:            u.Tags,
+			UpdatedAt:       u.UpdatedAt.Format(time.RFC3339),
 		})
 	}
 
@@ -83,7 +85,7 @@ func (r *repository) ListFilterByColumn(ctx context.Context, filters *db.Filter)
 
 func (r *repository) ListFilterSort(ctx context.Context, filters *db.Filter) (users []*db.UserResponse, err error) {
 	selectClause := "SELECT * FROM users "
-	paginateClause := " LIMIT 1 OFFSET 0;"
+	paginateClause := " LIMIT 10 OFFSET 0;"
 	sortClauses := ""
 
 	fullQuery := selectClause
@@ -126,7 +128,8 @@ func (r *repository) ListFilterSort(ctx context.Context, filters *db.Filter) (us
 			LastName:        u.LastName,
 			Email:           u.Email,
 			FavouriteColour: u.FavouriteColour,
-			UpdatedAt:       u.UpdatedAt.String(),
+			Tags:            u.Tags,
+			UpdatedAt:       u.UpdatedAt.Format(time.RFC3339),
 		})
 	}
 
@@ -163,7 +166,8 @@ func (r *repository) ListFilterPagination(ctx context.Context, filters *db.Filte
 			LastName:        u.LastName,
 			Email:           u.Email,
 			FavouriteColour: u.FavouriteColour,
-			UpdatedAt:       u.UpdatedAt.String(),
+			Tags:            u.Tags,
+			UpdatedAt:       u.UpdatedAt.Format(time.RFC3339),
 		})
 	}
 

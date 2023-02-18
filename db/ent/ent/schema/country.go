@@ -31,6 +31,6 @@ func (Country) Fields() []ent.Field {
 func (Country) Edges() []ent.Edge {
 	return []ent.Edge{
 		//edge.From("entAddresses", Address.Type).Ref("entCountry").Unique(),
-		edge.To("addresses", Address.Type),
+		edge.To("addresses", Address.Type).StorageKey(edge.Column("country_id")),
 	}
 }

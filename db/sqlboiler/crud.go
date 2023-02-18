@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/samber/lo"
@@ -37,13 +38,10 @@ func (r *database) Create(ctx context.Context, request *db.CreateUserRequest, ha
 			String: request.MiddleName,
 			Valid:  request.MiddleName != "",
 		},
-		LastName: request.LastName,
-		Email:    request.Email,
-		Password: hash,
-		FavouriteColour: null.String{
-			String: request.FavouriteColour,
-			Valid:  request.FavouriteColour != "",
-		},
+		LastName:        request.LastName,
+		Email:           request.Email,
+		Password:        hash,
+		FavouriteColour: request.FavouriteColour,
 	}
 
 	return user, user.Insert(ctx, r.db, boil.Infer())
@@ -81,8 +79,9 @@ func (r *database) List(ctx context.Context, f *db.Filter) ([]*db.UserResponse, 
 			MiddleName:      user.MiddleName.String,
 			LastName:        user.LastName,
 			Email:           user.Email,
-			FavouriteColour: user.FavouriteColour.String,
-			UpdatedAt:       user.UpdatedAt.String(),
+			FavouriteColour: user.FavouriteColour,
+			Tags:            user.Tags,
+			UpdatedAt:       user.UpdatedAt.Format(time.RFC3339),
 		})
 	}
 	return userResponse, nil
@@ -119,10 +118,7 @@ func (r *database) Update(ctx context.Context, id int64, f *db.Filter, req db.Us
 	}
 	user.LastName = req.LastName
 	user.Email = req.Email
-	user.FavouriteColour = null.String{
-		String: req.FavouriteColour,
-		Valid:  req.FavouriteColour != "",
-	}
+	user.FavouriteColour = req.FavouriteColour
 
 	// Ignore number of affected rows with underscore
 	_, err = user.Update(ctx, r.db, boil.Infer())
@@ -203,8 +199,9 @@ func (r *database) ListFilterWhereIn(ctx context.Context, f *db.Filter) (users [
 			MiddleName:      i.MiddleName.String,
 			LastName:        i.LastName,
 			Email:           i.Email,
-			FavouriteColour: i.FavouriteColour.String,
-			UpdatedAt:       i.UpdatedAt.String(),
+			FavouriteColour: i.FavouriteColour,
+			Tags:            i.Tags,
+			UpdatedAt:       i.UpdatedAt.Format(time.RFC3339),
 		})
 	}
 

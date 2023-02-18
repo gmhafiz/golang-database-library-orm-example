@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/lib/pq"
 	"github.com/samber/lo"
 )
 
@@ -32,9 +33,10 @@ type UserWithAddresses struct {
 	LastName        string         `db:"last_name" json:"last_name"`
 	Email           string         `db:"email" json:"email"`
 	FavouriteColour string         `db:"favourite_colour" json:"favourite_colour"`
+	Tags            []string       `db:"tags" json:"tags"`
 	UpdatedAt       string         `db:"updated_at" json:"updated_at"`
 
-	Address []*AddressForCountry `json:"address" json:"address"`
+	Address []*AddressForCountry `db:"address" json:"address"`
 }
 
 type AddressForCountry struct {
@@ -55,6 +57,7 @@ func (r repository) ListM2MRawJSON(ctx context.Context) ([]*CustomM2mStruct, err
 			"users.last_name",
 			"users.email",
 			"users.favourite_colour",
+			"users.tags",
 			"array_to_json(array_agg(row_to_json(a.*))) AS addresses",
 		).
 		From("addresses AS a").
@@ -70,12 +73,13 @@ func (r repository) ListM2MRawJSON(ctx context.Context) ([]*CustomM2mStruct, err
 	for rows.Next() {
 		var rowToJson CustomM2mStruct
 		if err := rows.Scan(
-			&rowToJson.Id,
+			&rowToJson.ID,
 			&rowToJson.FirstName,
 			&rowToJson.MiddleName,
 			&rowToJson.LastName,
 			&rowToJson.Email,
 			&rowToJson.FavouriteColour,
+			&rowToJson.Tags,
 			&rowToJson.Addresses,
 		); err != nil {
 			return nil, err
@@ -88,7 +92,7 @@ func (r repository) ListM2MRawJSON(ctx context.Context) ([]*CustomM2mStruct, err
 
 func (r repository) ListM2M(ctx context.Context) ([]*UserWithAddresses, error) {
 	rows, err := r.db.
-		Select("u.id, u.first_name, u.middle_name, u.last_name, u.email, u.favourite_colour, u.updated_at").
+		Select("u.id, u.first_name, u.middle_name, u.last_name, u.email, u.favourite_colour, u.tags, u.updated_at").
 		From("users u").
 		QueryContext(ctx)
 	defer func(rows *sql.Rows) {
@@ -113,7 +117,7 @@ func (r repository) ListM2M(ctx context.Context) ([]*UserWithAddresses, error) {
 	var userIDs []uint
 	for rows.Next() {
 		u := UserWithAddresses{Address: []*AddressForCountry{}}
-		err := rows.Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email, &u.FavouriteColour, &u.UpdatedAt)
+		err := rows.Scan(&u.ID, &u.FirstName, &u.MiddleName, &u.LastName, &u.Email, &u.FavouriteColour, &u.Tags, &u.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -204,12 +208,13 @@ func (r repository) ListM2M(ctx context.Context) ([]*UserWithAddresses, error) {
 }
 
 type CustomM2mStruct struct {
-	Id              int             `json:"id" db:"id"`
+	ID              int             `json:"id" db:"id"`
 	FirstName       string          `json:"first_name" db:"first_name"`
 	MiddleName      any             `json:"middle_name" db:"middle_name"`
 	LastName        string          `json:"last_name" db:"last_name"`
 	Email           string          `json:"email" db:"email"`
 	FavouriteColour string          `json:"favourite_colour" db:"favourite_colour"`
+	Tags            pq.StringArray  `json:"tags" db:"tags"`
 	Addresses       json.RawMessage `json:"addresses" db:"addresses"`
 }
 

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/alexedwards/argon2id"
 	"github.com/go-chi/chi/v5"
@@ -79,7 +80,8 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		LastName:        u.LastName,
 		Email:           u.Email,
 		FavouriteColour: u.FavouriteColour,
-		UpdatedAt:       u.UpdatedAt.String(),
+		Tags:            u.Tags,
+		UpdatedAt:       u.UpdatedAt.Format(time.RFC3339),
 	})
 }
 
@@ -162,6 +164,7 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		LastName:        u.LastName,
 		Email:           u.Email,
 		FavouriteColour: u.FavouriteColour,
+		Tags:            u.Tags,
 		UpdatedAt:       u.UpdatedAt,
 	})
 }

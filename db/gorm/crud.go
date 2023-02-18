@@ -31,6 +31,7 @@ func (r *repo) Create(ctx context.Context, u *db.CreateUserRequest, hash string)
 		LastName:        u.LastName,
 		Email:           u.Email,
 		Password:        hash,
+		Tags:            u.Tags,
 		FavouriteColour: u.FavouriteColour,
 	}
 
@@ -58,8 +59,7 @@ func (r *repo) List(ctx context.Context, f *db.Filter) ([]*User, error) {
 
 	var users []*User
 	err := r.db.Debug().WithContext(ctx).
-		//Select([]string{"id", "first_name", "middle_name", "last_name", "email", "favourite_colour"}).
-		Select("id", "first_name", "middle_name", "last_name", "email", "favourite_colour").
+		Select("id", "first_name", "middle_name", "last_name", "email", "tags", "favourite_colour").
 		Limit(f.Base.Limit).
 		Offset(f.Base.Offset).
 		Order("id").

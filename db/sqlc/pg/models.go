@@ -60,6 +60,7 @@ type User struct {
 	Email           string
 	Password        string
 	FavouriteColour ValidColours
+	Tags            []string
 	UpdatedAt       time.Time
 }
 
